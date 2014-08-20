@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import MagicMock
-from src.puzzle import Puzzle
-from src.puzzle import Validator
+from src.puzzle import *
 
 class MockGrid:
 	pass
@@ -84,3 +83,32 @@ class TestValidator(unittest.TestCase):
 	def test_gridValidIfThereIsNoDuplicationExistInAnyZone(self):
 		self.assertTrue(self.validator.validate(self.grid))
 
+class TestCandidates(unittest.TestCase):
+	def setUp(self):
+		self.candidatesGen = CandidatesGen([1, 2, 3, 4])
+		self.grid = MockGrid()
+
+	def test_candidatesIs4WhenSuroundingsAre123(self):
+		self.grid.emptyCellSurounding = MagicMock(return_value=[1, 2, 3])
+		self.assertEquals([4], self.candidatesGen.getCandidates(self.grid))
+
+	def test_candidatesIsEmptyListWhenSuroundingsAre1234(self):
+		self.grid.emptyCellSurounding = MagicMock(return_value=[1, 2, 3, 4])
+		self.assertEquals([], self.candidatesGen.getCandidates(self.grid))
+
+	def test_candidatesIs1234WhenSuroundingsAreEmpty(self):
+		self.grid.emptyCellSurounding = MagicMock(return_value=[])
+		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidates(self.grid))
+
+class TestGrid(unittest.TestCase):
+	def test_GridGetAllRows(self):
+		_ = Grid.EmptySign
+		OneOneGrid = type('OneOneGrid', (Grid, ), {'bw':1, 'bh':1})
+		self.grid = OneOneGrid([[1, _], [3, 4]])
+		self.assertEquals([[1], [3, 4]], self.grid.allRows())
+
+	def test_GridGetAllColumns(self):
+		_ = Grid.EmptySign
+		OneOneGrid = type('OneOneGrid', (Grid, ), {'bw':1, 'bh':1})
+		self.grid = OneOneGrid([[1, _], [3, 4]])
+		self.assertEquals([[1, 3], [4]], self.grid.allColumns())
