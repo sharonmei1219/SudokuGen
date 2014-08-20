@@ -17,7 +17,11 @@ class Puzzle():
 
 class Validator:
 	def validate(self, grid):
-		pass
+		zones = grid.allRows()
+		zones.extend(grid.allColumns())
+		zones.extend(grid.allBlocks())
+		return all(not self.detectDuplication(zone) for zone in zones)
+
 
 	def detectDuplication(self, numberList):
 		counter = Counter(numberList)

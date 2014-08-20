@@ -55,11 +55,32 @@ class TestPuzzle(unittest.TestCase):
 		self.grid.fill.assert_called_once_with(1)
 
 class TestValidator(unittest.TestCase):
-	def test_duplicationDetection(self):
+	def setUp(self):
 		self.validator = Validator()
+		self.grid = MockGrid()
+		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 4]])
+		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 4]])
+		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 4]])
+
+	def test_duplicationDetection(self):
 		self.assertTrue(self.validator.detectDuplication([1, 1, 2]))
 		self.assertFalse(self.validator.detectDuplication([1, 2]))
 		self.assertFalse(self.validator.detectDuplication([]))
-		pass
 
-	pass
+	def test_gridNotValideIfDuplicationExistInARow(self):
+		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 3]])
+		self.assertFalse(self.validator.validate(self.grid))
+		self.grid.allRows.assert_called_once_with()
+
+
+	def test_gridNotValidIfDuplicationExistInColumn(self):
+		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 3]])
+		self.assertFalse(self.validator.validate(self.grid))
+
+	def test_gridNotValidIfDuplicationExistInBlock(self):
+		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 3]])
+		self.assertFalse(self.validator.validate(self.grid))
+
+	def test_gridValidIfThereIsNoDuplicationExistInAnyZone(self):
+		self.assertTrue(self.validator.validate(self.grid))
+
