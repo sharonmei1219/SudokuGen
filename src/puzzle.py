@@ -25,22 +25,6 @@ class Puzzle():
 	def toString(self):
 		return self.grid.toString()
 
-	# this empty puzzle is used to generate sudoku table
-	# its candidates are in random sequence so as to generate random table
-	def empty99Puzzle():
-		grid = ThreeThreeGrid([[_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _],
-							   [_, _, _, _, _, _, _, _, _]])
-		candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4, 5, 6, 7, 8, 9]))
-		validator = Validator()
-		return Puzzle(grid, validator, candidatesGen)
-
 class Validator:
 	def validate(self, grid):
 		zones = reduce(operator.add, [grid.allRows(), grid.allColumns(), grid.allBlocks()])
@@ -149,3 +133,19 @@ class Grid:
 
 ThreeThreeGrid = type('ThreeThreeGrid', (Grid, ), {'bw':3, 'bh':3})
 _ = Grid.EmptySign
+
+# this empty puzzle is used to generate sudoku table
+# its candidates are in random sequence so as to generate random table
+def empty99Puzzle():
+	grid = ThreeThreeGrid([[_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _],
+						   [_, _, _, _, _, _, _, _, _]])
+	candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4, 5, 6, 7, 8, 9]))
+	validator = Validator()
+	return Puzzle(grid, validator, candidatesGen)
