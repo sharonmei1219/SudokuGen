@@ -125,3 +125,13 @@ class TestGrid(unittest.TestCase):
 			                 [3, 3, 4, 4]])
 		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], grid.allBlocks())
 		pass
+	def test_GridGetBlock(self):
+		_ = Grid.EmptySign
+		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
+		grid = TwoThreeGrid([[1, 1, 2, 2],
+			                 [1, 1, _, _],
+			                 [_, _, 2, 2],
+			                 [_, 3, _, 4],
+			                 [3, _, 4, _],
+			                 [3, 3, 4, 4]])
+		self.assertEquals([1, 1, 1, 1], grid.block(2, 1))		

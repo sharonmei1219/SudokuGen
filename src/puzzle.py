@@ -62,3 +62,16 @@ class Grid:
 		blockMatrix = [matrixOfBlockColumns[i:i+self.bw] for i in range(0, len(matrixOfBlockColumns), self.bw)]
 		blockMatrix = [reduce(operator.add, block) for block in blockMatrix]
 		return [self.nonEmptyNumberIn(row) for row in blockMatrix]
+
+	def block(self, i, j):
+		left, right, top, bottom = self.blockArea(i, j)
+		blc = [row[left: right] for row in self.matrix[top:bottom]]
+		blc = reduce(operator.add, blc)
+		return self.nonEmptyNumberIn(blc)
+
+	def blockArea(self, i, j):
+		left = j - j % self.bw
+		right = left + self.bw
+		top = i - i % self.bh
+		bottom = top + self.bh
+		return left, right, top, bottom
