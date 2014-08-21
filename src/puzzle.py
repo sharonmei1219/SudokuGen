@@ -56,12 +56,8 @@ class Grid:
 		return [list(column) for column in list(zip(*matrix))]
 
 	def allBlocks(self):
-		groupedRows = [self.matrix[i:i+self.bh] for i in range(0, len(self.matrix), self.bh)]
-		smallColumnsInBlock = [self.transMatrix(gRow) for gRow in groupedRows]
-		matrixOfBlockColumns = reduce(operator.add, smallColumnsInBlock)
-		blockMatrix = [matrixOfBlockColumns[i:i+self.bw] for i in range(0, len(matrixOfBlockColumns), self.bw)]
-		blockMatrix = [reduce(operator.add, block) for block in blockMatrix]
-		return [self.nonEmptyNumberIn(row) for row in blockMatrix]
+		blocks = [[self.block(i, j) for j in range(0, len(self.matrix[i]), self.bw)] for i in range(0, len(self.matrix), self.bh)]
+		return reduce(operator.add, blocks) #flatten blocks
 
 	def block(self, i, j):
 		left, right, top, bottom = self.blockArea(i, j)
@@ -75,3 +71,7 @@ class Grid:
 		top = i - i % self.bh
 		bottom = top + self.bh
 		return left, right, top, bottom
+
+	def full(self):
+		rowFull = [all(mem is not self.EmptySign for mem in row) for row in self.matrix]
+		return all(rowIsFull for rowIsFull in rowFull)

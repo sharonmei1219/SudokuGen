@@ -114,24 +114,31 @@ class TestGrid(unittest.TestCase):
 	def test_GridGetAllColumns(self):
 		self.assertEquals([[1, 3], [4]], self.grid.allColumns())
 
-	def test_GridGetAllBlocks(self):
+	def test_GridIsNotFullWhenThereIsEmptyCell(self):
+		self.assertFalse(self.grid.full())
+
+	def test_GridIsFull(self):
+		self.grid = self.OneOneGrid([[1, 2], [3, 4]])
+		self.assertTrue(self.grid.full())
+
+
+class TestBlockInGrid(unittest.TestCase):
+	def setUp(self):
 		_ = Grid.EmptySign
 		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
-		grid = TwoThreeGrid([[1, 1, 2, 2],
-			                 [1, 1, _, _],
-			                 [_, _, 2, 2],
-			                 [_, 3, _, 4],
-			                 [3, _, 4, _],
-			                 [3, 3, 4, 4]])
-		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], grid.allBlocks())
-		pass
+		self.grid = TwoThreeGrid([[1, 1, 2, 2],
+			 	                  [1, 1, _, _],
+			      	              [_, _, 2, 2],
+			           		      [_, 3, _, 4],
+			                	  [3, _, 4, _],
+			                 	  [3, 3, 4, 4]])
+
 	def test_GridGetBlock(self):
-		_ = Grid.EmptySign
-		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
-		grid = TwoThreeGrid([[1, 1, 2, 2],
-			                 [1, 1, _, _],
-			                 [_, _, 2, 2],
-			                 [_, 3, _, 4],
-			                 [3, _, 4, _],
-			                 [3, 3, 4, 4]])
-		self.assertEquals([1, 1, 1, 1], grid.block(2, 1))		
+		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1))
+		self.assertEquals([2, 2, 2, 2], self.grid.block(2, 2))
+		self.assertEquals([3, 3, 3, 3], self.grid.block(5, 0))
+		self.assertEquals([4, 4, 4, 4], self.grid.block(3, 2))
+
+	def test_GridGetAllBlocks(self):
+		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks())
+
