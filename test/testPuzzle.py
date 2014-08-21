@@ -121,12 +121,17 @@ class TestGrid(unittest.TestCase):
 		self.grid = self.OneOneGrid([[1, 2], [3, 4]])
 		self.assertTrue(self.grid.full())
 
+	def test_fillInAFullGrid(self):
+		grid = self.OneOneGrid([[1, 2], [3, 4]])
+		newGrid = grid.fill(6)
+		self.assertEquals([[1, 2], [3, 4]], newGrid.allRows())
+
 
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
 		_ = Grid.EmptySign
-		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
-		self.grid = TwoThreeGrid([[1, 1, 2, 2],
+		self.TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
+		self.grid = self.TwoThreeGrid([[1, 1, 2, 2],
 			 	                  [1, 1, _, _],
 			      	              [_, _, 2, 2],
 			           		      [_, 3, _, 4],
@@ -141,4 +146,22 @@ class TestBlockInGrid(unittest.TestCase):
 
 	def test_GridGetAllBlocks(self):
 		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks())
+
+	def test_GridFill(self):
+		newGrid = self.grid.fill(2)
+		self.assertEquals([2, 2, 2, 2], self.grid.block(2, 2))
+		self.assertEquals([2, 2, 2, 2, 2], newGrid.block(2, 2))
+		self.assertEquals([1, 1, 2], newGrid.allRows()[1])
+		newGrid = newGrid.fill(3)
+		self.assertEquals([1, 1, 2, 3], newGrid.allRows()[1])
+
+	def test_emptyCellSurounding(self):
+		_ = Grid.EmptySign
+		grid = self.TwoThreeGrid([[1, 2, 0, 0],
+			 	                  [3, 4, 0, 0],
+			      	              [5, _, _, 6],
+			           		      [_, 7, _, _],
+			                	  [_, _, _, _],
+			                 	  [_, _, _, _]])
+		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.emptyCellSurounding())
 

@@ -75,3 +75,32 @@ class Grid:
 	def full(self):
 		rowFull = [all(mem is not self.EmptySign for mem in row) for row in self.matrix]
 		return all(rowIsFull for rowIsFull in rowFull)
+
+	# fill means fill number in the first empty cell found
+	# after fill, there comes new grid
+	def fill(self, number):
+		newMatrix = [list(row) for row in self.matrix]
+
+		if self.full():
+			return type(self)(newMatrix)
+
+		i, j = self.findEmptyCell()
+		newMatrix[i][j] = number
+		return type(self)(newMatrix)
+
+	# findEmptyCell only find the first empty cell
+	def findEmptyCell(self):
+		for i in range(0, len(self.matrix)):
+			for j in range(0, len(self.matrix[i])):
+				if self.matrix[i][j] is self.EmptySign:
+					return i, j
+
+	def row(self, i):
+		return self.nonEmptyNumberIn(self.matrix[i])
+
+	def column(self, j):
+		return self.nonEmptyNumberIn(self.transMatrix(self.matrix)[j])
+
+	def emptyCellSurounding(self):
+		i, j = self.findEmptyCell()
+		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
