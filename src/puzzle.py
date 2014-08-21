@@ -1,6 +1,8 @@
 from collections import Counter
-import operator
 from functools import reduce
+import operator
+import random
+import json
 
 class Puzzle():
 	def __init__(self, grid, validator, candidates):
@@ -15,8 +17,29 @@ class Puzzle():
 		return self.candidatesGen.getCandidates(self.grid)
 
 	def fill(self, number):
-		return Puzzle(self.grid.fill(number), self.validator, self.candidates)
+		return Puzzle(self.grid.fill(number), self.validator, self.candidatesGen)
 
+	def clone(self):
+		return Puzzle(self.grid.clone(), self.validator, self.candidatesGen)
+
+	def toString(self):
+		return self.grid.toString()
+
+	# this empty puzzle is used to generate sudoku table
+	# its candidates are in random sequence so as to generate random table
+	def empty99Puzzle():
+		grid = ThreeThreeGrid([[_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _],
+							   [_, _, _, _, _, _, _, _, _]])
+		candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4, 5, 6, 7, 8, 9]))
+		validator = Validator()
+		return Puzzle(grid, validator, candidatesGen)
 
 class Validator:
 	def validate(self, grid):
@@ -26,7 +49,6 @@ class Validator:
 	def detectDuplication(self, numberList):
 		counter = Counter(numberList)
 		return not all(counter[number] == 1 for number in counter)
-
 
 class CandidatesGen:
 	def __init__(self, candidatesList):
@@ -38,6 +60,19 @@ class CandidatesGen:
 	def subList(self, list1, list2):
 		return [number for number in list1 if number not in list2]
 
+class RandomSeqCandidatesDecorator:
+	def __init__(self, candidatesGen):
+		self.candidatesGen = candidatesGen
+
+	def getCandidates(self, grid):
+		candidates = list(self.candidatesGen.getCandidates(grid))
+		candidatesCount = len(self.candidatesGen.getCandidates(grid))
+		result = []
+		for i in range(0, candidatesCount):
+			r = random.randint(0, candidatesCount - i - 1)
+			result.append(candidates[r])
+			del candidates[r]
+		return result
 
 class Grid:
 	EmptySign = '/'
@@ -47,10 +82,10 @@ class Grid:
 		self.matrix = matrix
 
 	def allRows(self):
-		return [self.nonEmptyNumberIn(row) for row in self.matrix]
+		return [self.row(i) for i in range(0, len(self.matrix))]
 
 	def allColumns(self):
-		return [self.nonEmptyNumberIn(row) for row in self.transMatrix(self.matrix)]
+		return [self.column(j) for j in range(0, len(self.transMatrix(self.matrix)))]
 
 	def transMatrix(self, matrix):
 		return [list(column) for column in list(zip(*matrix))]
@@ -104,3 +139,13 @@ class Grid:
 	def emptyCellSurounding(self):
 		i, j = self.findEmptyCell()
 		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
+
+	def clone(self):
+		newMatrix = [list(row) for row in self.matrix]
+		return type(self)(newMatrix)
+
+	def toString(self):
+		return json.dumps(self.matrix)
+
+ThreeThreeGrid = type('ThreeThreeGrid', (Grid, ), {'bw':3, 'bh':3})
+_ = Grid.EmptySign

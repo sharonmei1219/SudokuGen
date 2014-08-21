@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
+from unittest.mock import call
 from src.puzzle import *
+import random
 
 class MockGrid:
 	pass
@@ -101,6 +103,30 @@ class TestCandidates(unittest.TestCase):
 		self.grid.emptyCellSurounding = MagicMock(return_value=[])
 		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidates(self.grid))
 
+class TestCandidatesInRandomSeq(unittest.TestCase):
+	def setUp(self):
+		candidatesGen = MockCandidates()
+		candidatesGen.getCandidates = MagicMock(return_value=[1, 2, 3])
+		self.randomSeqCandidatesGen = RandomSeqCandidatesDecorator(candidatesGen)
+		self.randint = random.randint
+		self.grid = MockGrid()
+
+	def tearDown(self):
+		random.randint = self.randint
+
+	def test_RandomSeqCandidatesGen(self):
+		random.randint = MagicMock(side_effect=[0, 0, 0])
+		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidates(self.grid))
+		self.assertEquals([call(0, 2), call(0, 1), call(0, 0)], random.randint.mock_calls)
+
+	def test_RandomSeqCandidatesGenReversedSeq(self):
+		random.randint = MagicMock(side_effect=[2, 1, 0])
+		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidates(self.grid))
+
+	def test_RandomSeqCandidatesGenReversedSeq(self):
+		random.randint = MagicMock(side_effect=[1, 1, 0])
+		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidates(self.grid))
+
 
 class TestGrid(unittest.TestCase):
 	def setUp(self):
@@ -165,3 +191,18 @@ class TestBlockInGrid(unittest.TestCase):
 			                 	  [_, _, _, _]])
 		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.emptyCellSurounding())
 
+class TestPuzzleIntegrate(unittest.TestCase):
+	def test_integratePuzzle(self):
+		_ = Grid.EmptySign
+		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
+		grid = TwoThreeGrid([[1, 0, 0, 0],
+			 	             [2, 0, 0, 0],
+			                 [0, _, 3, 4],
+			    		     [0, 0, 0, 0],
+			                 [0, 5, 0, 0],
+			                 [0, 6, 0, 0]])
+		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
+		validator = Validator()
+		puzzle = Puzzle(grid, validator, candidatesGen)
+		self.assertFalse(puzzle.solved())
+		self.assertEquals([7], puzzle.candidates())	

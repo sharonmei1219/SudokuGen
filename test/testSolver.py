@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import call
-from src.solutionFinder import SolutionFinder
-from src.solutionFinder import SolutionsCollector
+from src.solutionFinder import *
+from puzzle import *
+from sudokuTableGen import *
 
 class MockPuzzle:
 	pass
@@ -83,5 +84,39 @@ class TestSolutionFinder(unittest.TestCase):
 		self.solutions.done.assert_called_once_with()
 		self.solutions.record.assert_called_once_with("puzzle_two.clone")
 
-if __name__ == '__main__':
-    unittest.main()
+class TestSolutionCollector(unittest.TestCase):
+	def setUp(self):
+		self.solutionCollector = SolutionsCollector()
+
+	def test_SolutionCollectorNotDoneWhenNoPuzzleIsRecorded(self):
+		self.assertFalse(self.solutionCollector.done())
+
+
+	def test_SolutionCollectorRecordSolution(self):
+		solutionCollector = SolutionsCollector()
+		solutionCollector.record("puzzle")
+		self.assertTrue(solutionCollector.done())
+		self.assertEquals("puzzle", solutionCollector.result())
+
+class TestSolutionFinderIntegration(unittest.TestCase):
+	def test_findSolution(self):
+		_ = Grid.EmptySign
+		TwoTwoGrid = type('TwoTwoGrid', (Grid, ), {'bw':2, 'bh':2})
+		grid = TwoTwoGrid([[_, _, _, _],
+			 	           [_, _, _, _],
+			               [_, _, _, _],
+			               [_, _, _, _]])
+
+		candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4]))
+		validator = Validator()
+		puzzle = Puzzle(grid, validator, candidatesGen)
+
+		solutionCollector = SolutionsCollector()
+		solver = SolutionFinder()
+
+		solver.solve(puzzle, solutionCollector)
+		self.assertTrue(solutionCollector.result().solved())
+
+	# def test_get99Table(self):
+	# 	tableGen = SudokuTableGenerator()
+	# 	self.assertEquals("sharon", tableGen.getTable().toString())	

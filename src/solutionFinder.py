@@ -11,4 +11,15 @@ class SolutionFinder:
 				return
 		
 class SolutionsCollector:
-	pass
+	def __init__(self):
+		self.workDone = False
+
+	def record(self, puzzle):
+		self.puzzle = puzzle
+		self.workDone = True
+
+	def done(self):
+		return self.workDone
+
+	def result(self):
+		return self.puzzle
