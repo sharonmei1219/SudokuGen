@@ -83,6 +83,7 @@ class TestValidator(unittest.TestCase):
 	def test_gridValidIfThereIsNoDuplicationExistInAnyZone(self):
 		self.assertTrue(self.validator.validate(self.grid))
 
+
 class TestCandidates(unittest.TestCase):
 	def setUp(self):
 		self.candidatesGen = CandidatesGen([1, 2, 3, 4])
@@ -100,15 +101,27 @@ class TestCandidates(unittest.TestCase):
 		self.grid.emptyCellSurounding = MagicMock(return_value=[])
 		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidates(self.grid))
 
+
 class TestGrid(unittest.TestCase):
-	def test_GridGetAllRows(self):
+	def setUp(self):
+		self.OneOneGrid = type('OneOneGrid', (Grid, ), {'bw':1, 'bh':1})
 		_ = Grid.EmptySign
-		OneOneGrid = type('OneOneGrid', (Grid, ), {'bw':1, 'bh':1})
-		self.grid = OneOneGrid([[1, _], [3, 4]])
+		self.grid = self.OneOneGrid([[1, _], [3, 4]])
+
+	def test_GridGetAllRows(self):
 		self.assertEquals([[1], [3, 4]], self.grid.allRows())
 
 	def test_GridGetAllColumns(self):
-		_ = Grid.EmptySign
-		OneOneGrid = type('OneOneGrid', (Grid, ), {'bw':1, 'bh':1})
-		self.grid = OneOneGrid([[1, _], [3, 4]])
 		self.assertEquals([[1, 3], [4]], self.grid.allColumns())
+
+	def test_GridGetAllBlocks(self):
+		_ = Grid.EmptySign
+		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
+		grid = TwoThreeGrid([[1, 1, 2, 2],
+			                 [1, 1, _, _],
+			                 [_, _, 2, 2],
+			                 [_, 3, _, 4],
+			                 [3, _, 4, _],
+			                 [3, 3, 4, 4]])
+		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], grid.allBlocks())
+		pass
