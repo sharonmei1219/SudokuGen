@@ -138,6 +138,6 @@ _ = Grid.EmptySign
 # its candidates are in random sequence so as to generate random table
 def empty99Puzzle():
 	grid = ThreeThreeGrid([[_ for i in range(9)] for j in range(9)])
-	candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4, 5, 6, 7, 8, 9]))
+	candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen(range(1, 10)))
 	validator = Validator()
 	return Puzzle(grid, validator, candidatesGen)
