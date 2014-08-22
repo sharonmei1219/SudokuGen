@@ -205,4 +205,4 @@ class TestPuzzleIntegrate(unittest.TestCase):
 		validator = Validator()
 		puzzle = Puzzle(grid, validator, candidatesGen)
 		self.assertFalse(puzzle.solved())
-		self.assertEquals([7], puzzle.candidates())	
+		self.assertEquals([7], puzzle.candidates())

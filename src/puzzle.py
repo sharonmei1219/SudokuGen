@@ -137,15 +137,7 @@ _ = Grid.EmptySign
 # this empty puzzle is used to generate sudoku table
 # its candidates are in random sequence so as to generate random table
 def empty99Puzzle():
-	grid = ThreeThreeGrid([[_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _],
-						   [_, _, _, _, _, _, _, _, _]])
+	grid = ThreeThreeGrid([[_ for i in range(9)] for j in range(9)])
 	candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4, 5, 6, 7, 8, 9]))
 	validator = Validator()
 	return Puzzle(grid, validator, candidatesGen)
