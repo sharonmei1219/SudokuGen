@@ -2,6 +2,9 @@ import unittest
 from puzzleGenerator import *
 from unittest.mock import MagicMock
 from unittest.mock import call
+from puzzle import *
+from solutionFinder import *
+from sudokuTableGen import *
 
 class MockObject:
 	pass
@@ -94,3 +97,27 @@ class TestMultiSolutionCollector(unittest.TestCase):
 		self.collector.record(self.puzzle_2)
 		self.assertTrue(self.collector.done())
 
+class TestPuzzleGeneratorIntegration(unittest.TestCase):
+	# def test_generateASimpleWithOneShot(self):
+	# 	factory = RandomPuzzleFactory(2, 1, 1)
+	# 	solutionFinder = SolutionFinder()
+	# 	solver = MultiSolutionSolver(solutionFinder)
+	# 	puzzleGen = PuzzleGenerator(factory, solver)
+
+	# 	table = factory.creatPuzzleByMatrix([[1, 2], [2, 1]])
+	# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 0)
+
+	# 	self.assertEquals("sharon", puzzle.toString())
+
+	def test_generate99Sudoku(self):
+		tableGen = SudokuTableGenerator()
+		factory = RandomPuzzleFactory(9, 3, 3)
+		solutionFinder = SolutionFinder()
+		solver = MultiSolutionSolver(solutionFinder)
+		puzzleGen = PuzzleGenerator(factory, solver)
+
+		table = tableGen.getTable()
+		puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 33)
+		self.assertEquals("sharon", puzzle.toString())
+
+	pass

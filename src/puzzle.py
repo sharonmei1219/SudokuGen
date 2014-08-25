@@ -28,6 +28,11 @@ class Puzzle():
 	def getNumbersInPos(self, pos):
 		return self.grid.getNumbers(pos)
 
+	def compare(self, theOtherOne):
+		differences = self.grid.compare(theOtherOne.grid)
+		index = random.randint(0, len(differences) - 1)
+		return differences[index]
+
 class Validator:
 	def validate(self, grid):
 		zones = reduce(operator.add, [grid.allRows(), grid.allColumns(), grid.allBlocks()])
@@ -139,6 +144,10 @@ class Grid:
 	def getNumbers(self, pos):
 		return [self.matrix[p[0]][p[1]] for p in pos]
 
+	def compare(self, theOtherGrid):
+		m1, m2 = self.matrix, theOtherGrid.matrix
+		return [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
+
 _ = Grid.EmptySign
 
 class RandomPuzzleFactory:
@@ -159,9 +168,18 @@ class RandomPuzzleFactory:
 
 	def getRandomPos(self, count):
 		d = self.tableSize
+
+		indexs = list(range(d*d))
+
 		tops = [d*d - i - 1 for i in range(count)]
 		randNum = [random.randint(0, top) for top in tops]
-		return [(num // d, num % d) for num in randNum]
+
+		result = []
+		for num in randNum:
+			result = result + [indexs[num]]
+			del indexs[num]
+
+		return [(num // d, num % d) for num in result]
 
 	def createPuzzleFromTable(self, table, pos):
 		posNumMap = dict(zip(pos, table.getNumbersInPos(pos)))

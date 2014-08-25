@@ -226,7 +226,7 @@ class TestPuzzleFactory(unittest.TestCase):
 		random.randint = MagicMock(side_effect=[1, 2])
 		pos = self.factory.getRandomPos(2)
 		self.assertEquals([call(0, 3), call(0, 2)],random.randint.mock_calls)
-		self.assertEquals([(0, 1), (1, 0)], pos)
+		self.assertEquals([(0, 1), (1, 1)], pos)
 
 	def test_createPuzzleFromTable(self):
 		table = MockObject()
@@ -239,3 +239,10 @@ class TestPuzzleFactory(unittest.TestCase):
 		table = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
 		nums = table.getNumbersInPos([(0, 0), (1, 1)])
 		self.assertEquals([1, 4], nums)
+
+class TestPuzzleCompare(unittest.TestCase):
+	def test_puzzleCompare(self):
+		factory = RandomPuzzleFactory(2, 1, 1)
+		puzzle_1 = factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
+		puzzle_2 = factory.creatPuzzleByMatrix([[1, 2], [4, 4]])
+		self.assertEquals((1, 0), puzzle_1.compare(puzzle_2))

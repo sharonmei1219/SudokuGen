@@ -33,6 +33,9 @@ class MultiSolutionSolver:
 		self.solutionFinder.solve(puzzle, solutionCollection)
 		return solutionCollection.result()
 
+	def newSolutionCollections(self):
+		return MultisolutionCollector()
+
 class MultisolutionCollector:
 	def __init__(self):
 		self.solutionCount = 0
@@ -50,6 +53,7 @@ class MultisolutionCollector:
 
 	def done(self):
 		return self.solutionCount is 2
+
 
 class MultiSolutionResult:
 	def __init__(self, count, differencePos = None):
