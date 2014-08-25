@@ -25,6 +25,9 @@ class Puzzle():
 	def toString(self):
 		return self.grid.toString()
 
+	def getNumbersInPos(self, pos):
+		return self.grid.getNumbers(pos)
+
 class Validator:
 	def validate(self, grid):
 		zones = reduce(operator.add, [grid.allRows(), grid.allColumns(), grid.allBlocks()])
@@ -133,6 +136,9 @@ class Grid:
 	def toString(self):
 		return json.dumps(self.matrix)
 
+	def getNumbers(self, pos):
+		return [self.matrix[p[0]][p[1]] for p in pos]
+
 _ = Grid.EmptySign
 
 class RandomPuzzleFactory:
@@ -148,6 +154,21 @@ class RandomPuzzleFactory:
 		return Puzzle(grid, self.validator, self.candidatesGen)
 
 	def emptyPuzzle(self):
-		matrix = [[_]*self.tableSize for j in range(self.tableSize)]
-		grid = Grid(matrix, self.bw, self.bh)
+		grid = Grid(self.emptyMatrix(), self.bw, self.bh)
 		return Puzzle(grid, self.validator, self.candidatesGen)
+
+	def getRandomPos(self, count):
+		d = self.tableSize
+		tops = [d*d - i - 1 for i in range(count)]
+		randNum = [random.randint(0, top) for top in tops]
+		return [(num // d, num % d) for num in randNum]
+
+	def createPuzzleFromTable(self, table, pos):
+		posNumMap = dict(zip(pos, table.getNumbersInPos(pos)))
+		matrix = self.emptyMatrix()
+		for pos in posNumMap:
+			matrix[pos[0]][pos[1]] = posNumMap[pos]
+		return self.creatPuzzleByMatrix(matrix)
+
+	def emptyMatrix(self):
+		return  [[_]*self.tableSize for j in range(self.tableSize)]

@@ -111,6 +111,6 @@ class TestSolutionFinderIntegration(unittest.TestCase):
 		solver.solve(puzzle, solutionCollector)
 		self.assertTrue(solutionCollector.result().solved())
 
-	def test_get99Table(self):
-		tableGen = SudokuTableGenerator()
-		self.assertEquals("sharon", tableGen.getTable().toString())	
+	# def test_get99Table(self):
+	# 	tableGen = SudokuTableGenerator()
+	# 	self.assertEquals("sharon", tableGen.getTable().toString())	

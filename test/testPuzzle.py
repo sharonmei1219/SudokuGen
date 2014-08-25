@@ -13,6 +13,9 @@ class MockValidator:
 class MockCandidates:
 	pass
 
+class MockObject:
+	pass
+
 class TestPuzzle(unittest.TestCase):
 	def  setUp(self):
 		self.grid = MockGrid()
@@ -157,11 +160,11 @@ class TestBlockInGrid(unittest.TestCase):
 		_ = Grid.EmptySign
 		# self.TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
 		self.grid = Grid([[1, 1, 2, 2],
-			 	                  [1, 1, _, _],
-			      	              [_, _, 2, 2],
-			           		      [_, 3, _, 4],
-			                	  [3, _, 4, _],
-			                 	  [3, 3, 4, 4]], 2, 3)
+			 	          [1, 1, _, _],
+			      	      [_, _, 2, 2],
+			           	  [_, 3, _, 4],
+			              [3, _, 4, _],
+			              [3, 3, 4, 4]], 2, 3)
 
 	def test_GridGetBlock(self):
 		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1))
@@ -204,3 +207,35 @@ class TestPuzzleIntegrate(unittest.TestCase):
 		puzzle = Puzzle(grid, validator, candidatesGen)
 		self.assertFalse(puzzle.solved())
 		self.assertEquals([7], puzzle.candidates())
+
+class TestPuzzleFactory(unittest.TestCase):
+	def setUp(self):
+		self.randint = random.randint
+		self.factory = RandomPuzzleFactory(2, 1, 1)
+
+	def tearDown(self):
+		random.randint = self.randint
+
+	def test_randomPosGenOnePos(self):
+		random.randint = MagicMock(return_value=0)
+		pos = self.factory.getRandomPos(1)
+		random.randint.assert_called_once_with(0, 3)
+		self.assertEquals([(0, 0)], pos)
+
+	def test_randomPosGenTwoPos(self):
+		random.randint = MagicMock(side_effect=[1, 2])
+		pos = self.factory.getRandomPos(2)
+		self.assertEquals([call(0, 3), call(0, 2)],random.randint.mock_calls)
+		self.assertEquals([(0, 1), (1, 0)], pos)
+
+	def test_createPuzzleFromTable(self):
+		table = MockObject()
+		table.getNumbersInPos = MagicMock(return_value=[1, 2])
+		pos = [(0, 0), (1, 1)]
+		puzzle = self.factory.createPuzzleFromTable(table, pos)
+		self.assertEquals("[[1, \"/\"], [\"/\", 2]]", puzzle.toString())
+
+	def test_puzzleGetNumbersInPos(self):
+		table = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
+		nums = table.getNumbersInPos([(0, 0), (1, 1)])
+		self.assertEquals([1, 4], nums)
