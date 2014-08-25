@@ -133,13 +133,21 @@ class Grid:
 	def toString(self):
 		return json.dumps(self.matrix)
 
-ThreeThreeGrid = type('ThreeThreeGrid', (Grid, ), {'bw':3, 'bh':3})
 _ = Grid.EmptySign
 
-# this empty puzzle is used to generate sudoku table
-# its candidates are in random sequence so as to generate random table
-def empty99Puzzle():
-	grid = Grid([[_ for i in range(9)] for j in range(9)], 3, 3)
-	candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen(range(1, 10)))
-	validator = Validator()
-	return Puzzle(grid, validator, candidatesGen)
+class RandomPuzzleFactory:
+	def __init__(self, tableSize, blockWidth, blockHeight):
+		self.tableSize = tableSize
+		self.bw = blockHeight
+		self.bh = blockHeight
+		self.validator = Validator()
+		self.candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen(range(1, tableSize+1)))
+
+	def creatPuzzleByMatrix(self, matrix):
+		grid = Grid(matrix, self.bw, self.bh)
+		return Puzzle(grid, self.validator, self.candidatesGen)
+
+	def emptyPuzzle(self):
+		matrix = [[_]*self.tableSize for j in range(self.tableSize)]
+		grid = Grid(matrix, self.bw, self.bh)
+		return Puzzle(grid, self.validator, self.candidatesGen)

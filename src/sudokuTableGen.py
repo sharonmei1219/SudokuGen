@@ -1,11 +1,12 @@
-from puzzle import empty99Puzzle
+from puzzle import RandomPuzzleFactory
 from solutionFinder import *
 
 # sudoku table generation is actually solve a empty 9 9 table
 class SudokuTableGenerator:
 	solver = SolutionFinder()
+	puzzleFactory = RandomPuzzleFactory(9, 3, 3)
 		
 	def getTable(self):
 		solutionCollector = SolutionsCollector()
-		self.solver.solve(empty99Puzzle(), solutionCollector)
+		self.solver.solve(self.puzzleFactory.emptyPuzzle(), solutionCollector)
 		return solutionCollector.result()
