@@ -101,11 +101,10 @@ class TestSolutionCollector(unittest.TestCase):
 class TestSolutionFinderIntegration(unittest.TestCase):
 	def test_findSolution(self):
 		_ = Grid.EmptySign
-		TwoTwoGrid = type('TwoTwoGrid', (Grid, ), {'bw':2, 'bh':2})
-		grid = TwoTwoGrid([[_, _, _, _],
-			 	           [_, _, _, _],
-			               [_, _, _, _],
-			               [_, _, _, _]])
+		grid = Grid([[_, _, _, _],
+			 	     [_, _, _, _],
+			         [_, _, _, _],
+			         [_, _, _, _]], 2, 2)
 
 		candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen([1, 2, 3, 4]))
 		validator = Validator()
@@ -117,6 +116,6 @@ class TestSolutionFinderIntegration(unittest.TestCase):
 		solver.solve(puzzle, solutionCollector)
 		self.assertTrue(solutionCollector.result().solved())
 
-	def test_get99Table(self):
-		tableGen = SudokuTableGenerator()
-		self.assertEquals("sharon", tableGen.getTable().toString())	
+	# def test_get99Table(self):
+	# 	tableGen = SudokuTableGenerator()
+	# 	self.assertEquals("sharon", tableGen.getTable().toString())	

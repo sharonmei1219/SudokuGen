@@ -62,8 +62,10 @@ class Grid:
 	EmptySign = '/'
 	nonEmptyNumberIn = lambda self, zone: [number for number in zone if number is not self.EmptySign]
 
-	def __init__(self, matrix):
+	def __init__(self, matrix, bw, bh):
 		self.matrix = matrix
+		self.bw = bw
+		self.bh = bh
 
 	def allRows(self):
 		return [self.row(i) for i in range(0, len(self.matrix))]
@@ -101,11 +103,11 @@ class Grid:
 		newMatrix = [list(row) for row in self.matrix]
 
 		if self.full():
-			return type(self)(newMatrix)
+			return type(self)(newMatrix, self.bw, self.bh)
 
 		i, j = self.findEmptyCell()
 		newMatrix[i][j] = number
-		return type(self)(newMatrix)
+		return Grid(newMatrix, self.bw, self.bh)
 
 	# findEmptyCell only find the first empty cell
 	def findEmptyCell(self):
@@ -126,7 +128,7 @@ class Grid:
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]
-		return type(self)(newMatrix)
+		return Grid(newMatrix, self.bw, self.bh)
 
 	def toString(self):
 		return json.dumps(self.matrix)
@@ -137,7 +139,7 @@ _ = Grid.EmptySign
 # this empty puzzle is used to generate sudoku table
 # its candidates are in random sequence so as to generate random table
 def empty99Puzzle():
-	grid = ThreeThreeGrid([[_ for i in range(9)] for j in range(9)])
+	grid = Grid([[_ for i in range(9)] for j in range(9)], 3, 3)
 	candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen(range(1, 10)))
 	validator = Validator()
 	return Puzzle(grid, validator, candidatesGen)

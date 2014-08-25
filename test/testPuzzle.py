@@ -130,9 +130,8 @@ class TestCandidatesInRandomSeq(unittest.TestCase):
 
 class TestGrid(unittest.TestCase):
 	def setUp(self):
-		self.OneOneGrid = type('OneOneGrid', (Grid, ), {'bw':1, 'bh':1})
 		_ = Grid.EmptySign
-		self.grid = self.OneOneGrid([[1, _], [3, 4]])
+		self.grid = Grid([[1, _], [3, 4]], 1, 1)
 
 	def test_GridGetAllRows(self):
 		self.assertEquals([[1], [3, 4]], self.grid.allRows())
@@ -144,11 +143,11 @@ class TestGrid(unittest.TestCase):
 		self.assertFalse(self.grid.full())
 
 	def test_GridIsFull(self):
-		self.grid = self.OneOneGrid([[1, 2], [3, 4]])
+		self.grid = Grid([[1, 2], [3, 4]], 1, 1)
 		self.assertTrue(self.grid.full())
 
 	def test_fillInAFullGrid(self):
-		grid = self.OneOneGrid([[1, 2], [3, 4]])
+		grid = Grid([[1, 2], [3, 4]], 1, 1)
 		newGrid = grid.fill(6)
 		self.assertEquals([[1, 2], [3, 4]], newGrid.allRows())
 
@@ -156,13 +155,13 @@ class TestGrid(unittest.TestCase):
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
 		_ = Grid.EmptySign
-		self.TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
-		self.grid = self.TwoThreeGrid([[1, 1, 2, 2],
+		# self.TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
+		self.grid = Grid([[1, 1, 2, 2],
 			 	                  [1, 1, _, _],
 			      	              [_, _, 2, 2],
 			           		      [_, 3, _, 4],
 			                	  [3, _, 4, _],
-			                 	  [3, 3, 4, 4]])
+			                 	  [3, 3, 4, 4]], 2, 3)
 
 	def test_GridGetBlock(self):
 		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1))
@@ -183,24 +182,23 @@ class TestBlockInGrid(unittest.TestCase):
 
 	def test_emptyCellSurounding(self):
 		_ = Grid.EmptySign
-		grid = self.TwoThreeGrid([[1, 2, 0, 0],
+		grid =  Grid([[1, 2, 0, 0],
 			 	                  [3, 4, 0, 0],
 			      	              [5, _, _, 6],
 			           		      [_, 7, _, _],
 			                	  [_, _, _, _],
-			                 	  [_, _, _, _]])
+			                 	  [_, _, _, _]], 2, 3)
 		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.emptyCellSurounding())
 
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
 		_ = Grid.EmptySign
-		TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
-		grid = TwoThreeGrid([[1, 0, 0, 0],
+		grid = Grid([[1, 0, 0, 0],
 			 	             [2, 0, 0, 0],
 			                 [0, _, 3, 4],
 			    		     [0, 0, 0, 0],
 			                 [0, 5, 0, 0],
-			                 [0, 6, 0, 0]])
+			                 [0, 6, 0, 0]], 2, 3)
 		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
 		validator = Validator()
 		puzzle = Puzzle(grid, validator, candidatesGen)
