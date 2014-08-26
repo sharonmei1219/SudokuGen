@@ -12,16 +12,9 @@ class Puzzle():
 
 	def solved(self):
 		return self.grid.full() and self.validator.validate(self.grid)
-	
-	# def candidates(self):
-	# 	return self.candidatesGen.getCandidates(self.grid)
 
 	def candidatesAt(self, pos):
 		return self.candidatesGen.getCandidatesAt(self.grid, pos)		
-		pass
-
-	# def fill(self, number):
-	# 	return Puzzle(self.grid.fill(number), self.validator, self.candidatesGen)
 
 	def clone(self):
 		return Puzzle(self.grid.clone(), self.validator, self.candidatesGen)
@@ -139,14 +132,9 @@ class Grid:
 	def column(self, j):
 		return self.nonEmptyNumberIn(self.transMatrix(self.matrix)[j])
 
-	def emptyCellSurounding(self):
-		i, j = self.findEmptyCell()
-		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
-
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
 		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
-
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]

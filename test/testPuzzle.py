@@ -199,16 +199,6 @@ class TestBlockInGrid(unittest.TestCase):
 	def test_GridGetAllBlocks(self):
 		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks())
 
-	# def test_emptyCellSurounding(self):
-	# 	_ = Grid.EmptySign
-	# 	grid =  Grid([[1, 2, 0, 0],
- # 	                  [3, 4, 0, 0],
- #      	              [5, _, _, 6],
- #           		      [_, 7, _, _],
- #                	  [_, _, _, _],
- #                 	  [_, _, _, _]], 2, 3)
-	# 	self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.emptyCellSurounding())
-
 	def test_emptyCellSuroundingAt21(self):
 		_ = Grid.EmptySign
 		grid =  Grid([[1, 2, _, _],

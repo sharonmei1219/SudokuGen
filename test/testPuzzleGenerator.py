@@ -111,14 +111,17 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 	# 	self.assertEquals("sharon", puzzle.toString())
 
 	def test_generate99Sudoku(self):
-		# tableGen = SudokuTableGenerator()
-		# factory = RandomPuzzleFactory(9, 3, 3)
-		# solutionFinder = SolutionFinder()
-		# solver = MultiSolutionSolver(solutionFinder)
-		# puzzleGen = PuzzleGenerator(factory, solver)
-
+		tableGen = SudokuTableGenerator()
 		# for i in range(100):
 		# 	table = tableGen.getTable()
-			# puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
-		# self.assertEquals("sharon", puzzle.toString())
+
+		factory = RandomPuzzleFactory(9, 3, 3)
+		solutionFinder = SolutionFinder()
+		solver = MultiSolutionSolver(solutionFinder)
+		puzzleGen = PuzzleGenerator(factory, solver)
+
+		for i in range(10):
+			table = tableGen.getTable()
+			puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
+		self.assertEquals("sharon", puzzle.toString())
 		pass
