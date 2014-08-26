@@ -10,30 +10,21 @@ class MockPuzzle:
 
 class TestSolutionFinder(unittest.TestCase):
 
-	# puzzle_one is the original puzzle, it has 2 candidates for its first empty cell, [1, 2] 
-	# puzzle_one.fill(1) will get puzzle_two
-	# puzzle_one.fill(2) will get puzzle_three
 	def setUp(self):
 		self.solver = SolutionFinder()
 		self.solutions = SolutionsCollector()
 		self.solutions.record = MagicMock(name="solutions.record")
-		self.solutions.done = MagicMock(name="solutions.done default", return_value=False)
+		self.solutions.done = MagicMock(name="solutions.done", return_value=False)
 
 		self.puzzle_one = MockPuzzle()
 		self.puzzle_two = MockPuzzle()
 		self.puzzle_three = MockPuzzle()
 		
-		self.puzzle_one.solved = MagicMock(name="puzzle_one.solved", return_value=False)
-		self.puzzle_one.candidates = MagicMock(name="puzzle_one.candidates", return_value=[1, 2])
-		puzzlesToReturn = {1:self.puzzle_two, 2:self.puzzle_three}
-		def side_effect(arg):
-			return puzzlesToReturn[arg]
-			pass
-		self.puzzle_one.fill = MagicMock(name="puzzle_one.fill", side_effect=side_effect)
-
-		self.puzzle_two.clone = MagicMock(name="puzzle_two.clone", return_value="puzzle_two.clone")
-		self.puzzle_two.candidates = MagicMock(name="puzzle_two.candidates", return_value=[])
-		self.puzzle_three.clone = MagicMock(name="puzzle_three.clone", return_value="puzzle_three.clone")
+		self.puzzle_one.firstEmptyCell = MagicMock(return_value=(0,0))
+		self.puzzle_one.candidatesAt = MagicMock(name="puzzle_one.candidates", side_effect=[[1, 2], [], []])
+		self.puzzle_one.clone = MagicMock(name="puzzle_one.clone", return_value=self.puzzle_two)
+		self.puzzle_one.clear = MagicMock(name="puzzle_one.clear")
+		self.puzzle_one.change = MagicMock(name="puzzle_one.change")
 		
 	def test_solveASolvedPuzzle(self):
 		self.puzzle_one.solved = MagicMock(name="puzzle.solved", return_value=True)
@@ -46,43 +37,43 @@ class TestSolutionFinder(unittest.TestCase):
 		self.solutions.record.assert_called_once_with("puzzle.clone")
 
 	def test_solveAPuzzleWithOneEmptyCellWithOneTry(self):
-		self.puzzle_one.candidates = MagicMock(name="puzzle_one.candidates", return_value=[1])
-		self.puzzle_two.solved = MagicMock(name="puzzle_two.solved", return_value=True)
+		self.solutions.done = MagicMock(name="solutions.done default", return_value=True)
+		self.puzzle_one.solved = MagicMock(name="puzzle_one.solved", side_effect=[False, True])
 
 		self.solver.solve(self.puzzle_one, self.solutions)
-
-		self.puzzle_one.fill.assert_called_once_with(1)
-		self.solutions.record.assert_called_once_with("puzzle_two.clone")
+		
+		self.solutions.record.assert_called_once_with(self.puzzle_two)
+		self.assertEquals([call((0,0))], self.puzzle_one.clear.mock_calls)
 		
 
 	def test_solveAPuzzleWithOneEmptyCellWith2ndTry(self):
-		self.puzzle_two.solved = MagicMock(name="puzzle_two.solved", return_value=False)
-		self.puzzle_three.solved = MagicMock(name="puzzle_three.solved", return_value=True)
+		self.puzzle_one.solved = MagicMock(name="puzzle_one.solved", side_effect=[False, False, True])
 
 		self.solver.solve(self.puzzle_one, self.solutions)
 
-		self.assertEquals([call(1), call(2)], self.puzzle_one.fill.mock_calls)
-		self.solutions.record.assert_called_once_with("puzzle_three.clone")
+		self.assertEquals([call((0,0), 1), call((0,0),2)], self.puzzle_one.change.mock_calls)
+		self.assertEquals([call((0,0)), call((0,0))], self.puzzle_one.clear.mock_calls)
+		self.solutions.record.assert_called_once_with(self.puzzle_two)
 
 
 	def test_solveTryingToGetAllSolutions(self):
-		self.puzzle_two.solved = MagicMock(name="puzzle_two.solved", return_value=True)
-		self.puzzle_three.solved = MagicMock(name="puzzle_three.solved", return_value=True)
+		self.puzzle_one.solved = MagicMock(name="puzzle_one.solved", side_effect=[False, True, True])
 
 		self.solver.solve(self.puzzle_one, self.solutions)
 
-		self.assertEquals([call(1), call(2)], self.puzzle_one.fill.mock_calls)
-		self.assertEquals([call("puzzle_two.clone"), call("puzzle_three.clone")], self.solutions.record.mock_calls)
+		self.assertEquals([call((0,0), 1), call((0,0),2)], self.puzzle_one.change.mock_calls)
+		self.assertEquals([call(self.puzzle_two), call(self.puzzle_two)], self.solutions.record.mock_calls)
 	
 	def test_solveStopTryingIfSolutionIsDone(self):
-		self.puzzle_two.solved = MagicMock(name="puzzle_two.solved", return_value=True)
+		self.puzzle_one.firstEmptyCell = MagicMock(return_value=(0,0))
+		self.puzzle_one.solved = MagicMock(name="puzzle_one.solved", side_effect=[False, True])
 		self.solutions.done = MagicMock(name="solutions.done", return_value=True)
 
 		self.solver.solve(self.puzzle_one, self.solutions)
 
-		self.puzzle_one.fill.assert_called_once_with(1)
+		self.puzzle_one.change.assert_called_once_with((0,0),1)
 		self.solutions.done.assert_called_once_with()
-		self.solutions.record.assert_called_once_with("puzzle_two.clone")
+		self.solutions.record.assert_called_once_with(self.puzzle_two)
 
 class TestSolutionCollector(unittest.TestCase):
 	def setUp(self):
@@ -103,7 +94,7 @@ class TestSolutionFinderIntegration(unittest.TestCase):
 		self.puzzleFactory = RandomPuzzleFactory(4, 2, 2)	
 				
 	def test_findSolution(self):
-		_ = Grid.EmptySign
+		# _ = Grid.EmptySign
 		puzzle = self.puzzleFactory.emptyPuzzle()
 		solutionCollector = SolutionsCollector()
 		solver = SolutionFinder()

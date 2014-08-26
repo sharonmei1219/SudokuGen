@@ -7,12 +7,15 @@ class PuzzleGenerator:
 		pos = self.randomPos(initNumCnt)
 		puzzle = self.createPuzzle(table, pos)
 		result = self.solve(puzzle)
+		count = 0
 
 		while result.solutionCount() > 1:
 			pos = pos + [result.solutionDifference()]
 			puzzle = self.createPuzzle(table, pos)
 			result = self.solve(puzzle)
+			count = count + 1
 
+		print(count)
 		return puzzle
 
 	def solve(self, puzzle):

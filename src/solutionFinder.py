@@ -4,11 +4,15 @@ class SolutionFinder:
 			solutions.record(puzzle.clone())
 			return
 
-		for candidate in puzzle.candidates():
-			newPuzzle = puzzle.fill(candidate)
-			self.solve(newPuzzle, solutions)
+		(i, j) = puzzle.firstEmptyCell()
+		
+		for candidate in puzzle.candidatesAt((i, j)):
+			puzzle.change((i, j), candidate)
+			self.solve(puzzle, solutions)
 			if solutions.done():
-				return
+				break
+
+		puzzle.clear((i, j))
 		
 class SolutionsCollector:
 	def __init__(self):

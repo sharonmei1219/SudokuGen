@@ -13,11 +13,15 @@ class Puzzle():
 	def solved(self):
 		return self.grid.full() and self.validator.validate(self.grid)
 	
-	def candidates(self):
-		return self.candidatesGen.getCandidates(self.grid)
+	# def candidates(self):
+	# 	return self.candidatesGen.getCandidates(self.grid)
 
-	def fill(self, number):
-		return Puzzle(self.grid.fill(number), self.validator, self.candidatesGen)
+	def candidatesAt(self, pos):
+		return self.candidatesGen.getCandidatesAt(self.grid, pos)		
+		pass
+
+	# def fill(self, number):
+	# 	return Puzzle(self.grid.fill(number), self.validator, self.candidatesGen)
 
 	def clone(self):
 		return Puzzle(self.grid.clone(), self.validator, self.candidatesGen)
@@ -32,6 +36,16 @@ class Puzzle():
 		differences = self.grid.compare(theOtherOne.grid)
 		index = random.randint(0, len(differences) - 1)
 		return differences[index]
+
+	def firstEmptyCell(self):
+		return self.grid.firstEmptyCell()
+
+	def change(self, pos, value):
+		self.grid.change(pos, value)
+
+	def clear(self, pos):
+		self.grid.clear(pos)
+
 
 class Validator:
 	def validate(self, grid):
@@ -48,6 +62,9 @@ class CandidatesGen:
 
 	def getCandidates(self, grid):
 		return self.subList(self.candidatesList, grid.emptyCellSurounding())
+
+	def getCandidatesAt(self, grid, pos):
+		return self.subList(self.candidatesList, grid.suroundings(pos))
 
 	def subList(self, list1, list2):
 		return [number for number in list1 if number not in list2]
@@ -66,12 +83,24 @@ class RandomSeqCandidatesDecorator:
 			del candidates[r]
 		return result
 
+	def getCandidatesAt(self, grid, pos):
+		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos))
+		candidatesCount = len(self.candidatesGen.getCandidatesAt(grid, pos))
+		result = []
+		for i in range(0, candidatesCount):
+			r = random.randint(0, candidatesCount - i - 1)
+			result.append(candidates[r])
+			del candidates[r]
+		return result		
+		pass
+
 class Grid:
 	EmptySign = '/'
 	nonEmptyNumberIn = lambda self, zone: [number for number in zone if number is not self.EmptySign]
 
 	def __init__(self, matrix, bw, bh):
 		self.matrix = matrix
+		self.emptyList = [(i, j) for i in range(len(matrix)) for j in range(len(matrix[0])) if matrix[i][j] is _]
 		self.bw = bw
 		self.bh = bh
 
@@ -102,27 +131,7 @@ class Grid:
 		return left, right, top, bottom
 
 	def full(self):
-		rowFull = [all(mem is not self.EmptySign for mem in row) for row in self.matrix]
-		return all(rowIsFull for rowIsFull in rowFull)
-
-	# fill means fill number in the first empty cell found
-	# after fill, there comes new grid
-	def fill(self, number):
-		newMatrix = [list(row) for row in self.matrix]
-
-		if self.full():
-			return type(self)(newMatrix, self.bw, self.bh)
-
-		i, j = self.findEmptyCell()
-		newMatrix[i][j] = number
-		return Grid(newMatrix, self.bw, self.bh)
-
-	# findEmptyCell only find the first empty cell
-	def findEmptyCell(self):
-		for i in range(0, len(self.matrix)):
-			for j in range(0, len(self.matrix[i])):
-				if self.matrix[i][j] is self.EmptySign:
-					return i, j
+		return len(self.emptyList) is 0
 
 	def row(self, i):
 		return self.nonEmptyNumberIn(self.matrix[i])
@@ -133,6 +142,11 @@ class Grid:
 	def emptyCellSurounding(self):
 		i, j = self.findEmptyCell()
 		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
+
+	def suroundings(self, pos):
+		i, j = pos[0], pos[1]
+		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
+
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]
@@ -147,6 +161,18 @@ class Grid:
 	def compare(self, theOtherGrid):
 		m1, m2 = self.matrix, theOtherGrid.matrix
 		return [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
+
+	def firstEmptyCell(self):
+		result = self.emptyList[0]
+		del self.emptyList[0]
+		return result
+
+	def change(self, pos, value):
+		self.matrix[pos[0]][pos[1]] = value
+
+	def clear(self, pos):
+		self.matrix[pos[0]][pos[1]] = _
+		self.emptyList = [pos] + self.emptyList
 
 _ = Grid.EmptySign
 

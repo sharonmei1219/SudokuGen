@@ -5,6 +5,7 @@ from unittest.mock import call
 from puzzle import *
 from solutionFinder import *
 from sudokuTableGen import *
+import cProfile
 
 class MockObject:
 	pass
@@ -110,14 +111,14 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 	# 	self.assertEquals("sharon", puzzle.toString())
 
 	def test_generate99Sudoku(self):
-		tableGen = SudokuTableGenerator()
-		factory = RandomPuzzleFactory(9, 3, 3)
-		solutionFinder = SolutionFinder()
-		solver = MultiSolutionSolver(solutionFinder)
-		puzzleGen = PuzzleGenerator(factory, solver)
+		# tableGen = SudokuTableGenerator()
+		# factory = RandomPuzzleFactory(9, 3, 3)
+		# solutionFinder = SolutionFinder()
+		# solver = MultiSolutionSolver(solutionFinder)
+		# puzzleGen = PuzzleGenerator(factory, solver)
 
-		table = tableGen.getTable()
-		puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 33)
-		self.assertEquals("sharon", puzzle.toString())
-
-	pass
+		# for i in range(100):
+		# 	table = tableGen.getTable()
+			# puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
+		# self.assertEquals("sharon", puzzle.toString())
+		pass

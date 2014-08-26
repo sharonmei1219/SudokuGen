@@ -46,17 +46,11 @@ class TestPuzzle(unittest.TestCase):
 		self.assertFalse(self.puzzle.solved())
 		pass
 
-	def test_puzzleCandidates(self):
-		self.candidates.getCandidates = MagicMock(return_value=[1, 2])
-		self.assertEquals([1, 2], self.puzzle.candidates())
-		self.candidates.getCandidates.assert_called_once_with(self.grid)
-
-	def test_puzzleFillWithNumber(self):
-		newGrid = MockGrid()
-		self.grid.fill = MagicMock(return_value=newGrid)
-		newPuzzle = self.puzzle.fill(1)
-		self.assertEquals(newGrid, newPuzzle.grid)
-		self.grid.fill.assert_called_once_with(1)
+	def test_puzzleCandidatesAt(self):
+		self.candidates.getCandidatesAt = MagicMock(return_value=[1, 2])
+		self.assertEquals([1, 2], self.puzzle.candidatesAt((0,0)))
+		self.candidates.getCandidatesAt.assert_called_once_with(self.grid, (0,0))
+		pass
 
 class TestValidator(unittest.TestCase):
 	def setUp(self):
@@ -106,6 +100,22 @@ class TestCandidates(unittest.TestCase):
 		self.grid.emptyCellSurounding = MagicMock(return_value=[])
 		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidates(self.grid))
 
+
+	def test_candidatesAt00Is4WhenSuroundingsAre123(self):
+		self.grid.suroundings = MagicMock(return_value=[1, 2, 3])
+		self.assertEquals([4], self.candidatesGen.getCandidatesAt(self.grid, (0, 0)))
+		self.grid.suroundings.assert_called_once_with((0, 0))
+
+	def test_candidatesAt00IsEmptyListWhenSuroundingsAre1234(self):
+		self.grid.suroundings = MagicMock(return_value=[1, 2, 3, 4])
+		self.assertEquals([], self.candidatesGen.getCandidatesAt(self.grid, (0, 0)))
+		self.grid.suroundings.assert_called_once_with((0, 0))
+
+	def test_candidatesAt00Is1234WhenSuroundingsAreEmpty(self):
+		self.grid.suroundings = MagicMock(return_value=[])
+		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidatesAt(self.grid, (0, 1)))
+		self.grid.suroundings.assert_called_once_with((0, 1))
+
 class TestCandidatesInRandomSeq(unittest.TestCase):
 	def setUp(self):
 		candidatesGen = MockCandidates()
@@ -149,10 +159,24 @@ class TestGrid(unittest.TestCase):
 		self.grid = Grid([[1, 2], [3, 4]], 1, 1)
 		self.assertTrue(self.grid.full())
 
-	def test_fillInAFullGrid(self):
+	def test_getFirstEmptyCell(self):
+		_ = Grid.EmptySign
+		grid = Grid([[_, 2], [3, _]], 1, 1)
+
+		(i, j) = grid.firstEmptyCell()
+		self.assertEquals((0, 0), (i, j))
+
+	def test_change(self):
+		_ = Grid.EmptySign
+		grid = Grid([[_, 2], [3, _]], 1, 1)
+		grid.change((0, 0), 1)
+		self.assertEquals("[[1, 2], [3, \"/\"]]", grid.toString())
+
+	def test_clear(self):
 		grid = Grid([[1, 2], [3, 4]], 1, 1)
-		newGrid = grid.fill(6)
-		self.assertEquals([[1, 2], [3, 4]], newGrid.allRows())
+		grid.clear((1, 0))
+		self.assertEquals((1, 0), grid.firstEmptyCell())
+		self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
 
 
 class TestBlockInGrid(unittest.TestCase):
@@ -175,38 +199,41 @@ class TestBlockInGrid(unittest.TestCase):
 	def test_GridGetAllBlocks(self):
 		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks())
 
-	def test_GridFill(self):
-		newGrid = self.grid.fill(2)
-		self.assertEquals([2, 2, 2, 2], self.grid.block(2, 2))
-		self.assertEquals([2, 2, 2, 2, 2], newGrid.block(2, 2))
-		self.assertEquals([1, 1, 2], newGrid.allRows()[1])
-		newGrid = newGrid.fill(3)
-		self.assertEquals([1, 1, 2, 3], newGrid.allRows()[1])
+	# def test_emptyCellSurounding(self):
+	# 	_ = Grid.EmptySign
+	# 	grid =  Grid([[1, 2, 0, 0],
+ # 	                  [3, 4, 0, 0],
+ #      	              [5, _, _, 6],
+ #           		      [_, 7, _, _],
+ #                	  [_, _, _, _],
+ #                 	  [_, _, _, _]], 2, 3)
+	# 	self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.emptyCellSurounding())
 
-	def test_emptyCellSurounding(self):
+	def test_emptyCellSuroundingAt21(self):
 		_ = Grid.EmptySign
-		grid =  Grid([[1, 2, 0, 0],
-			 	                  [3, 4, 0, 0],
-			      	              [5, _, _, 6],
-			           		      [_, 7, _, _],
-			                	  [_, _, _, _],
-			                 	  [_, _, _, _]], 2, 3)
-		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.emptyCellSurounding())
+		grid =  Grid([[1, 2, _, _],
+ 	                  [3, 4, _, _],
+      	              [5, _, _, 6],
+           		      [_, 7, _, _],
+                	  [_, _, _, _],
+                 	  [_, _, _, _]], 2, 3)
+		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1)))		
 
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
 		_ = Grid.EmptySign
 		grid = Grid([[1, 0, 0, 0],
-			 	             [2, 0, 0, 0],
-			                 [0, _, 3, 4],
-			    		     [0, 0, 0, 0],
-			                 [0, 5, 0, 0],
-			                 [0, 6, 0, 0]], 2, 3)
+	 	             [2, 0, 0, 0],
+	                 [0, _, 3, 4],
+	    		     [0, 0, 0, 0],
+	                 [0, 5, 0, 0],
+	                 [0, 6, 0, 0]], 2, 3)
 		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
 		validator = Validator()
 		puzzle = Puzzle(grid, validator, candidatesGen)
 		self.assertFalse(puzzle.solved())
-		self.assertEquals([7], puzzle.candidates())
+		self.assertEquals((2,1), puzzle.firstEmptyCell())
+		self.assertEquals([7], puzzle.candidatesAt((2, 1)))
 
 class TestPuzzleFactory(unittest.TestCase):
 	def setUp(self):
@@ -241,8 +268,31 @@ class TestPuzzleFactory(unittest.TestCase):
 		self.assertEquals([1, 4], nums)
 
 class TestPuzzleCompare(unittest.TestCase):
+	def setUp(self):
+		self.factory = RandomPuzzleFactory(2, 1, 1)
+
 	def test_puzzleCompare(self):
-		factory = RandomPuzzleFactory(2, 1, 1)
-		puzzle_1 = factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
-		puzzle_2 = factory.creatPuzzleByMatrix([[1, 2], [4, 4]])
+		puzzle_1 = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
+		puzzle_2 = self.factory.creatPuzzleByMatrix([[1, 2], [4, 4]])
 		self.assertEquals((1, 0), puzzle_1.compare(puzzle_2))
+
+	def test_puzzleFirstEmptyCell(self):
+		_ = Grid.EmptySign
+		puzzle = self.factory.creatPuzzleByMatrix([[1, _], [_, 4]])
+		
+		self.assertEquals((0, 1), puzzle.firstEmptyCell())
+		self.assertEquals((1, 0), puzzle.firstEmptyCell())
+
+	def test_puzzleChange(self):
+		_ = Grid.EmptySign
+		puzzle = self.factory.creatPuzzleByMatrix([[1, _], [_, 4]])
+		puzzle.change((0, 1), 2)
+
+		self.assertEquals("[[1, 2], [\"/\", 4]]" ,puzzle.toString())
+
+	def test_puzzleClear(self):
+		puzzle = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
+		puzzle.clear((1, 0))
+		self.assertEquals((1, 0), puzzle.firstEmptyCell())
+		self.assertEquals("[[1, 2], [\"/\", 4]]", puzzle.toString())
+
