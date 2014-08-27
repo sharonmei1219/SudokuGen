@@ -88,19 +88,6 @@ class TestCandidates(unittest.TestCase):
 		self.candidatesGen = CandidatesGen([1, 2, 3, 4])
 		self.grid = MockGrid()
 
-	def test_candidatesIs4WhenSuroundingsAre123(self):
-		self.grid.emptyCellSurounding = MagicMock(return_value=[1, 2, 3])
-		self.assertEquals([4], self.candidatesGen.getCandidates(self.grid))
-
-	def test_candidatesIsEmptyListWhenSuroundingsAre1234(self):
-		self.grid.emptyCellSurounding = MagicMock(return_value=[1, 2, 3, 4])
-		self.assertEquals([], self.candidatesGen.getCandidates(self.grid))
-
-	def test_candidatesIs1234WhenSuroundingsAreEmpty(self):
-		self.grid.emptyCellSurounding = MagicMock(return_value=[])
-		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidates(self.grid))
-
-
 	def test_candidatesAt00Is4WhenSuroundingsAre123(self):
 		self.grid.suroundings = MagicMock(return_value=[1, 2, 3])
 		self.assertEquals([4], self.candidatesGen.getCandidatesAt(self.grid, (0, 0)))
@@ -119,7 +106,7 @@ class TestCandidates(unittest.TestCase):
 class TestCandidatesInRandomSeq(unittest.TestCase):
 	def setUp(self):
 		candidatesGen = MockCandidates()
-		candidatesGen.getCandidates = MagicMock(return_value=[1, 2, 3])
+		candidatesGen.getCandidatesAt = MagicMock(return_value=[1, 2, 3])
 		self.randomSeqCandidatesGen = RandomSeqCandidatesDecorator(candidatesGen)
 		self.randint = random.randint
 		self.grid = MockGrid()
@@ -129,16 +116,16 @@ class TestCandidatesInRandomSeq(unittest.TestCase):
 
 	def test_RandomSeqCandidatesGen(self):
 		random.randint = MagicMock(side_effect=[0, 0, 0])
-		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidates(self.grid))
+		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0)))
 		self.assertEquals([call(0, 2), call(0, 1), call(0, 0)], random.randint.mock_calls)
 
 	def test_RandomSeqCandidatesGenReversedSeq(self):
 		random.randint = MagicMock(side_effect=[2, 1, 0])
-		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidates(self.grid))
+		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0)))
 
 	def test_RandomSeqCandidatesGenReversedSeq(self):
 		random.randint = MagicMock(side_effect=[1, 1, 0])
-		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidates(self.grid))
+		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0)))
 
 
 class TestGrid(unittest.TestCase):
@@ -182,7 +169,6 @@ class TestGrid(unittest.TestCase):
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
 		_ = Grid.EmptySign
-		# self.TwoThreeGrid = type('TwoThreeGrid', (Grid, ), {'bw':2, 'bh':3})
 		self.grid = Grid([[1, 1, 2, 2],
 			 	          [1, 1, _, _],
 			      	      [_, _, 2, 2],
@@ -207,7 +193,34 @@ class TestBlockInGrid(unittest.TestCase):
            		      [_, 7, _, _],
                 	  [_, _, _, _],
                  	  [_, _, _, _]], 2, 3)
-		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1)))		
+		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1)))
+
+	def test_blockMap(self):
+		# matrix = [[1, 1, 2, 2],
+		# 		  [1, 1, 2, 2],
+		# 		  [1, 1, 2, 2],				  
+		# 		  [3, 3, 4, 4],
+		# 		  [3, 3, 4, 4],				  
+		# 		  [3, 3, 4, 4]]
+
+		bw = 2
+		bh = 3
+		tw = 4
+		nbPerRow = tw/bw
+
+		bi, bj = 3, 2
+		i = int(bi // nbPerRow * bh + bj // bw)
+		j = int(bi % nbPerRow * bw + bj % bw)
+
+		self.assertEquals((4, 2), (i, j))
+
+
+		# i, j = 2, 2
+		# bi = i // bh * nbPerRow + j // bw
+		# bj = i % bh * bw + j % bw
+
+		# self.assertEquals((3, 1), (bi, bj))
+		pass
 
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
@@ -286,3 +299,12 @@ class TestPuzzleCompare(unittest.TestCase):
 		self.assertEquals((1, 0), puzzle.firstEmptyCell())
 		self.assertEquals("[[1, 2], [\"/\", 4]]", puzzle.toString())
 
+class TestMatrixRef(unittest.TestCase):
+	def test_matrixTr(self):
+		# a = [[1, 1], [2, 2]]
+		# c = a[0][0]
+		# a[0][0] = 3
+		# self.assertEquals(1, c)
+		# # self.assertEquals([[1, 1], [2, 2]], b)
+		pass
+		

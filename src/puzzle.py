@@ -53,9 +53,6 @@ class CandidatesGen:
 	def __init__(self, candidatesList):
 		self.candidatesList = candidatesList
 
-	def getCandidates(self, grid):
-		return self.subList(self.candidatesList, grid.emptyCellSurounding())
-
 	def getCandidatesAt(self, grid, pos):
 		return self.subList(self.candidatesList, grid.suroundings(pos))
 
@@ -65,16 +62,6 @@ class CandidatesGen:
 class RandomSeqCandidatesDecorator:
 	def __init__(self, candidatesGen):
 		self.candidatesGen = candidatesGen
-
-	def getCandidates(self, grid):
-		candidates = list(self.candidatesGen.getCandidates(grid))
-		candidatesCount = len(self.candidatesGen.getCandidates(grid))
-		result = []
-		for i in range(0, candidatesCount):
-			r = random.randint(0, candidatesCount - i - 1)
-			result.append(candidates[r])
-			del candidates[r]
-		return result
 
 	def getCandidatesAt(self, grid, pos):
 		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos))
@@ -92,16 +79,23 @@ class Grid:
 	nonEmptyNumberIn = lambda self, zone: [number for number in zone if number is not self.EmptySign]
 
 	def __init__(self, matrix, bw, bh):
-		self.matrix = matrix
-		self.emptyList = [(i, j) for i in range(len(matrix)) for j in range(len(matrix[0])) if matrix[i][j] is _]
 		self.bw = bw
 		self.bh = bh
+		self.emptyList = [(i, j) for i in range(len(matrix)) for j in range(len(matrix[0])) if matrix[i][j] is _]
+		self.matrix = matrix
+		self.columns = self.transMatrix(matrix)
+		nbPerRow = len(matrix[0]) // bw
+		to_i = lambda bi, bj: int(bi // nbPerRow * bh + bj // bw)
+		to_j = lambda bi, bj: int(bi % nbPerRow * bw + bj % bw)
+		bsize = bw * bh
+		bnum = len(matrix) * len(matrix[0]) // bsize
+		self.blocks = [[matrix[to_i(i, j)][to_j(i,j)] for j in range(bsize)] for i in range(bnum)]
 
 	def allRows(self):
 		return [self.row(i) for i in range(0, len(self.matrix))]
 
 	def allColumns(self):
-		return [self.column(j) for j in range(0, len(self.transMatrix(self.matrix)))]
+		return [self.column(j) for j in range(0, len(self.columns))]
 
 	def transMatrix(self, matrix):
 		return [list(column) for column in list(zip(*matrix))]
@@ -111,9 +105,13 @@ class Grid:
 		return reduce(operator.add, blocks) #flatten blocks
 
 	def block(self, i, j):
-		left, right, top, bottom = self.blockArea(i, j)
-		blc = [row[left: right] for row in self.matrix[top:bottom]]
-		blc = reduce(operator.add, blc)
+		# left, right, top, bottom = self.blockArea(i, j)
+		# blc = [row[left: right] for row in self.matrix[top:bottom]]
+		# blc = reduce(operator.add, blc)
+		# return self.nonEmptyNumberIn(blc)
+		nbPerRow = len(self.matrix[0]) //self.bw
+		bi = i // self.bh * nbPerRow + j // self.bw
+		blc = self.blocks[bi]
 		return self.nonEmptyNumberIn(blc)
 
 	def blockArea(self, i, j):
@@ -130,7 +128,7 @@ class Grid:
 		return self.nonEmptyNumberIn(self.matrix[i])
 
 	def column(self, j):
-		return self.nonEmptyNumberIn(self.transMatrix(self.matrix)[j])
+		return self.nonEmptyNumberIn(self.columns[j])
 
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
@@ -156,10 +154,22 @@ class Grid:
 		return result
 
 	def change(self, pos, value):
+		i, j = pos[0], pos[1]
 		self.matrix[pos[0]][pos[1]] = value
+		self.columns[pos[1]][pos[0]] = value
+		nbPerRow = len(self.matrix[0]) //self.bw
+		bi = i // self.bh * nbPerRow + j // self.bw
+		bj = i % self.bh * self.bw + j % self.bw
+		self.blocks[bi][bj] = value
 
 	def clear(self, pos):
+		i, j = pos[0], pos[1]
 		self.matrix[pos[0]][pos[1]] = _
+		self.columns[pos[1]][pos[0]] = _
+		nbPerRow = len(self.matrix[0]) //self.bw
+		bi = i // self.bh * nbPerRow + j // self.bw
+		bj = i % self.bh * self.bw + j % self.bw
+		self.blocks[bi][bj] = _
 		self.emptyList = [pos] + self.emptyList
 
 _ = Grid.EmptySign
