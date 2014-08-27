@@ -195,31 +195,27 @@ class TestBlockInGrid(unittest.TestCase):
                  	  [_, _, _, _]], 2, 3)
 		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1)))
 
-	def test_blockMap(self):
-		# matrix = [[1, 1, 2, 2],
-		# 		  [1, 1, 2, 2],
-		# 		  [1, 1, 2, 2],				  
-		# 		  [3, 3, 4, 4],
-		# 		  [3, 3, 4, 4],				  
-		# 		  [3, 3, 4, 4]]
+class TestBlockIndexExchange(unittest.TestCase):
+	def setUp(self):
+		_ = Grid.EmptySign
+		self.grid =  Grid([[ 0,  1, 10, 11],
+						   [ 2,  3, 12, 13],
+						   [ 4,  5, 14, 15],
+						   [20, 21, 30, 31],
+						   [22, 23, 32, 33],
+						   [24, 25, 34, 35]], 2, 3)
+		pass
+		
+	def test_blockIndexToMatrixIndex(self):
+		self.assertEquals((4, 2), self.grid.blockIndexToMatrixIndex(3, 2))
+		self.assertEquals((2, 1), self.grid.blockIndexToMatrixIndex(0, 5))
+		self.assertEquals((1, 3), self.grid.blockIndexToMatrixIndex(1, 3))
+		pass
 
-		bw = 2
-		bh = 3
-		tw = 4
-		nbPerRow = tw/bw
-
-		bi, bj = 3, 2
-		i = int(bi // nbPerRow * bh + bj // bw)
-		j = int(bi % nbPerRow * bw + bj % bw)
-
-		self.assertEquals((4, 2), (i, j))
-
-
-		# i, j = 2, 2
-		# bi = i // bh * nbPerRow + j // bw
-		# bj = i % bh * bw + j % bw
-
-		# self.assertEquals((3, 1), (bi, bj))
+	def test_matrixIndexToBlockIndex(self):
+		self.assertEquals((3, 0), self.grid.matrixIndexToBlockIndex(3, 2))
+		self.assertEquals((3, 5), self.grid.matrixIndexToBlockIndex(5, 3))
+		self.assertEquals((2, 1), self.grid.matrixIndexToBlockIndex(3, 1))		
 		pass
 
 class TestPuzzleIntegrate(unittest.TestCase):

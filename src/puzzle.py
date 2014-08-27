@@ -79,17 +79,23 @@ class Grid:
 	nonEmptyNumberIn = lambda self, zone: [number for number in zone if number is not self.EmptySign]
 
 	def __init__(self, matrix, bw, bh):
+		self.matrix = matrix
 		self.bw = bw
 		self.bh = bh
-		self.emptyList = [(i, j) for i in range(len(matrix)) for j in range(len(matrix[0])) if matrix[i][j] is _]
-		self.matrix = matrix
+
+		mHeight = len(matrix)
+		mWidth = len(matrix[0])
+
+		self.emptyList = [(i, j) for i in range(mHeight) for j in range(mWidth) if matrix[i][j] is _]
 		self.columns = self.transMatrix(matrix)
-		nbPerRow = len(matrix[0]) // bw
-		to_i = lambda bi, bj: int(bi // nbPerRow * bh + bj // bw)
-		to_j = lambda bi, bj: int(bi % nbPerRow * bw + bj % bw)
+		
+		self.nbPerRow = len(matrix[0]) // bw
+		to_i = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[0]
+		to_j = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[1]
 		bsize = bw * bh
-		bnum = len(matrix) * len(matrix[0]) // bsize
+		bnum = mHeight * mWidth // bsize
 		self.blocks = [[matrix[to_i(i, j)][to_j(i,j)] for j in range(bsize)] for i in range(bnum)]
+		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(mWidth)] for i in range(mHeight)]
 
 	def allRows(self):
 		return [self.row(i) for i in range(0, len(self.matrix))]
@@ -105,10 +111,6 @@ class Grid:
 		return reduce(operator.add, blocks) #flatten blocks
 
 	def block(self, i, j):
-		# left, right, top, bottom = self.blockArea(i, j)
-		# blc = [row[left: right] for row in self.matrix[top:bottom]]
-		# blc = reduce(operator.add, blc)
-		# return self.nonEmptyNumberIn(blc)
 		nbPerRow = len(self.matrix[0]) //self.bw
 		bi = i // self.bh * nbPerRow + j // self.bw
 		blc = self.blocks[bi]
@@ -154,23 +156,33 @@ class Grid:
 		return result
 
 	def change(self, pos, value):
-		i, j = pos[0], pos[1]
+		# i, j = pos[0], pos[1]
 		self.matrix[pos[0]][pos[1]] = value
 		self.columns[pos[1]][pos[0]] = value
-		nbPerRow = len(self.matrix[0]) //self.bw
-		bi = i // self.bh * nbPerRow + j // self.bw
-		bj = i % self.bh * self.bw + j % self.bw
+		# nbPerRow = len(self.matrix[0]) //self.bw
+		# bi = i // self.bh * nbPerRow + j // self.bw
+		# bj = i % self.bh * self.bw + j % self.bw
+		(bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
 		self.blocks[bi][bj] = value
 
 	def clear(self, pos):
-		i, j = pos[0], pos[1]
+		# i, j = pos[0], pos[1]
 		self.matrix[pos[0]][pos[1]] = _
 		self.columns[pos[1]][pos[0]] = _
-		nbPerRow = len(self.matrix[0]) //self.bw
-		bi = i // self.bh * nbPerRow + j // self.bw
-		bj = i % self.bh * self.bw + j % self.bw
+		# nbPerRow = len(self.matrix[0]) //self.bw
+		# bi = i // self.bh * nbPerRow + j // self.bw
+		# bj = i % self.bh * self.bw + j % self.bw
+		(bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
 		self.blocks[bi][bj] = _
 		self.emptyList = [pos] + self.emptyList
+
+	def blockIndexToMatrixIndex(self, bi, bj):
+		i = int(bi // self.nbPerRow * self.bh + bj // self.bw)
+		j = int(bi % self.nbPerRow * self.bw + bj % self.bw)
+		return (i, j)
+
+	def matrixIndexToBlockIndex(self, i, j):
+		return self.blockIndexMap[i][j]
 
 _ = Grid.EmptySign
 
