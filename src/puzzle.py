@@ -65,7 +65,7 @@ class RandomSeqCandidatesDecorator:
 
 	def getCandidatesAt(self, grid, pos):
 		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos))
-		candidatesCount = len(self.candidatesGen.getCandidatesAt(grid, pos))
+		candidatesCount = len(candidates)
 		result = []
 		for i in range(0, candidatesCount):
 			r = random.randint(0, candidatesCount - i - 1)

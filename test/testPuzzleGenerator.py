@@ -99,29 +99,19 @@ class TestMultiSolutionCollector(unittest.TestCase):
 		self.assertTrue(self.collector.done())
 
 class TestPuzzleGeneratorIntegration(unittest.TestCase):
-	# def test_generateASimpleWithOneShot(self):
-	# 	factory = RandomPuzzleFactory(2, 1, 1)
-	# 	solutionFinder = SolutionFinder()
-	# 	solver = MultiSolutionSolver(solutionFinder)
-	# 	puzzleGen = PuzzleGenerator(factory, solver)
-
-	# 	table = factory.creatPuzzleByMatrix([[1, 2], [2, 1]])
-	# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 0)
-
-	# 	self.assertEquals("sharon", puzzle.toString())
 
 	def test_generate99Sudoku(self):
 		tableGen = SudokuTableGenerator()
 		# for i in range(100):
 		# 	table = tableGen.getTable()
 
-		# factory = RandomPuzzleFactory(9, 3, 3)
-		# solutionFinder = SolutionFinder()
-		# solver = MultiSolutionSolver(solutionFinder)
-		# puzzleGen = PuzzleGenerator(factory, solver)
+		factory = RandomPuzzleFactory(9, 3, 3)
+		solutionFinder = SolutionFinder()
+		solver = MultiSolutionSolver(solutionFinder)
+		puzzleGen = PuzzleGenerator(factory, solver)
 
-		# for i in range(10):
-		# 	table = tableGen.getTable()
-		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
-		# self.assertEquals("sharon", puzzle.toString())
+		for i in range(10):
+			table = tableGen.getTable()
+			puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
+		self.assertEquals("sharon", puzzle.toString())
 		pass
