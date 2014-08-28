@@ -157,13 +157,13 @@ class TestGrid(unittest.TestCase):
 		_ = Grid.EmptySign
 		grid = Grid([[_, 2], [3, _]], 1, 1)
 		grid.change((0, 0), 1)
-		self.assertEquals("[[1, 2], [3, \"/\"]]", grid.toString())
+		self.assertEquals("[[1, 2], [3, 0]]", grid.toString())
 
 	def test_clear(self):
 		grid = Grid([[1, 2], [3, 4]], 1, 1)
 		grid.clear((1, 0))
 		self.assertEquals((1, 0), grid.firstEmptyCell())
-		self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
+		self.assertEquals("[[1, 2], [0, 4]]", grid.toString())
 
 
 class TestBlockInGrid(unittest.TestCase):
@@ -221,12 +221,12 @@ class TestBlockIndexExchange(unittest.TestCase):
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
 		_ = Grid.EmptySign
-		grid = Grid([[1, 0, 0, 0],
-	 	             [2, 0, 0, 0],
-	                 [0, _, 3, 4],
-	    		     [0, 0, 0, 0],
-	                 [0, 5, 0, 0],
-	                 [0, 6, 0, 0]], 2, 3)
+		grid = Grid([[1, 8, 8, 8],
+	 	             [2, 8, 8, 8],
+	                 [8, _, 3, 4],
+	    		     [8, 8, 8, 8],
+	                 [8, 5, 8, 8],
+	                 [8, 6, 8, 8]], 2, 3)
 		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
 		validator = Validator()
 		puzzle = Puzzle(grid, validator, candidatesGen)
@@ -259,7 +259,7 @@ class TestPuzzleFactory(unittest.TestCase):
 		table.getNumbersInPos = MagicMock(return_value=[1, 2])
 		pos = [(0, 0), (1, 1)]
 		puzzle = self.factory.createPuzzleFromTable(table, pos)
-		self.assertEquals("[[1, \"/\"], [\"/\", 2]]", puzzle.toString())
+		self.assertEquals("[[1, 0], [0, 2]]", puzzle.toString())
 
 	def test_puzzleGetNumbersInPos(self):
 		table = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
@@ -287,20 +287,18 @@ class TestPuzzleCompare(unittest.TestCase):
 		puzzle = self.factory.creatPuzzleByMatrix([[1, _], [_, 4]])
 		puzzle.change((0, 1), 2)
 
-		self.assertEquals("[[1, 2], [\"/\", 4]]" ,puzzle.toString())
+		self.assertEquals("[[1, 2], [0, 4]]" ,puzzle.toString())
 
 	def test_puzzleClear(self):
 		puzzle = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
 		puzzle.clear((1, 0))
 		self.assertEquals((1, 0), puzzle.firstEmptyCell())
-		self.assertEquals("[[1, 2], [\"/\", 4]]", puzzle.toString())
+		self.assertEquals("[[1, 2], [0, 4]]", puzzle.toString())
 
 class TestMatrixRef(unittest.TestCase):
 	def test_matrixTr(self):
-		# a = [[1, 1], [2, 2]]
-		# c = a[0][0]
-		# a[0][0] = 3
-		# self.assertEquals(1, c)
-		# # self.assertEquals([[1, 1], [2, 2]], b)
+		a = [1, 1, 2, 3, 4]
+		a = list(filter((1).__ne__, a))
+		self.assertEquals([2, 3, 4], a)
 		pass
 		

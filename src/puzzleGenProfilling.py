@@ -1,9 +1,10 @@
 from solutionFinder import *
 from sudokuTableGen import *
 from puzzleGenerator import *
+from puzzle import *
 
 tableGen = SudokuTableGenerator()
-factory = RandomPuzzleFactory(9, 3, 3)
+factory = PuzzleFactory(9, 3, 3)
 solutionFinder = SolutionFinder()
 solver = MultiSolutionSolver(solutionFinder)
 puzzleGen = PuzzleGenerator(factory, solver)

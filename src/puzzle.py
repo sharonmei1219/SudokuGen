@@ -75,8 +75,8 @@ class RandomSeqCandidatesDecorator:
 		pass
 
 class Grid:
-	EmptySign = '/'
-	nonEmptyNumberIn = lambda self, zone: [number for number in zone if number is not self.EmptySign]
+	EmptySign = 0
+	nonEmptyNumberIn = lambda self, zone: list(filter((0).__ne__, zone))
 
 	def __init__(self, matrix, bw, bh):
 		self.matrix = matrix
@@ -111,10 +111,8 @@ class Grid:
 		return reduce(operator.add, blocks) #flatten blocks
 
 	def block(self, i, j):
-		nbPerRow = len(self.matrix[0]) //self.bw
-		bi = i // self.bh * nbPerRow + j // self.bw
-		blc = self.blocks[bi]
-		return self.nonEmptyNumberIn(blc)
+		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
+		return self.nonEmptyNumberIn(self.blocks[bi])
 
 	def blockArea(self, i, j):
 		left = j - j % self.bw
@@ -134,7 +132,7 @@ class Grid:
 
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
-		return set(reduce(operator.add, [self.row(i), self.column(j), self.block(i, j)]))
+		return set(self.row(i) + self.column(j) + self.block(i, j))
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]
@@ -156,22 +154,14 @@ class Grid:
 		return result
 
 	def change(self, pos, value):
-		# i, j = pos[0], pos[1]
 		self.matrix[pos[0]][pos[1]] = value
 		self.columns[pos[1]][pos[0]] = value
-		# nbPerRow = len(self.matrix[0]) //self.bw
-		# bi = i // self.bh * nbPerRow + j // self.bw
-		# bj = i % self.bh * self.bw + j % self.bw
 		(bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
 		self.blocks[bi][bj] = value
 
 	def clear(self, pos):
-		# i, j = pos[0], pos[1]
 		self.matrix[pos[0]][pos[1]] = _
 		self.columns[pos[1]][pos[0]] = _
-		# nbPerRow = len(self.matrix[0]) //self.bw
-		# bi = i // self.bh * nbPerRow + j // self.bw
-		# bj = i % self.bh * self.bw + j % self.bw
 		(bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
 		self.blocks[bi][bj] = _
 		self.emptyList = [pos] + self.emptyList
@@ -186,13 +176,13 @@ class Grid:
 
 _ = Grid.EmptySign
 
-class RandomPuzzleFactory:
+class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):
 		self.tableSize = tableSize
 		self.bw = blockHeight
 		self.bh = blockHeight
 		self.validator = Validator()
-		self.candidatesGen = RandomSeqCandidatesDecorator(CandidatesGen(range(1, tableSize+1)))
+		self.candidatesGen = CandidatesGen(range(1, tableSize+1))
 
 	def creatPuzzleByMatrix(self, matrix):
 		grid = Grid(matrix, self.bw, self.bh)
@@ -226,3 +216,10 @@ class RandomPuzzleFactory:
 
 	def emptyMatrix(self):
 		return  [[_]*self.tableSize for j in range(self.tableSize)]
+
+
+class RandomPuzzleFactory(PuzzleFactory):
+	def __init__(self, tableSize, blockWidth, blockHeight):
+		super(RandomPuzzleFactory, self).__init__(tableSize, blockWidth, blockHeight)
+		self.candidatesGen = RandomSeqCandidatesDecorator(self.candidatesGen)
+		pass
