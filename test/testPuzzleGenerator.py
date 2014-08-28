@@ -67,36 +67,7 @@ class TestMutiSolutionSolver(unittest.TestCase):
 		collection.result.assert_called_once_with()
 		solutionFinder.solve.assert_called_once_with(puzzle, collection)
 
-class TestMultiSolutionCollector(unittest.TestCase):
-	def setUp(self):
-		self.collector = MultisolutionCollector()
-		self.puzzle_1 = MockObject()
-		self.puzzle_2 = MockObject()
 
-		self.puzzle_1.differences = MagicMock(name="puzzle_1.compare", return_value = (0, 1))
-	
-	def test_OnlyOneSolutionAvailable(self):
-		self.collector.record(self.puzzle_1)
-		self.assertEquals(1, self.collector.result().solutionCount())
-
-	def test_OnlyTwoSolutionAvailable(self):
-		self.collector.record(self.puzzle_1)
-		self.collector.record(self.puzzle_2)
-
-		result = self.collector.result()
-
-		self.puzzle_1.differences.assert_called_once_with(self.puzzle_2)
-		self.assertEquals(2, result.solutionCount())
-		self.assertEquals((0, 1), result.solutionDifference())
-
-	def test_solultionCollectingNotDoneEvenAfterOneSolutionFind(self):
-		self.collector.record(self.puzzle_1)
-		self.assertFalse(self.collector.done())
-
-	def test_solutionCollectingDoneAfter2SolutionsFound(self):
-		self.collector.record(self.puzzle_1)
-		self.collector.record(self.puzzle_2)
-		self.assertTrue(self.collector.done())
 
 class TestPuzzleGeneratorIntegration(unittest.TestCase):
 

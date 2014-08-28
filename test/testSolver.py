@@ -94,7 +94,6 @@ class TestSolutionFinderIntegration(unittest.TestCase):
 		self.puzzleFactory = RandomPuzzleFactory(4, 2, 2)	
 				
 	def test_findSolution(self):
-		# _ = Grid.EmptySign
 		puzzle = self.puzzleFactory.emptyPuzzle()
 		solutionCollector = SolutionsCollector()
 		solver = SolutionFinder()

@@ -1,6 +1,7 @@
-class SolutionFinder:
+
+class QuickSolutionFinder:
 	def solve(self, puzzle, solutions):
-		if solutions.impossible(puzzle):
+		if solutions.impossibleTohaveSolution(puzzle):
 			return
 
 		if puzzle.solved():
@@ -16,3 +17,4 @@ class SolutionFinder:
 				break
 
 		puzzle.clear((i, j))
+	
