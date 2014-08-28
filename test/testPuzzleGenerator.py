@@ -73,7 +73,7 @@ class TestMultiSolutionCollector(unittest.TestCase):
 		self.puzzle_1 = MockObject()
 		self.puzzle_2 = MockObject()
 
-		self.puzzle_1.compare = MagicMock(name="puzzle_1.compare", return_value = (0, 1))
+		self.puzzle_1.differences = MagicMock(name="puzzle_1.compare", return_value = (0, 1))
 	
 	def test_OnlyOneSolutionAvailable(self):
 		self.collector.record(self.puzzle_1)
@@ -85,7 +85,7 @@ class TestMultiSolutionCollector(unittest.TestCase):
 
 		result = self.collector.result()
 
-		self.puzzle_1.compare.assert_called_once_with(self.puzzle_2)
+		self.puzzle_1.differences.assert_called_once_with(self.puzzle_2)
 		self.assertEquals(2, result.solutionCount())
 		self.assertEquals((0, 1), result.solutionDifference())
 
@@ -112,4 +112,4 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 		# 	table = tableGen.getTable()
 		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 30)
 		# self.assertEquals("sharon", puzzle.toString())
-		pass
+		# pass

@@ -50,7 +50,7 @@ class MultisolutionCollector:
 
 	def result(self):
 		if self.solutionCount is 2:
-			return MultiSolutionResult(self.solutionCount, self.solutions[0].compare(self.solutions[1]))
+			return MultiSolutionResult(self.solutionCount, self.solutions[0].differences(self.solutions[1]))
 
 		return MultiSolutionResult(self.solutionCount)
 

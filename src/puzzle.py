@@ -25,10 +25,10 @@ class Puzzle():
 	def getNumbersInPos(self, pos):
 		return self.grid.getNumbers(pos)
 
-	def compare(self, theOtherOne):
-		differences = self.grid.compare(theOtherOne.grid)
-		index = random.randint(0, len(differences) - 1)
-		return differences[index]
+	def differences(self, theOtherOne):
+		diff = self.grid.differences(theOtherOne.grid)
+		index = random.randint(0, len(diff) - 1)
+		return diff[index]
 
 	def firstEmptyCell(self):
 		return self.grid.firstEmptyCell()
@@ -38,6 +38,10 @@ class Puzzle():
 
 	def clear(self, pos):
 		self.grid.clear(pos)
+
+	def compare(self, theOtherOne):
+		return self.grid.compare(theOtherOne.grid)
+		pass
 
 
 class Validator:
@@ -75,27 +79,27 @@ class RandomSeqCandidatesDecorator:
 		pass
 
 class Grid:
-	EmptySign = 0
-	nonEmptyNumberIn = lambda self, zone: list(filter((0).__ne__, zone))
+	EmptySign = "/"
+	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
 	def __init__(self, matrix, bw, bh):
 		self.matrix = matrix
 		self.bw = bw
 		self.bh = bh
 
-		mHeight = len(matrix)
-		mWidth = len(matrix[0])
+		self.mHeight = len(matrix) #matrix Height
+		self.mWidth = len(matrix[0]) #matrix Width
 
-		self.emptyList = [(i, j) for i in range(mHeight) for j in range(mWidth) if matrix[i][j] is _]
+		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
 		self.columns = self.transMatrix(matrix)
 		
 		self.nbPerRow = len(matrix[0]) // bw
 		to_i = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[0]
 		to_j = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[1]
 		bsize = bw * bh
-		bnum = mHeight * mWidth // bsize
+		bnum = self.mHeight * self.mWidth // bsize
 		self.blocks = [[matrix[to_i(i, j)][to_j(i,j)] for j in range(bsize)] for i in range(bnum)]
-		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(mWidth)] for i in range(mHeight)]
+		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(self.mWidth)] for i in range(self.mHeight)]
 
 	def allRows(self):
 		return [self.row(i) for i in range(0, len(self.matrix))]
@@ -113,13 +117,6 @@ class Grid:
 	def block(self, i, j):
 		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
 		return self.nonEmptyNumberIn(self.blocks[bi])
-
-	def blockArea(self, i, j):
-		left = j - j % self.bw
-		right = left + self.bw
-		top = i - i % self.bh
-		bottom = top + self.bh
-		return left, right, top, bottom
 
 	def full(self):
 		return len(self.emptyList) is 0
@@ -144,7 +141,7 @@ class Grid:
 	def getNumbers(self, pos):
 		return [self.matrix[p[0]][p[1]] for p in pos]
 
-	def compare(self, theOtherGrid):
+	def differences(self, theOtherGrid):
 		m1, m2 = self.matrix, theOtherGrid.matrix
 		return [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
 
@@ -173,6 +170,22 @@ class Grid:
 
 	def matrixIndexToBlockIndex(self, i, j):
 		return self.blockIndexMap[i][j]
+
+	def compare(self, theOtherGrid):
+		for i in range(self.mHeight):
+			for j in range(self.mWidth):
+				if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
+					return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
+		return 0
+
+	def compareElement(self, x, y):
+		if x is y:
+			return 0
+
+		if (x is self.EmptySign) or (x > y) : 
+			return 1
+		else:
+			return -1
 
 _ = Grid.EmptySign
 

@@ -4,23 +4,14 @@ from unittest.mock import call
 from src.puzzle import *
 import random
 
-class MockGrid:
-	pass
-
-class MockValidator:
-	pass
-
-class MockCandidates:
-	pass
-
 class MockObject:
 	pass
 
 class TestPuzzle(unittest.TestCase):
 	def  setUp(self):
-		self.grid = MockGrid()
-		self.validator = MockValidator()
-		self.candidates = MockCandidates()
+		self.grid = MockObject()
+		self.validator = MockObject()
+		self.candidates = MockObject()
 		self.grid.full = MagicMock(return_value=True)
 		self.validator.validate = MagicMock(return_value=True)
 		self.puzzle = Puzzle(self.grid, self.validator, self.candidates)
@@ -55,7 +46,7 @@ class TestPuzzle(unittest.TestCase):
 class TestValidator(unittest.TestCase):
 	def setUp(self):
 		self.validator = Validator()
-		self.grid = MockGrid()
+		self.grid = MockObject()
 		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 4]])
 		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 4]])
 		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 4]])
@@ -86,7 +77,7 @@ class TestValidator(unittest.TestCase):
 class TestCandidates(unittest.TestCase):
 	def setUp(self):
 		self.candidatesGen = CandidatesGen([1, 2, 3, 4])
-		self.grid = MockGrid()
+		self.grid = MockObject()
 
 	def test_candidatesAt00Is4WhenSuroundingsAre123(self):
 		self.grid.suroundings = MagicMock(return_value=[1, 2, 3])
@@ -105,11 +96,11 @@ class TestCandidates(unittest.TestCase):
 
 class TestCandidatesInRandomSeq(unittest.TestCase):
 	def setUp(self):
-		candidatesGen = MockCandidates()
+		candidatesGen = MockObject()
 		candidatesGen.getCandidatesAt = MagicMock(return_value=[1, 2, 3])
 		self.randomSeqCandidatesGen = RandomSeqCandidatesDecorator(candidatesGen)
 		self.randint = random.randint
-		self.grid = MockGrid()
+		self.grid = MockObject()
 
 	def tearDown(self):
 		random.randint = self.randint
@@ -157,14 +148,31 @@ class TestGrid(unittest.TestCase):
 		_ = Grid.EmptySign
 		grid = Grid([[_, 2], [3, _]], 1, 1)
 		grid.change((0, 0), 1)
-		self.assertEquals("[[1, 2], [3, 0]]", grid.toString())
+		self.assertEquals("[[1, 2], [3, \"/\"]]", grid.toString())
 
 	def test_clear(self):
 		grid = Grid([[1, 2], [3, 4]], 1, 1)
 		grid.clear((1, 0))
 		self.assertEquals((1, 0), grid.firstEmptyCell())
-		self.assertEquals("[[1, 2], [0, 4]]", grid.toString())
+		self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
 
+	def test_compare(self):
+		_ = Grid.EmptySign
+		grid_1 = Grid([[1, 1], [1, 1]], 1, 1)
+		grid_2 = Grid([[1, 1], [1, 2]], 1, 1)
+		self.assertEquals(-1, grid_1.compare(grid_2))
+
+		grid_1 = Grid([[1, 1], [_, 1]], 1, 1)
+		grid_2 = Grid([[1, 1], [1, 2]], 1, 1)
+		self.assertEquals(1, grid_1.compare(grid_2))
+
+		grid_1 = Grid([[1, 1], [_, 1]], 1, 1)
+		grid_2 = Grid([[1, 2], [1, 2]], 1, 1)
+		self.assertEquals(-1, grid_1.compare(grid_2))
+
+		grid_1 = Grid([[1, 2], [2, 1]], 1, 1)
+		grid_2 = Grid([[1, 2], [2, 1]], 1, 1)
+		self.assertEquals(0, grid_1.compare(grid_2))	
 
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
@@ -259,21 +267,22 @@ class TestPuzzleFactory(unittest.TestCase):
 		table.getNumbersInPos = MagicMock(return_value=[1, 2])
 		pos = [(0, 0), (1, 1)]
 		puzzle = self.factory.createPuzzleFromTable(table, pos)
-		self.assertEquals("[[1, 0], [0, 2]]", puzzle.toString())
+		self.assertEquals("[[1, \"/\"], [\"/\", 2]]", puzzle.toString())
 
 	def test_puzzleGetNumbersInPos(self):
 		table = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
 		nums = table.getNumbersInPos([(0, 0), (1, 1)])
 		self.assertEquals([1, 4], nums)
 
+
 class TestPuzzleCompare(unittest.TestCase):
 	def setUp(self):
-		self.factory = RandomPuzzleFactory(2, 1, 1)
+		self.factory = PuzzleFactory(2, 1, 1)
 
-	def test_puzzleCompare(self):
+	def test_puzzleDifferences(self):
 		puzzle_1 = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
 		puzzle_2 = self.factory.creatPuzzleByMatrix([[1, 2], [4, 4]])
-		self.assertEquals((1, 0), puzzle_1.compare(puzzle_2))
+		self.assertEquals((1, 0), puzzle_1.differences(puzzle_2))
 
 	def test_puzzleFirstEmptyCell(self):
 		_ = Grid.EmptySign
@@ -287,18 +296,23 @@ class TestPuzzleCompare(unittest.TestCase):
 		puzzle = self.factory.creatPuzzleByMatrix([[1, _], [_, 4]])
 		puzzle.change((0, 1), 2)
 
-		self.assertEquals("[[1, 2], [0, 4]]" ,puzzle.toString())
+		self.assertEquals("[[1, 2], [\"/\", 4]]" ,puzzle.toString())
 
 	def test_puzzleClear(self):
 		puzzle = self.factory.creatPuzzleByMatrix([[1, 2], [3, 4]])
 		puzzle.clear((1, 0))
 		self.assertEquals((1, 0), puzzle.firstEmptyCell())
-		self.assertEquals("[[1, 2], [0, 4]]", puzzle.toString())
-
-class TestMatrixRef(unittest.TestCase):
-	def test_matrixTr(self):
-		a = [1, 1, 2, 3, 4]
-		a = list(filter((1).__ne__, a))
-		self.assertEquals([2, 3, 4], a)
+		self.assertEquals("[[1, 2], [\"/\", 4]]", puzzle.toString())
+	
+	# 1 is least, 2 is greater, empty sign is the greatest
+	# matrix[0][0] is highest pos, and matrix[m][n] is the lowest pos
+	def test_compare(self):
+		_ = Grid.EmptySign
+		puzzle_1 = self.newPuzzle([[1, 1], [1, 1]])
+		puzzle_2 = self.newPuzzle([[1, 1], [1, 2]])
+		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
 		pass
-		
+
+	def newPuzzle(self, matrix):
+		return self.factory.creatPuzzleByMatrix(matrix)
+		pass
