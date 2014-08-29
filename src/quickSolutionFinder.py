@@ -17,4 +17,3 @@ class QuickSolutionFinder:
 				break
 
 		puzzle.clear((i, j))
-	

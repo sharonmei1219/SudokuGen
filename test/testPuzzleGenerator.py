@@ -83,7 +83,7 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 
 		# for i in range(10):
 		# 	table = tableGen.getTable()
-		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 30)
+		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
 		# self.assertEquals("sharon", puzzle.toString())
 		# pass
 
