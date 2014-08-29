@@ -64,15 +64,16 @@ class SolutionCollectorWithMemory(SolutionCollectorWithoutMemory):
 	def __init__(self, table, startingPoint):
 		super(SolutionCollectorWithMemory, self).__init__(table)
 		self.startingPoint = startingPoint
-		self.notReachStartingPoint = True
+		self.reachedStartingPoint = False
+
+	def record(self, puzzle):
+		self.solution = puzzle
+
+		if puzzle.compare(self.table) is not 0:
+			self.findDifferentSolution = True
+			self.reachedStartingPoint = True
 
 	def impossibleTohaveSolution(self, puzzle):
-		if self.notReachStartingPoint is False:
+		if self.reachedStartingPoint is True:
 			return False
-
-		cmpResult = puzzle.compare(self.startingPoint)
-		if cmpResult == 0:
-			self.notReachStartingPoint = False
-			return True
-
-		return cmpResult <= 0	
+		return puzzle.compare(self.startingPoint) <= 0

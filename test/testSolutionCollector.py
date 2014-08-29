@@ -103,6 +103,7 @@ class TestSolutionCollectorWithMemory(unittest.TestCase):
 		self.table = MockObject()
 		self.lastSolution = MockObject()
 		self.testedPuzzle = MockObject()
+		self.recordedPuzzle = MockObject()
 
 		self.collector = SolutionCollectorWithMemory(self.table, self.lastSolution)
 
@@ -119,8 +120,9 @@ class TestSolutionCollectorWithMemory(unittest.TestCase):
 		self.testedPuzzle.compare.assert_called_once_with(self.lastSolution)
 
 	def test_stopSearchIsFalseEverSinceFirstBecomeFalse(self):
-		self.testedPuzzle.compare = MagicMock(return_value=0)
+		self.recordedPuzzle.compare = MagicMock(return_value = 1)
+		self.testedPuzzle.compare = MagicMock()
+		self.collector.record(self.recordedPuzzle)
 		stopSearch = self.collector.impossibleTohaveSolution(self.testedPuzzle)
-		stopSearch = self.collector.impossibleTohaveSolution(self.testedPuzzle)
-		self.testedPuzzle.compare.assert_called_once_with(self.lastSolution)
 		self.assertFalse(stopSearch)
+		self.assertEquals(0, self.testedPuzzle.compare.call_count)

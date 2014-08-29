@@ -53,9 +53,9 @@ class TestQuickSolver(unittest.TestCase):
 
 class TestQuickSolverInt(unittest.TestCase):
 	def test_integrationEmptyCollector(self):
-		factory = PuzzleFactory(2, 1, 1)
-		table = factory.creatPuzzleByMatrix([[2, 1],[1, 2]])
-		puzzle = factory.creatPuzzleByMatrix([[_, _],[_, _]])
+		factory = PuzzleFactory(3, 1, 1)
+		table = factory.creatPuzzleByMatrix([[3, 2, 1],[2, 1, 3], [1, 3, 2]])
+		puzzle = factory.creatPuzzleByMatrix([[_, _, _],[_, _, _], [_, _, _]])
 		collector = SolutionCollectorWithoutMemory(table)
 		solver = QuickSolutionFinder()
 		solver.solve(puzzle, collector)
@@ -64,9 +64,9 @@ class TestQuickSolverInt(unittest.TestCase):
 
 	def test_integrationWithMemoryCollector(self):
 		factory = PuzzleFactory(2, 1, 1)
-		table = factory.creatPuzzleByMatrix([[2, 1],[1, 2]])
-		lastSolution = factory.creatPuzzleByMatrix([[1, 2], [2, 1]])
-		puzzle = factory.creatPuzzleByMatrix([[_, _],[_, _]])
+		table = factory.creatPuzzleByMatrix([[3, 2, 1],[2, 1, 3], [1, 3, 2]])
+		lastSolution = factory.creatPuzzleByMatrix([[3, 2, 1],[2, 1, 3], [1, 3, 2]])
+		puzzle = factory.creatPuzzleByMatrix([[_, _, _],[_, _, _], [_, _, _]])
 		collector = SolutionCollectorWithMemory(table, lastSolution)
 		solver = QuickSolutionFinder()
 		solver.solve(puzzle, collector)

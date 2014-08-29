@@ -8,5 +8,5 @@ class SudokuTableGenerator:
 		
 	def getTable(self):
 		solutionCollector = SolutionsCollector()
-		self.solver.solve(self.puzzleFactory.emptyPuzzle(), solutionCollector)
+		self.solver.solve(self.puzzleFactory.tableBase(), solutionCollector)
 		return solutionCollector.result()

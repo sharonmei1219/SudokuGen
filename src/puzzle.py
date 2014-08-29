@@ -230,6 +230,13 @@ class PuzzleFactory:
 	def emptyMatrix(self):
 		return  [[_]*self.tableSize for j in range(self.tableSize)]
 
+	def tableBase(self):
+		grid = Grid(self.tableBaseMatrix(), self.bw, self.bh)
+		return Puzzle(grid, self.validator, self.candidatesGen)
+
+	def tableBaseMatrix(self):
+		return [[1, 2, 3, 4, 5, 6, 7, 8, 9]] + [[_]*self.tableSize for j in range(self.tableSize - 1)]
+
 
 class RandomPuzzleFactory(PuzzleFactory):
 	def __init__(self, tableSize, blockWidth, blockHeight):

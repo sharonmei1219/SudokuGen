@@ -1,4 +1,4 @@
-# from solutionCollector import *
+from solutionCollector import *
 
 class PuzzleGenerator:
 	def __init__(self, puzzleFactory, puzzleSolver):
@@ -18,6 +18,7 @@ class PuzzleGenerator:
 			count = count + 1
 
 		print(count)
+
 		return puzzle
 
 	def solve(self, puzzle):
@@ -28,6 +29,28 @@ class PuzzleGenerator:
 
 	def randomPos(self, count):
 		return self.puzzleFactory.getRandomPos(count)
+
+class QuickPuzzleGenerator:
+	def __init__(self, puzzleFactory, puzzleSolver):
+		self.gen = PuzzleGenerator(puzzleFactory, puzzleSolver)
+
+	def constructPuzzleWithOnlySolution(self, table, initNumCnt):
+		self.gen.puzzleSolver.refresh(table)
+		return self.gen.constructPuzzleWithOnlySolution(table, initNumCnt)
+
+class QuickSolver:
+	def __init__(self, solutionFinder):
+		self.solutionFinder = solutionFinder
+		self.solutioncollecor = None
+
+	def refresh(self, table):
+		self.solutioncollecor = SolutionCollectorWithoutMemory(table)
+		
+	def solve(self, puzzle):
+		self.solutionFinder.solve(puzzle, self.solutioncollecor)
+		result = self.solutioncollecor.result()
+		self.solutioncollecor = self.solutioncollecor.next()
+		return result
 
 class MultiSolutionSolver:
 	def __init__(self, solutionFinder):

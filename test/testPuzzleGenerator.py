@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 from unittest.mock import call
 from puzzle import *
 from solutionFinder import *
+from quickSolutionFinder import *
 from sudokuTableGen import *
+from solutionCollector import *
 import cProfile
 
 class MockObject:
@@ -84,3 +86,16 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 30)
 		# self.assertEquals("sharon", puzzle.toString())
 		# pass
+
+	def test_quickPuzzleGen(self):
+		tableGen = SudokuTableGenerator()
+
+		factory = PuzzleFactory(9, 3, 3)
+		solutionFinder = QuickSolutionFinder()
+		solver = QuickSolver(solutionFinder)
+		puzzleGen = QuickPuzzleGenerator(factory, solver)
+		# for i in range(10):
+		# 	table = tableGen.getTable()
+		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
+		# self.assertEquals("sharon", puzzle.toString())
+		pass
