@@ -38,10 +38,28 @@ class QuickPuzzleGenerator:
 		self.gen = PuzzleGenerator(puzzleFactory, puzzleSolver)
 
 	def constructPuzzleWithOnlySolution(self, table, initNumCnt):
-		pos = self.gen.randomPos(initNumCnt)
-		self.gen.puzzleSolver.refresh(table)
-		result, newAddedPos= self.gen.constructPuzzleWithInitialPos(table, pos)
+		pos = self.randomPos(initNumCnt)
+		result, newAddedPos = self.constructPuzzleWithInitialPos(table, pos)
 		return result
+
+	def constructPuzzleWithInitialPos(self, table, pos):
+		self.gen.puzzleSolver.refresh(table)
+		result, newAddedPos = self.gen.constructPuzzleWithInitialPos(table, pos)
+		return result, newAddedPos
+
+	def randomPos(self, count):
+		return self.gen.randomPos(count)
+
+	def createPuzzle(self, table, pos):
+		return self.gen.createPuzzle(table, pos)
+
+	def solve(self, puzzle):
+		return self.gen.solve(puzzle)
+
+	def refresh(self, table):
+		self.gen.puzzleSolver.refresh(table)
+		pass
+
 
 class QuickSolver:
 	def __init__(self, solutionFinder):
@@ -68,3 +86,45 @@ class MultiSolutionSolver:
 
 	def newSolutionCollections(self):
 		return MultisolutionCollector()
+
+class HoleDigger:
+	def __init__(self, generator):
+		self.gen = generator
+
+	def randomPos(self,  count):
+		return self.gen.randomPos(count)
+
+	def constructPuzzleWithOnlySolution(self, table, initNumCnt):
+		pos = self.randomPos(initNumCnt)
+		puzzle, newAddedPos = self.gen.constructPuzzleWithInitialPos(table, pos)
+		pos = self.removePosFromPuzzle(table, pos + newAddedPos, len(newAddedPos))
+		print('holeCount: ' + str(81 - len(pos)))
+		return self.createPuzzle(table, pos)
+	
+	def removePosFromPuzzle(self, table, pos, holeCount):
+		posIndex = 0
+		holeDigged = 0
+		totalPos = len(pos)
+		while posIndex < totalPos and holeDigged < holeCount:
+			posIndex += 1
+			diggedPos = pos[0]
+			pos = pos[1:]
+			puzzle = self.createPuzzle(table, pos)
+			self.gen.refresh(table)
+			result = self.solve(puzzle)
+			if result.solutionCount() is 1: 
+				holeDigged += 1
+				result = puzzle
+			else:
+				pos = pos + [diggedPos]
+
+		return pos
+
+	def solve(self, puzzle):
+		return self.gen.solve(puzzle)
+
+	def createPuzzle(self, table, pos):
+		return self.gen.createPuzzle(table, pos)
+		pass
+	pass
+		

@@ -88,8 +88,110 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 		solutionFinder = QuickSolutionFinder()
 		solver = QuickSolver(solutionFinder)
 		puzzleGen = QuickPuzzleGenerator(factory, solver)
+		# for i in range(1):
+		# 	table = tableGen.getTable()
+		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
+		# self.assertEquals("sharon", puzzle.toString())
+
+class TestHoleDigger(unittest.TestCase):
+
+	def setUp(self):
+		self.gen = MockObject()
+		self.gen.refresh = MagicMock()
+		self.table = MockObject()
+		self.digger = HoleDigger(self.gen)
+		self.puzzleAfterDiggerHole = MockObject()
+		pass
+
+	def test_DigHoleAfterPuzzleGenerated(self):
+		initPuzzle = MockObject()
+		pos = [(0, 0)]
+		self.gen.constructPuzzleWithInitialPos = MagicMock(return_value=(initPuzzle, pos))
+		self.gen.randomPos = MagicMock(return_value=[(1, 1)])
+		self.digger.removePosFromPuzzle = MagicMock(return_value=[(1, 1)])
+		self.digger.createPuzzle = MagicMock(return_value=self.puzzleAfterDiggerHole)
+
+		self.digger.constructPuzzleWithOnlySolution(self.table, 1)
+		self.gen.constructPuzzleWithInitialPos.assert_called_once_with(self.table, [(1, 1)])
+		self.digger.removePosFromPuzzle.assert_called_once_with(self.table, [(1, 1), (0, 0)], 1)
+
+	def test_digOneHoleWithOneTry(self):
+		result = MockObject()
+		result.solutionCount = MagicMock(return_value = 1)
+		self.digger.createPuzzle = MagicMock(return_value=self.puzzleAfterDiggerHole)
+		self.digger.solve = MagicMock(return_value=result)
+
+		puzzle = self.digger.removePosFromPuzzle(self.table, [(1, 1), (0, 0)], 1)
+
+		self.digger.createPuzzle.assert_called_once_with(self.table, [(0, 0)])
+		self.digger.solve.assert_called_once_with(self.puzzleAfterDiggerHole)
+		result.solutionCount.assert_called_once_with()
+
+		self.assertEquals([(0, 0)], puzzle)
+	
+	def test_digOneHoleWithTwoTries(self):
+		result = MockObject()
+		puzzle_1 = MockObject()
+		puzzle_2 = MockObject()
+		result.solutionCount = MagicMock(side_effect = [2, 1])
+		self.digger.createPuzzle = MagicMock(side_effect=[puzzle_1, puzzle_2])
+		self.digger.solve = MagicMock(return_value=result)
+
+		pos = self.digger.removePosFromPuzzle(self.table, [(1, 1), (0, 0)], 1)
+
+		self.assertEquals([call(self.table, [(0, 0)]), call(self.table, [(1, 1)])], self.digger.createPuzzle.mock_calls)
+
+		self.assertEquals([call(puzzle_1), call(puzzle_2)], self.digger.solve.mock_calls)
+		self.assertEquals([(1, 1)], pos)
+
+	def test_digOneHoleFaledWithTwoTries(self):
+		result = MockObject()
+		puzzle_1 = MockObject()
+		puzzle_2 = MockObject()
+		result.solutionCount = MagicMock(side_effect = [2, 2])
+		self.digger.createPuzzle = MagicMock(side_effect=[puzzle_1, puzzle_2])
+		self.digger.solve = MagicMock(return_value=result)
+
+		pos = self.digger.removePosFromPuzzle(self.table, [(1, 1), (0, 0)], 1)
+
+		self.assertEquals([call(self.table, [(0, 0)]), call(self.table, [(1, 1)])], self.digger.createPuzzle.mock_calls)
+
+		self.assertEquals([call(puzzle_1), call(puzzle_2)], self.digger.solve.mock_calls)
+		self.assertEquals([(1, 1), (0, 0)], pos)
+
+	def test_integration(self):
+		tableGen = SudokuTableGenerator()
+
+		factory = PuzzleFactory(9, 3, 3)
+		solutionFinder = QuickSolutionFinder()
+		solver = QuickSolver(solutionFinder)
+		puzzleGen = QuickPuzzleGenerator(factory, solver)
+		digger = HoleDigger(puzzleGen)
 		for i in range(1):
 			table = tableGen.getTable()
-			puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
+			puzzle = digger.constructPuzzleWithOnlySolution(table, 22)
+			slow_solutionFinder = SolutionFinder()
+			slow_solver = MultiSolutionSolver(slow_solutionFinder)
+			self.assertEquals(1, slow_solver.solve(puzzle).solutionCount())
+
 		self.assertEquals("sharon", puzzle.toString())
+
+	def test_unbelievable(self):
+		factory = PuzzleFactory(9, 3, 3)
+		# puzzle = factory.creatPuzzleByMatrix([["/", "/", "/", "/", "/", "/", "/", 8, 9], 
+		# 	                        ["/", "/", "/", "/", "/", "/", "/", "/", "/"], 
+		# 	                        ["/", "/", "/", "/", "/", 1, 5, "/", "/"], 
+		# 	                        [7, 1, "/", 3, "/", 5, "/", 9, "/"], 
+		# 	                        [5, "/", "/", "/", "/", 9, "/", 4, 7], 
+		# 	                        ["/", "/", "/", 8, 4, "/", "/", "/", "/"], 
+		# 	                        ["/", 5, 9, "/", 6, "/", 2, "/", "/"], 
+		# 	                        ["/", "/", "/", "/", "/", "/", "/", "/", "/"], 
+		# 	                        ["/", "/", 1, "/", "/", "/", "/", "/", "/"]])
+# 		puzzle = factory.creatPuzzleByMatrix([["/", 2, "/", 4, 5, "/", "/", "/", "/"], ["/", 4, "/", 3, "/", "/", "/", "/", "/"], ["/", "/", "/", "/", 1, "/", 6, "/", "/"], [8, 1, "/", "/", "/", "/", "/", "/", 3], ["/", "/", 7, "/", "/", "/", 1, "/", "/"], [3, "/", "/", 9, "/", "/", 8, "/", 7], ["/", 3, "/", 1, "/", "/", 9, "/", "/"], [2, "/", "/", 5, 3, "/", "/", "/", "/"], [5, 6, "/", "/", "/", "/", "/", "/", "/"]]
+# )
+# 		solutionFinder = SolutionFinder()
+# 		solver = MultiSolutionSolver(solutionFinder)
+# 		result = solver.solve(puzzle)
+# 		self.assertEquals(1, result.solutionCount())
 		pass
+		
