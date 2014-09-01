@@ -7,19 +7,21 @@ class PuzzleGenerator:
 
 	def constructPuzzleWithOnlySolution(self, table, initNumCnt):
 		pos = self.randomPos(initNumCnt)
+		result, newAddedPos= self.constructPuzzleWithInitialPos(table, pos)
+		return result
+
+	def constructPuzzleWithInitialPos(self, table, pos):
 		puzzle = self.createPuzzle(table, pos)
 		result = self.solve(puzzle)
-		count = 0
+		newlyAddedPos = []
 
 		while result.solutionCount() > 1:
-			pos = pos + [result.solutionDifference()]
-			puzzle = self.createPuzzle(table, pos)
+			newlyAddedPos = newlyAddedPos + [result.solutionDifference()]
+			puzzle = self.createPuzzle(table, pos + newlyAddedPos)
 			result = self.solve(puzzle)
-			count = count + 1
 
-		print(count)
+		return puzzle, newlyAddedPos
 
-		return puzzle
 
 	def solve(self, puzzle):
 		return self.puzzleSolver.solve(puzzle)
@@ -30,13 +32,16 @@ class PuzzleGenerator:
 	def randomPos(self, count):
 		return self.puzzleFactory.getRandomPos(count)
 
+
 class QuickPuzzleGenerator:
 	def __init__(self, puzzleFactory, puzzleSolver):
 		self.gen = PuzzleGenerator(puzzleFactory, puzzleSolver)
 
 	def constructPuzzleWithOnlySolution(self, table, initNumCnt):
+		pos = self.gen.randomPos(initNumCnt)
 		self.gen.puzzleSolver.refresh(table)
-		return self.gen.constructPuzzleWithOnlySolution(table, initNumCnt)
+		result, newAddedPos= self.gen.constructPuzzleWithInitialPos(table, pos)
+		return result
 
 class QuickSolver:
 	def __init__(self, solutionFinder):
