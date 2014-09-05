@@ -129,7 +129,8 @@ class Grid:
 
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
-		return set(self.row(i) + self.column(j) + self.block(i, j))
+		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
+		return set(self.matrix[i] + self.columns[j] + self.blocks[bi]) - set(self.EmptySign)
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]

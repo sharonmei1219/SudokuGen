@@ -167,31 +167,16 @@ class TestHoleDigger(unittest.TestCase):
 		solver = QuickSolver(solutionFinder)
 		puzzleGen = QuickPuzzleGenerator(factory, solver)
 		digger = HoleDigger(puzzleGen)
-		for i in range(1):
-			table = tableGen.getTable()
-			puzzle = digger.constructPuzzleWithOnlySolution(table, 22)
-			slow_solutionFinder = SolutionFinder()
-			slow_solver = MultiSolutionSolver(slow_solutionFinder)
-			self.assertEquals(1, slow_solver.solve(puzzle).solutionCount())
+		# for i in range(1):
+		# 	table = tableGen.getTable()
+		# 	puzzle = digger.constructPuzzleWithOnlySolution(table, 21)
+		# 	slow_solutionFinder = SolutionFinder()
+		# 	slow_solver = MultiSolutionSolver(slow_solutionFinder)
+		# 	self.assertEquals(1, slow_solver.solve(puzzle).solutionCount())
 
-		self.assertEquals("sharon", puzzle.toString())
+		# self.assertEquals("sharon", puzzle.toString())
 
-	def test_unbelievable(self):
-		factory = PuzzleFactory(9, 3, 3)
-		# puzzle = factory.creatPuzzleByMatrix([["/", "/", "/", "/", "/", "/", "/", 8, 9], 
-		# 	                        ["/", "/", "/", "/", "/", "/", "/", "/", "/"], 
-		# 	                        ["/", "/", "/", "/", "/", 1, 5, "/", "/"], 
-		# 	                        [7, 1, "/", 3, "/", 5, "/", 9, "/"], 
-		# 	                        [5, "/", "/", "/", "/", 9, "/", 4, 7], 
-		# 	                        ["/", "/", "/", 8, 4, "/", "/", "/", "/"], 
-		# 	                        ["/", 5, 9, "/", 6, "/", 2, "/", "/"], 
-		# 	                        ["/", "/", "/", "/", "/", "/", "/", "/", "/"], 
-		# 	                        ["/", "/", 1, "/", "/", "/", "/", "/", "/"]])
-# 		puzzle = factory.creatPuzzleByMatrix([["/", 2, "/", 4, 5, "/", "/", "/", "/"], ["/", 4, "/", 3, "/", "/", "/", "/", "/"], ["/", "/", "/", "/", 1, "/", 6, "/", "/"], [8, 1, "/", "/", "/", "/", "/", "/", 3], ["/", "/", 7, "/", "/", "/", 1, "/", "/"], [3, "/", "/", 9, "/", "/", 8, "/", 7], ["/", 3, "/", 1, "/", "/", 9, "/", "/"], [2, "/", "/", 5, 3, "/", "/", "/", "/"], [5, 6, "/", "/", "/", "/", "/", "/", "/"]]
-# )
-# 		solutionFinder = SolutionFinder()
-# 		solver = MultiSolutionSolver(solutionFinder)
-# 		result = solver.solve(puzzle)
-# 		self.assertEquals(1, result.solutionCount())
+	def test_protoType(self):
+		sharon = MockObject()
+		sharon.name = 'sharon'
 		pass
-		

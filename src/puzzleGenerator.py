@@ -60,33 +60,6 @@ class QuickPuzzleGenerator:
 		self.gen.puzzleSolver.refresh(table)
 		pass
 
-
-class QuickSolver:
-	def __init__(self, solutionFinder):
-		self.solutionFinder = solutionFinder
-		self.solutioncollecor = None
-
-	def refresh(self, table):
-		self.solutioncollecor = SolutionCollectorWithoutMemory(table)
-		
-	def solve(self, puzzle):
-		self.solutionFinder.solve(puzzle, self.solutioncollecor)
-		result = self.solutioncollecor.result()
-		self.solutioncollecor = self.solutioncollecor.next()
-		return result
-
-class MultiSolutionSolver:
-	def __init__(self, solutionFinder):
-		self.solutionFinder = solutionFinder
-
-	def solve(self, puzzle):
-		solutionCollection = self.newSolutionCollections()
-		self.solutionFinder.solve(puzzle, solutionCollection)
-		return solutionCollection.result()
-
-	def newSolutionCollections(self):
-		return MultisolutionCollector()
-
 class HoleDigger:
 	def __init__(self, generator):
 		self.gen = generator
@@ -98,7 +71,7 @@ class HoleDigger:
 		pos = self.randomPos(initNumCnt)
 		puzzle, newAddedPos = self.gen.constructPuzzleWithInitialPos(table, pos)
 		pos = self.removePosFromPuzzle(table, pos + newAddedPos, len(newAddedPos))
-		print('holeCount: ' + str(81 - len(pos)))
+		# print('holeCount: ' + str(81 - len(pos)))
 		return self.createPuzzle(table, pos)
 	
 	def removePosFromPuzzle(self, table, pos, holeCount):
@@ -125,6 +98,30 @@ class HoleDigger:
 
 	def createPuzzle(self, table, pos):
 		return self.gen.createPuzzle(table, pos)
-		pass
-	pass
+
+
+class QuickSolver:
+	def __init__(self, solutionFinder):
+		self.solutionFinder = solutionFinder
+		self.solutioncollecor = None
+
+	def refresh(self, table):
+		self.solutioncollecor = SolutionCollectorWithoutMemory(table)
 		
+	def solve(self, puzzle):
+		self.solutionFinder.solve(puzzle, self.solutioncollecor)
+		result = self.solutioncollecor.result()
+		self.solutioncollecor = self.solutioncollecor.next()
+		return result
+
+class MultiSolutionSolver:
+	def __init__(self, solutionFinder):
+		self.solutionFinder = solutionFinder
+
+	def solve(self, puzzle):
+		solutionCollection = self.newSolutionCollections()
+		self.solutionFinder.solve(puzzle, solutionCollection)
+		return solutionCollection.result()
+
+	def newSolutionCollections(self):
+		return MultisolutionCollector()
