@@ -19,17 +19,16 @@ class TestPuzzle(unittest.TestCase):
 		pass
 	
 	def test_puzzleIsSolvedIfMatrixIsFullAndValidationPassed(self):
-		self.grid.full = MagicMock(return_value=True)
+		self.puzzle.full = MagicMock(return_value=True)
 		self.validator.validate = MagicMock(return_value=True)
 
 		self.assertTrue(self.puzzle.solved())
 
-		self.grid.full.assert_called_once_with()
 		self.validator.validate.assert_called_once_with(self.grid)
 		pass
 
 	def test_puzzleIsNotSolvedIfGridIsNotFull(self):
-		self.grid.full = MagicMock(return_value=False)
+		self.puzzle.full = MagicMock(return_value=False)
 		self.assertFalse(self.puzzle.solved())
 		pass
 
@@ -61,6 +60,15 @@ class TestPuzzle(unittest.TestCase):
 		puzzle_1 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
 		puzzle_2 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
 		self.assertEquals(0, puzzle_1.compare(puzzle_2))	
+
+	def test_GridIsNotFullWhenThereIsEmptyCell(self):
+		_ = Puzzle.EmptySign		
+		puzzle_1 = Puzzle([[1, 1], [_, 1]], self.grid, self.validator, self.candidates)		
+		self.assertFalse(puzzle_1.full())
+
+	def test_GridIsFull(self):
+		puzzle_1 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
+		self.assertTrue(puzzle_1.full())
 
 class TestValidator(unittest.TestCase):
 	def setUp(self):
@@ -149,19 +157,19 @@ class TestGrid(unittest.TestCase):
 	def test_GridGetAllColumns(self):
 		self.assertEquals([[1, 3], [4]], self.grid.allColumns())
 
-	def test_GridIsNotFullWhenThereIsEmptyCell(self):
-		self.assertFalse(self.grid.full())
+	# def test_GridIsNotFullWhenThereIsEmptyCell(self):
+	# 	self.assertFalse(self.grid.full())
 
-	def test_GridIsFull(self):
-		self.grid = Grid([[1, 2], [3, 4]], 1, 1)
-		self.assertTrue(self.grid.full())
+	# def test_GridIsFull(self):
+	# 	self.grid = Grid([[1, 2], [3, 4]], 1, 1)
+	# 	self.assertTrue(self.grid.full())
 
-	def test_getFirstEmptyCell(self):
-		_ = Grid.EmptySign
-		grid = Grid([[_, 2], [3, _]], 1, 1)
+	# def test_getFirstEmptyCell(self):
+	# 	_ = Grid.EmptySign
+	# 	grid = Grid([[_, 2], [3, _]], 1, 1)
 
-		(i, j) = grid.firstEmptyCell()
-		self.assertEquals((0, 0), (i, j))
+	# 	(i, j) = grid.firstEmptyCell()
+	# 	self.assertEquals((0, 0), (i, j))
 
 	# def test_change(self):
 	# 	_ = Grid.EmptySign

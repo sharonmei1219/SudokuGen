@@ -15,9 +15,10 @@ class Puzzle():
 		self.matrix = matrix
 		self.mHeight = len(matrix)
 		self.mWidth = len(matrix[0])
+		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
 
 	def solved(self):
-		return self.grid.full() and self.validator.validate(self.grid)
+		return self.full() and self.validator.validate(self.grid)
 
 	def candidatesAt(self, pos):
 		return self.candidatesGen.getCandidatesAt(self.grid, pos)		
@@ -34,19 +35,31 @@ class Puzzle():
 	def differences(self, theOtherOne):
 		m1, m2 = self.matrix, theOtherOne.matrix
 		diff =  [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
-
-		# diff = self.grid.differences(theOtherOne.grid)
 		index = random.randint(0, len(diff) - 1)
 		return diff[index]
 
-	def firstEmptyCell(self):
-		return self.grid.firstEmptyCell()
+	# def firstEmptyCell(self):
+	# 	return self.grid.firstEmptyCell()
 
-	def change(self, pos, value):
-		self.grid.change(pos, value)
+	# def clear(self, pos):
+	# 	self.grid.clear(pos)
+	def full(self):
+		return len(self.emptyList) is 0
+
+	def firstEmptyCell(self):
+		result = self.emptyList[0]
+		del self.emptyList[0]
+		return result
 
 	def clear(self, pos):
-		self.grid.clear(pos)
+		self.matrix[pos[0]][pos[1]] = _
+		self.emptyList = [pos] + self.emptyList
+
+	def change(self, pos, value):
+		self.matrix[pos[0]][pos[1]] = value
+	# def change(self, pos, value):
+	# 	self.grid.change(pos, value)
+
 
 	def compare(self, theOtherGrid):
 		for i in range(self.mHeight):
@@ -110,7 +123,7 @@ class Grid:
 		self.mHeight = len(matrix) #matrix Height
 		self.mWidth = len(matrix[0]) #matrix Width
 
-		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
+		# self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
 		self.columnIndex = [[(i, j) for i in range(self.mHeight)] for j in range(self.mWidth)]
 		
 		self.nbPerRow = len(matrix[0]) // bw
@@ -135,11 +148,10 @@ class Grid:
 	def block(self, i, j):
 		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
 		blc = [self.matrix[x][y] for (x, y) in self.blockIndex[bi]]
-		# return self.nonEmptyNumberIn(self.blocks[bi])
 		return self.nonEmptyNumberIn(blc)
 
-	def full(self):
-		return len(self.emptyList) is 0
+	# def full(self):
+	# 	return len(self.emptyList) is 0
 
 	def row(self, i):
 		return self.nonEmptyNumberIn(self.matrix[i])
@@ -156,17 +168,17 @@ class Grid:
 		newMatrix = [list(row) for row in self.matrix]
 		return Grid(newMatrix, self.bw, self.bh)
 
-	def firstEmptyCell(self):
-		result = self.emptyList[0]
-		del self.emptyList[0]
-		return result
+	# def firstEmptyCell(self):
+	# 	result = self.emptyList[0]
+	# 	del self.emptyList[0]
+	# 	return result
 
-	def change(self, pos, value):
-		self.matrix[pos[0]][pos[1]] = value
+	# def change(self, pos, value):
+	# 	self.matrix[pos[0]][pos[1]] = value
 
-	def clear(self, pos):
-		self.matrix[pos[0]][pos[1]] = _
-		self.emptyList = [pos] + self.emptyList
+	# def clear(self, pos):
+	# 	self.matrix[pos[0]][pos[1]] = _
+	# 	self.emptyList = [pos] + self.emptyList
 
 	def blockIndexToMatrixIndex(self, bi, bj):
 		i = int(bi // self.nbPerRow * self.bh + bj // self.bw)
