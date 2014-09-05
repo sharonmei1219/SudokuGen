@@ -32,7 +32,10 @@ class Puzzle():
 		return [self.matrix[p[0]][p[1]] for p in pos]
 
 	def differences(self, theOtherOne):
-		diff = self.grid.differences(theOtherOne.grid)
+		m1, m2 = self.matrix, theOtherOne.matrix
+		diff =  [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
+
+		# diff = self.grid.differences(theOtherOne.grid)
 		index = random.randint(0, len(diff) - 1)
 		return diff[index]
 
@@ -44,10 +47,6 @@ class Puzzle():
 
 	def clear(self, pos):
 		self.grid.clear(pos)
-
-	def compare(self, theOtherOne):
-		return self.grid.compare(theOtherOne.grid)
-		pass
 
 	def compare(self, theOtherGrid):
 		for i in range(self.mHeight):
@@ -112,7 +111,6 @@ class Grid:
 		self.mWidth = len(matrix[0]) #matrix Width
 
 		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
-		# self.columns = self.transMatrix(matrix)
 		self.columnIndex = [[(i, j) for i in range(self.mHeight)] for j in range(self.mWidth)]
 		
 		self.nbPerRow = len(matrix[0]) // bw
@@ -129,10 +127,6 @@ class Grid:
 
 	def allColumns(self):
 		return [self.column(j) for j in range(0, len(self.columnIndex))]
-		# return [[self.matrix[x][y] for (x, y) in self.columnIndex[i]] for i in range(len(self.columnIndex))]
-
-	# def transMatrix(self, matrix):
-	# 	return [list(column) for column in list(zip(*matrix))]
 
 	def allBlocks(self):
 		blocks = [[self.block(i, j) for j in range(0, len(self.matrix[i]), self.bw)] for i in range(0, len(self.matrix), self.bh)]
@@ -156,23 +150,11 @@ class Grid:
 
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
-		# (bi, bj) = self.matrixIndexToBlockIndex(i, j)
-		# return set(self.matrix[i] + self.column(j) + self.blocks[bi]) - set(self.EmptySign)
 		return set(self.matrix[i] + self.column(j) + self.block(i, j)) - set(self.EmptySign)
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]
 		return Grid(newMatrix, self.bw, self.bh)
-
-	# def toString(self):
-
-
-	# def getNumbers(self, pos):
-	# 	return [self.matrix[p[0]][p[1]] for p in pos]
-
-	def differences(self, theOtherGrid):
-		m1, m2 = self.matrix, theOtherGrid.matrix
-		return [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
 
 	def firstEmptyCell(self):
 		result = self.emptyList[0]
@@ -181,15 +163,9 @@ class Grid:
 
 	def change(self, pos, value):
 		self.matrix[pos[0]][pos[1]] = value
-		# self.columns[pos[1]][pos[0]] = value
-		# (bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
-		# self.blocks[bi][bj] = value
 
 	def clear(self, pos):
 		self.matrix[pos[0]][pos[1]] = _
-		# self.columns[pos[1]][pos[0]] = _
-		# (bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
-		# self.blocks[bi][bj] = _
 		self.emptyList = [pos] + self.emptyList
 
 	def blockIndexToMatrixIndex(self, bi, bj):
@@ -200,21 +176,6 @@ class Grid:
 	def matrixIndexToBlockIndex(self, i, j):
 		return self.blockIndexMap[i][j]
 
-	# def compare(self, theOtherGrid):
-	# 	for i in range(self.mHeight):
-	# 		for j in range(self.mWidth):
-	# 			if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
-	# 				return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
-	# 	return 0
-
-	# def compareElement(self, x, y):
-	# 	if x is y:
-	# 		return 0
-
-	# 	if (x is self.EmptySign) or (x > y) : 
-	# 		return 1
-	# 	else:
-	# 		return -1
 
 _ = Grid.EmptySign
 
