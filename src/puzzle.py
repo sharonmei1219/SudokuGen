@@ -25,7 +25,7 @@ class Puzzle():
 		return json.dumps(self.matrix)
 
 	def getNumbersInPos(self, pos):
-		return self.grid.getNumbers(pos)
+		return [self.matrix[p[0]][p[1]] for p in pos]
 
 	def differences(self, theOtherOne):
 		diff = self.grid.differences(theOtherOne.grid)
@@ -148,8 +148,8 @@ class Grid:
 	# def toString(self):
 
 
-	def getNumbers(self, pos):
-		return [self.matrix[p[0]][p[1]] for p in pos]
+	# def getNumbers(self, pos):
+	# 	return [self.matrix[p[0]][p[1]] for p in pos]
 
 	def differences(self, theOtherGrid):
 		m1, m2 = self.matrix, theOtherGrid.matrix
