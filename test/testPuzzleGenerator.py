@@ -167,14 +167,14 @@ class TestHoleDigger(unittest.TestCase):
 		solver = QuickSolver(solutionFinder)
 		puzzleGen = QuickPuzzleGenerator(factory, solver)
 		digger = HoleDigger(puzzleGen)
-		# for i in range(1):
-		# 	table = tableGen.getTable()
-		# 	puzzle = digger.constructPuzzleWithOnlySolution(table, 21)
-		# 	slow_solutionFinder = SolutionFinder()
-		# 	slow_solver = MultiSolutionSolver(slow_solutionFinder)
-		# 	self.assertEquals(1, slow_solver.solve(puzzle).solutionCount())
+		for i in range(1):
+			table = tableGen.getTable()
+			puzzle = digger.constructPuzzleWithOnlySolution(table, 21)
+			slow_solutionFinder = SolutionFinder()
+			slow_solver = MultiSolutionSolver(slow_solutionFinder)
+			self.assertEquals(1, slow_solver.solve(puzzle).solutionCount())
 
-		# self.assertEquals("sharon", puzzle.toString())
+		self.assertEquals("sharon", puzzle.toString())
 
 	def test_protoType(self):
 		sharon = MockObject()
