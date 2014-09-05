@@ -9,12 +9,13 @@ class MockObject:
 
 class TestPuzzle(unittest.TestCase):
 	def  setUp(self):
+		self.matrix = MockObject()
 		self.grid = MockObject()
 		self.validator = MockObject()
 		self.candidates = MockObject()
 		self.grid.full = MagicMock(return_value=True)
 		self.validator.validate = MagicMock(return_value=True)
-		self.puzzle = Puzzle(self.grid, self.validator, self.candidates)
+		self.puzzle = Puzzle(self.matrix, self.grid, self.validator, self.candidates)
 		pass
 	
 	def test_puzzleIsSolvedIfMatrixIsFullAndValidationPassed(self):
@@ -229,15 +230,16 @@ class TestBlockIndexExchange(unittest.TestCase):
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
 		_ = Grid.EmptySign
-		grid = Grid([[1, 8, 8, 8],
-	 	             [2, 8, 8, 8],
-	                 [8, _, 3, 4],
-	    		     [8, 8, 8, 8],
-	                 [8, 5, 8, 8],
-	                 [8, 6, 8, 8]], 2, 3)
+		matrix = [[1, 8, 8, 8],
+	 	          [2, 8, 8, 8],
+	              [8, _, 3, 4],
+	    		  [8, 8, 8, 8],
+	              [8, 5, 8, 8],
+	              [8, 6, 8, 8]]
+		grid = Grid(matrix, 2, 3)
 		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
 		validator = Validator()
-		puzzle = Puzzle(grid, validator, candidatesGen)
+		puzzle = Puzzle(matrix, grid, validator, candidatesGen)
 		self.assertFalse(puzzle.solved())
 		self.assertEquals((2,1), puzzle.firstEmptyCell())
 		self.assertEquals([7], puzzle.candidatesAt((2, 1)))

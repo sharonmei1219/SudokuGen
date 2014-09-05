@@ -3,9 +3,11 @@ from functools import reduce
 import operator
 import random
 import json
+import copy
 
 class Puzzle():
-	def __init__(self, grid, validator, candidates):
+	def __init__(self, matrix, grid, validator, candidates):
+		self.matrix = matrix
 		self.grid = grid
 		self.validator = validator
 		self.candidatesGen = candidates
@@ -17,7 +19,7 @@ class Puzzle():
 		return self.candidatesGen.getCandidatesAt(self.grid, pos)		
 
 	def clone(self):
-		return Puzzle(self.grid.clone(), self.validator, self.candidatesGen)
+		return Puzzle(copy.deepcopy(self.matrix), self.grid.clone(), self.validator, self.candidatesGen)
 
 	def toString(self):
 		return self.grid.toString()
@@ -91,24 +93,27 @@ class Grid:
 		self.mWidth = len(matrix[0]) #matrix Width
 
 		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
-		self.columns = self.transMatrix(matrix)
+		# self.columns = self.transMatrix(matrix)
+		self.columnIndex = [[(i, j) for i in range(self.mHeight)] for j in range(self.mWidth)]
 		
 		self.nbPerRow = len(matrix[0]) // bw
 		to_i = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[0]
 		to_j = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[1]
 		bsize = bw * bh
 		bnum = self.mHeight * self.mWidth // bsize
-		self.blocks = [[matrix[to_i(i, j)][to_j(i,j)] for j in range(bsize)] for i in range(bnum)]
+		# self.blocks = [[matrix[to_i(i, j)][to_j(i,j)] for j in range(bsize)] for i in range(bnum)]
+		self.blockIndex = [[(to_i(i, j), to_j(i,j)) for j in range(bsize)] for i in range(bnum)]
 		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(self.mWidth)] for i in range(self.mHeight)]
 
 	def allRows(self):
 		return [self.row(i) for i in range(0, len(self.matrix))]
 
 	def allColumns(self):
-		return [self.column(j) for j in range(0, len(self.columns))]
+		return [self.column(j) for j in range(0, len(self.columnIndex))]
+		# return [[self.matrix[x][y] for (x, y) in self.columnIndex[i]] for i in range(len(self.columnIndex))]
 
-	def transMatrix(self, matrix):
-		return [list(column) for column in list(zip(*matrix))]
+	# def transMatrix(self, matrix):
+	# 	return [list(column) for column in list(zip(*matrix))]
 
 	def allBlocks(self):
 		blocks = [[self.block(i, j) for j in range(0, len(self.matrix[i]), self.bw)] for i in range(0, len(self.matrix), self.bh)]
@@ -116,7 +121,9 @@ class Grid:
 
 	def block(self, i, j):
 		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
-		return self.nonEmptyNumberIn(self.blocks[bi])
+		blc = [self.matrix[x][y] for (x, y) in self.blockIndex[bi]]
+		# return self.nonEmptyNumberIn(self.blocks[bi])
+		return self.nonEmptyNumberIn(blc)
 
 	def full(self):
 		return len(self.emptyList) is 0
@@ -125,12 +132,14 @@ class Grid:
 		return self.nonEmptyNumberIn(self.matrix[i])
 
 	def column(self, j):
-		return self.nonEmptyNumberIn(self.columns[j])
+		col = [self.matrix[x][y] for (x, y) in self.columnIndex[j]]
+		return self.nonEmptyNumberIn(col)
 
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
-		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
-		return set(self.matrix[i] + self.columns[j] + self.blocks[bi]) - set(self.EmptySign)
+		# (bi, bj) = self.matrixIndexToBlockIndex(i, j)
+		# return set(self.matrix[i] + self.column(j) + self.blocks[bi]) - set(self.EmptySign)
+		return set(self.matrix[i] + self.column(j) + self.block(i, j)) - set(self.EmptySign)
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]
@@ -153,15 +162,15 @@ class Grid:
 
 	def change(self, pos, value):
 		self.matrix[pos[0]][pos[1]] = value
-		self.columns[pos[1]][pos[0]] = value
-		(bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
-		self.blocks[bi][bj] = value
+		# self.columns[pos[1]][pos[0]] = value
+		# (bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
+		# self.blocks[bi][bj] = value
 
 	def clear(self, pos):
 		self.matrix[pos[0]][pos[1]] = _
-		self.columns[pos[1]][pos[0]] = _
-		(bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
-		self.blocks[bi][bj] = _
+		# self.columns[pos[1]][pos[0]] = _
+		# (bi, bj) = self.matrixIndexToBlockIndex(pos[0], pos[1])
+		# self.blocks[bi][bj] = _
 		self.emptyList = [pos] + self.emptyList
 
 	def blockIndexToMatrixIndex(self, bi, bj):
@@ -200,11 +209,11 @@ class PuzzleFactory:
 
 	def creatPuzzleByMatrix(self, matrix):
 		grid = Grid(matrix, self.bw, self.bh)
-		return Puzzle(grid, self.validator, self.candidatesGen)
+		return Puzzle(matrix, grid, self.validator, self.candidatesGen)
 
 	def emptyPuzzle(self):
 		grid = Grid(self.emptyMatrix(), self.bw, self.bh)
-		return Puzzle(grid, self.validator, self.candidatesGen)
+		return Puzzle(self.emptyMatrix(), grid, self.validator, self.candidatesGen)
 
 	def getRandomPos(self, count):
 		d = self.tableSize
