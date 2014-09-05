@@ -6,11 +6,15 @@ import json
 import copy
 
 class Puzzle():
+	EmptySign = "/"
 	def __init__(self, matrix, grid, validator, candidates):
-		self.matrix = matrix
 		self.grid = grid
 		self.validator = validator
 		self.candidatesGen = candidates
+
+		self.matrix = matrix
+		self.mHeight = len(matrix)
+		self.mWidth = len(matrix[0])
 
 	def solved(self):
 		return self.grid.full() and self.validator.validate(self.grid)
@@ -45,6 +49,21 @@ class Puzzle():
 		return self.grid.compare(theOtherOne.grid)
 		pass
 
+	def compare(self, theOtherGrid):
+		for i in range(self.mHeight):
+			for j in range(self.mWidth):
+				if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
+					return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
+		return 0
+
+	def compareElement(self, x, y):
+		if x is y:
+			return 0
+
+		if (x is self.EmptySign) or (x > y) : 
+			return 1
+		else:
+			return -1
 
 class Validator:
 	def validate(self, grid):
@@ -181,21 +200,21 @@ class Grid:
 	def matrixIndexToBlockIndex(self, i, j):
 		return self.blockIndexMap[i][j]
 
-	def compare(self, theOtherGrid):
-		for i in range(self.mHeight):
-			for j in range(self.mWidth):
-				if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
-					return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
-		return 0
+	# def compare(self, theOtherGrid):
+	# 	for i in range(self.mHeight):
+	# 		for j in range(self.mWidth):
+	# 			if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
+	# 				return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
+	# 	return 0
 
-	def compareElement(self, x, y):
-		if x is y:
-			return 0
+	# def compareElement(self, x, y):
+	# 	if x is y:
+	# 		return 0
 
-		if (x is self.EmptySign) or (x > y) : 
-			return 1
-		else:
-			return -1
+	# 	if (x is self.EmptySign) or (x > y) : 
+	# 		return 1
+	# 	else:
+	# 		return -1
 
 _ = Grid.EmptySign
 

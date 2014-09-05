@@ -9,7 +9,7 @@ class MockObject:
 
 class TestPuzzle(unittest.TestCase):
 	def  setUp(self):
-		self.matrix = MockObject()
+		self.matrix = [[]]
 		self.grid = MockObject()
 		self.validator = MockObject()
 		self.candidates = MockObject()
@@ -43,6 +43,24 @@ class TestPuzzle(unittest.TestCase):
 		self.assertEquals([1, 2], self.puzzle.candidatesAt((0,0)))
 		self.candidates.getCandidatesAt.assert_called_once_with(self.grid, (0,0))
 		pass
+
+	def test_compare(self):
+		_ = Puzzle.EmptySign
+		puzzle_1 = Puzzle([[1, 1], [1, 1]], self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle([[1, 1], [1, 2]], self.grid, self.validator, self.candidates)
+		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
+
+		puzzle_1 = Puzzle([[1, 1], [_, 1]], self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle([[1, 1], [1, 2]], self.grid, self.validator, self.candidates)
+		self.assertEquals(1, puzzle_1.compare(puzzle_2))
+
+		puzzle_1 = Puzzle([[1, 1], [_, 1]], self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle([[1, 2], [1, 2]], self.grid, self.validator, self.candidates)
+		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
+
+		puzzle_1 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
+		self.assertEquals(0, puzzle_1.compare(puzzle_2))	
 
 class TestValidator(unittest.TestCase):
 	def setUp(self):
@@ -157,23 +175,6 @@ class TestGrid(unittest.TestCase):
 	# 	self.assertEquals((1, 0), grid.firstEmptyCell())
 	# 	self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
 
-	def test_compare(self):
-		_ = Grid.EmptySign
-		grid_1 = Grid([[1, 1], [1, 1]], 1, 1)
-		grid_2 = Grid([[1, 1], [1, 2]], 1, 1)
-		self.assertEquals(-1, grid_1.compare(grid_2))
-
-		grid_1 = Grid([[1, 1], [_, 1]], 1, 1)
-		grid_2 = Grid([[1, 1], [1, 2]], 1, 1)
-		self.assertEquals(1, grid_1.compare(grid_2))
-
-		grid_1 = Grid([[1, 1], [_, 1]], 1, 1)
-		grid_2 = Grid([[1, 2], [1, 2]], 1, 1)
-		self.assertEquals(-1, grid_1.compare(grid_2))
-
-		grid_1 = Grid([[1, 2], [2, 1]], 1, 1)
-		grid_2 = Grid([[1, 2], [2, 1]], 1, 1)
-		self.assertEquals(0, grid_1.compare(grid_2))	
 
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
