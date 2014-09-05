@@ -22,7 +22,7 @@ class Puzzle():
 		return Puzzle(copy.deepcopy(self.matrix), self.grid.clone(), self.validator, self.candidatesGen)
 
 	def toString(self):
-		return self.grid.toString()
+		return json.dumps(self.matrix)
 
 	def getNumbersInPos(self, pos):
 		return self.grid.getNumbers(pos)
@@ -145,8 +145,8 @@ class Grid:
 		newMatrix = [list(row) for row in self.matrix]
 		return Grid(newMatrix, self.bw, self.bh)
 
-	def toString(self):
-		return json.dumps(self.matrix)
+	# def toString(self):
+
 
 	def getNumbers(self, pos):
 		return [self.matrix[p[0]][p[1]] for p in pos]

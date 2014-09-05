@@ -145,17 +145,17 @@ class TestGrid(unittest.TestCase):
 		(i, j) = grid.firstEmptyCell()
 		self.assertEquals((0, 0), (i, j))
 
-	def test_change(self):
-		_ = Grid.EmptySign
-		grid = Grid([[_, 2], [3, _]], 1, 1)
-		grid.change((0, 0), 1)
-		self.assertEquals("[[1, 2], [3, \"/\"]]", grid.toString())
+	# def test_change(self):
+	# 	_ = Grid.EmptySign
+	# 	grid = Grid([[_, 2], [3, _]], 1, 1)
+	# 	grid.change((0, 0), 1)
+	# 	self.assertEquals("[[1, 2], [3, \"/\"]]", grid.toString())
 
-	def test_clear(self):
-		grid = Grid([[1, 2], [3, 4]], 1, 1)
-		grid.clear((1, 0))
-		self.assertEquals((1, 0), grid.firstEmptyCell())
-		self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
+	# def test_clear(self):
+	# 	grid = Grid([[1, 2], [3, 4]], 1, 1)
+	# 	grid.clear((1, 0))
+	# 	self.assertEquals((1, 0), grid.firstEmptyCell())
+	# 	self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
 
 	def test_compare(self):
 		_ = Grid.EmptySign
