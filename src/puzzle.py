@@ -220,3 +220,5 @@ class RandomPuzzleFactory(PuzzleFactory):
 		super(RandomPuzzleFactory, self).__init__(tableSize, blockWidth, blockHeight)
 		self.candidatesGen = RandomSeqCandidatesDecorator(self.candidatesGen)
 		pass
+
+		# test git
