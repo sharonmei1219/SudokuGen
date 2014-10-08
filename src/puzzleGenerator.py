@@ -71,7 +71,7 @@ class HoleDigger:
 		pos = self.randomPos(initNumCnt)
 		puzzle, newAddedPos = self.gen.constructPuzzleWithInitialPos(table, pos)
 		pos = self.removePosFromPuzzle(table, pos + newAddedPos, len(newAddedPos))
-		# print('holeCount: ' + str(81 - len(pos)))
+		print('holeCount: ' + str(81 - len(pos)))
 		return self.createPuzzle(table, pos)
 	
 	def removePosFromPuzzle(self, table, pos, holeCount):

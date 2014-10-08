@@ -24,7 +24,7 @@ class Puzzle():
 		return self.candidatesGen.getCandidatesAt(self.grid, pos, self.matrix)		
 
 	def clone(self):
-		return Puzzle(copy.deepcopy(self.matrix), self.grid.clone(), self.validator, self.candidatesGen)
+		return Puzzle(copy.deepcopy(self.matrix), self.grid, self.validator, self.candidatesGen)
 
 	def toString(self):
 		return json.dumps(self.matrix)
@@ -111,7 +111,7 @@ class Grid:
 	EmptySign = "/"
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
-	def __init__(self, matrix, bw, bh):
+	def __init__(self, matrix, matrixHeight, matrixWidth, bw, bh):
 		self.matrix = matrix
 		self.bw = bw
 		self.bh = bh
@@ -155,9 +155,6 @@ class Grid:
 		i, j = pos[0], pos[1]
 		return set(matrix[i] + self.column(j, matrix) + self.block(i, j, matrix)) - set(self.EmptySign)
 
-	def clone(self):
-		newMatrix = [list(row) for row in self.matrix]
-		return Grid(newMatrix, self.bw, self.bh)
 
 	def blockIndexToMatrixIndex(self, bi, bj):
 		i = int(bi // self.nbPerRow * self.bh + bj // self.bw)
@@ -179,11 +176,11 @@ class PuzzleFactory:
 		self.candidatesGen = CandidatesGen(range(1, tableSize+1))
 
 	def creatPuzzleByMatrix(self, matrix):
-		grid = Grid(matrix, self.bw, self.bh)
+		grid = Grid(matrix, self.tableSize, self.tableSize, self.bw, self.bh)
 		return Puzzle(matrix, grid, self.validator, self.candidatesGen)
 
 	def emptyPuzzle(self):
-		grid = Grid(self.emptyMatrix(), self.bw, self.bh)
+		grid = Grid(self.emptyMatrix(), self.tableSize, self.tableSize, self.bw, self.bh)
 		return Puzzle(self.emptyMatrix(), grid, self.validator, self.candidatesGen)
 
 	def getRandomPos(self, count):
@@ -212,7 +209,7 @@ class PuzzleFactory:
 		return  [[_]*self.tableSize for j in range(self.tableSize)]
 
 	def tableBase(self):
-		grid = Grid(self.tableBaseMatrix(), self.bw, self.bh)
+		grid = Grid(self.tableBaseMatrix(), self.tableSize, self.tableSize, self.bw, self.bh)
 		return Puzzle(self.tableBaseMatrix(), grid, self.validator, self.candidatesGen)
 
 	def tableBaseMatrix(self):
@@ -224,5 +221,3 @@ class RandomPuzzleFactory(PuzzleFactory):
 		super(RandomPuzzleFactory, self).__init__(tableSize, blockWidth, blockHeight)
 		self.candidatesGen = RandomSeqCandidatesDecorator(self.candidatesGen)
 		pass
-
-		# test git
