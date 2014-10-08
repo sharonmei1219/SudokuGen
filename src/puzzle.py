@@ -18,10 +18,10 @@ class Puzzle():
 		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
 
 	def solved(self):
-		return self.full() and self.validator.validate(self.grid)
+		return self.full() and self.validator.validate(self.grid, self.matrix)
 
 	def candidatesAt(self, pos):
-		return self.candidatesGen.getCandidatesAt(self.grid, pos)		
+		return self.candidatesGen.getCandidatesAt(self.grid, pos, self.matrix)		
 
 	def clone(self):
 		return Puzzle(copy.deepcopy(self.matrix), self.grid.clone(), self.validator, self.candidatesGen)
@@ -45,6 +45,10 @@ class Puzzle():
 		result = self.emptyList[0]
 		del self.emptyList[0]
 		return result
+
+	def suroundings(self, pos):
+		i, j = pos[0], pos[1]
+		return set(self.matrix[i] + self.column(j) + self.block(i, j)) - set(self.EmptySign)
 
 	def clear(self, pos):
 		self.matrix[pos[0]][pos[1]] = _
@@ -70,8 +74,8 @@ class Puzzle():
 			return -1
 
 class Validator:
-	def validate(self, grid):
-		zones = reduce(operator.add, [grid.allRows(), grid.allColumns(), grid.allBlocks()])
+	def validate(self, grid, matrix):
+		zones = reduce(operator.add, [grid.allRows(matrix), grid.allColumns(matrix), grid.allBlocks(matrix)])
 		return all(not self.detectDuplication(zone) for zone in zones)
 
 	def detectDuplication(self, numberList):
@@ -82,8 +86,8 @@ class CandidatesGen:
 	def __init__(self, candidatesList):
 		self.candidatesList = candidatesList
 
-	def getCandidatesAt(self, grid, pos):
-		return self.subList(self.candidatesList, grid.suroundings(pos))
+	def getCandidatesAt(self, grid, pos, matrix):
+		return self.subList(self.candidatesList, grid.suroundings(pos, matrix))
 
 	def subList(self, list1, list2):
 		return [number for number in list1 if number not in list2]
@@ -92,8 +96,8 @@ class RandomSeqCandidatesDecorator:
 	def __init__(self, candidatesGen):
 		self.candidatesGen = candidatesGen
 
-	def getCandidatesAt(self, grid, pos):
-		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos))
+	def getCandidatesAt(self, grid, pos, matrix):
+		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos, matrix))
 		candidatesCount = len(candidates)
 		result = []
 		for i in range(0, candidatesCount):
@@ -125,31 +129,31 @@ class Grid:
 		self.blockIndex = [[(to_i(i, j), to_j(i,j)) for j in range(bsize)] for i in range(bnum)]
 		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(self.mWidth)] for i in range(self.mHeight)]
 
-	def allRows(self):
-		return [self.row(i) for i in range(0, len(self.matrix))]
+	def allRows(self, matrix):
+		return [self.row(i, matrix) for i in range(0, len(matrix))]
 
-	def allColumns(self):
-		return [self.column(j) for j in range(0, len(self.columnIndex))]
+	def allColumns(self, matrix):
+		return [self.column(j, matrix) for j in range(0, len(self.columnIndex))]
 
-	def allBlocks(self):
-		blocks = [[self.block(i, j) for j in range(0, len(self.matrix[i]), self.bw)] for i in range(0, len(self.matrix), self.bh)]
+	def allBlocks(self, matrix):
+		blocks = [[self.block(i, j, matrix) for j in range(0, len(matrix[i]), self.bw)] for i in range(0, len(matrix), self.bh)]
 		return reduce(operator.add, blocks) #flatten blocks
 
-	def block(self, i, j):
+	def block(self, i, j, matrix):
 		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
-		blc = [self.matrix[x][y] for (x, y) in self.blockIndex[bi]]
+		blc = [matrix[x][y] for (x, y) in self.blockIndex[bi]]
 		return self.nonEmptyNumberIn(blc)
 
-	def row(self, i):
-		return self.nonEmptyNumberIn(self.matrix[i])
+	def row(self, i, matrix):
+		return self.nonEmptyNumberIn(matrix[i])
 
-	def column(self, j):
-		col = [self.matrix[x][y] for (x, y) in self.columnIndex[j]]
+	def column(self, j, matrix):
+		col = [matrix[x][y] for (x, y) in self.columnIndex[j]]
 		return self.nonEmptyNumberIn(col)
 
-	def suroundings(self, pos):
+	def suroundings(self, pos, matrix):
 		i, j = pos[0], pos[1]
-		return set(self.matrix[i] + self.column(j) + self.block(i, j)) - set(self.EmptySign)
+		return set(matrix[i] + self.column(j, matrix) + self.block(i, j, matrix)) - set(self.EmptySign)
 
 	def clone(self):
 		newMatrix = [list(row) for row in self.matrix]

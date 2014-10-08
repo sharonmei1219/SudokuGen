@@ -24,7 +24,7 @@ class TestPuzzle(unittest.TestCase):
 
 		self.assertTrue(self.puzzle.solved())
 
-		self.validator.validate.assert_called_once_with(self.grid)
+		self.validator.validate.assert_called_once_with(self.grid, self.matrix)
 		pass
 
 	def test_puzzleIsNotSolvedIfGridIsNotFull(self):
@@ -40,7 +40,7 @@ class TestPuzzle(unittest.TestCase):
 	def test_puzzleCandidatesAt(self):
 		self.candidates.getCandidatesAt = MagicMock(return_value=[1, 2])
 		self.assertEquals([1, 2], self.puzzle.candidatesAt((0,0)))
-		self.candidates.getCandidatesAt.assert_called_once_with(self.grid, (0,0))
+		self.candidates.getCandidatesAt.assert_called_once_with(self.grid, (0,0), self.matrix)
 		pass
 
 	def test_compare(self):
@@ -74,6 +74,7 @@ class TestValidator(unittest.TestCase):
 	def setUp(self):
 		self.validator = Validator()
 		self.grid = MockObject()
+		self.matrix = MockObject()
 		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 4]])
 		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 4]])
 		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 4]])
@@ -85,41 +86,42 @@ class TestValidator(unittest.TestCase):
 
 	def test_gridNotValideIfDuplicationExistInARow(self):
 		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 3]])
-		self.assertFalse(self.validator.validate(self.grid))
-		self.grid.allRows.assert_called_once_with()
+		self.assertFalse(self.validator.validate(self.grid, self.matrix))
+		self.grid.allRows.assert_called_once_with(self.matrix)
 
 
 	def test_gridNotValidIfDuplicationExistInColumn(self):
 		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 3]])
-		self.assertFalse(self.validator.validate(self.grid))
+		self.assertFalse(self.validator.validate(self.grid, self.matrix))
 
 	def test_gridNotValidIfDuplicationExistInBlock(self):
 		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 3]])
-		self.assertFalse(self.validator.validate(self.grid))
+		self.assertFalse(self.validator.validate(self.grid, self.matrix))
 
 	def test_gridValidIfThereIsNoDuplicationExistInAnyZone(self):
-		self.assertTrue(self.validator.validate(self.grid))
+		self.assertTrue(self.validator.validate(self.grid, self.matrix))
 
 
 class TestCandidates(unittest.TestCase):
 	def setUp(self):
 		self.candidatesGen = CandidatesGen([1, 2, 3, 4])
 		self.grid = MockObject()
+		self.matrix = MockObject()
 
 	def test_candidatesAt00Is4WhenSuroundingsAre123(self):
 		self.grid.suroundings = MagicMock(return_value=[1, 2, 3])
-		self.assertEquals([4], self.candidatesGen.getCandidatesAt(self.grid, (0, 0)))
-		self.grid.suroundings.assert_called_once_with((0, 0))
+		self.assertEquals([4], self.candidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
+		self.grid.suroundings.assert_called_once_with((0, 0), self.matrix)
 
 	def test_candidatesAt00IsEmptyListWhenSuroundingsAre1234(self):
 		self.grid.suroundings = MagicMock(return_value=[1, 2, 3, 4])
-		self.assertEquals([], self.candidatesGen.getCandidatesAt(self.grid, (0, 0)))
-		self.grid.suroundings.assert_called_once_with((0, 0))
+		self.assertEquals([], self.candidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
+		self.grid.suroundings.assert_called_once_with((0, 0), self.matrix)
 
 	def test_candidatesAt00Is1234WhenSuroundingsAreEmpty(self):
 		self.grid.suroundings = MagicMock(return_value=[])
-		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidatesAt(self.grid, (0, 1)))
-		self.grid.suroundings.assert_called_once_with((0, 1))
+		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidatesAt(self.grid, (0, 1), self.matrix))
+		self.grid.suroundings.assert_called_once_with((0, 1), self.matrix)
 
 class TestCandidatesInRandomSeq(unittest.TestCase):
 	def setUp(self):
@@ -128,65 +130,47 @@ class TestCandidatesInRandomSeq(unittest.TestCase):
 		self.randomSeqCandidatesGen = RandomSeqCandidatesDecorator(candidatesGen)
 		self.randint = random.randint
 		self.grid = MockObject()
+		self.matrix = MockObject()
 
 	def tearDown(self):
 		random.randint = self.randint
 
 	def test_RandomSeqCandidatesGen(self):
 		random.randint = MagicMock(side_effect=[0, 0, 0])
-		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0)))
+		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
 		self.assertEquals([call(0, 2), call(0, 1), call(0, 0)], random.randint.mock_calls)
 
 	def test_RandomSeqCandidatesGenReversedSeq(self):
 		random.randint = MagicMock(side_effect=[2, 1, 0])
-		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0)))
+		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
 
 	def test_RandomSeqCandidatesGenReversedSeq(self):
 		random.randint = MagicMock(side_effect=[1, 1, 0])
-		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0)))
+		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
 
 
+_ = Grid.EmptySign
 class TestGrid(unittest.TestCase):
 	def setUp(self):
-		_ = Grid.EmptySign
 		self.grid = Grid([[1, _], [3, 4]], 1, 1)
 
 	def test_GridGetAllRows(self):
-		self.assertEquals([[1], [3, 4]], self.grid.allRows())
+		self.assertEquals([[1], [3, 4]], self.grid.allRows([[1, _], [3, 4]]))
 
 	def test_GridGetAllColumns(self):
-		self.assertEquals([[1, 3], [4]], self.grid.allColumns())
-
-	# def test_GridIsNotFullWhenThereIsEmptyCell(self):
-	# 	self.assertFalse(self.grid.full())
-
-	# def test_GridIsFull(self):
-	# 	self.grid = Grid([[1, 2], [3, 4]], 1, 1)
-	# 	self.assertTrue(self.grid.full())
-
-	# def test_getFirstEmptyCell(self):
-	# 	_ = Grid.EmptySign
-	# 	grid = Grid([[_, 2], [3, _]], 1, 1)
-
-	# 	(i, j) = grid.firstEmptyCell()
-	# 	self.assertEquals((0, 0), (i, j))
-
-	# def test_change(self):
-	# 	_ = Grid.EmptySign
-	# 	grid = Grid([[_, 2], [3, _]], 1, 1)
-	# 	grid.change((0, 0), 1)
-	# 	self.assertEquals("[[1, 2], [3, \"/\"]]", grid.toString())
-
-	# def test_clear(self):
-	# 	grid = Grid([[1, 2], [3, 4]], 1, 1)
-	# 	grid.clear((1, 0))
-	# 	self.assertEquals((1, 0), grid.firstEmptyCell())
-	# 	self.assertEquals("[[1, 2], [\"/\", 4]]", grid.toString())
+		self.assertEquals([[1, 3], [4]], self.grid.allColumns([[1, _], [3, 4]]))
 
 
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
 		_ = Grid.EmptySign
+		self.matrix = [[1, 1, 2, 2],
+			 	          [1, 1, _, _],
+			      	      [_, _, 2, 2],
+			           	  [_, 3, _, 4],
+			              [3, _, 4, _],
+			              [3, 3, 4, 4]];
+
 		self.grid = Grid([[1, 1, 2, 2],
 			 	          [1, 1, _, _],
 			      	      [_, _, 2, 2],
@@ -195,23 +179,25 @@ class TestBlockInGrid(unittest.TestCase):
 			              [3, 3, 4, 4]], 2, 3)
 
 	def test_GridGetBlock(self):
-		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1))
-		self.assertEquals([2, 2, 2, 2], self.grid.block(2, 2))
-		self.assertEquals([3, 3, 3, 3], self.grid.block(5, 0))
-		self.assertEquals([4, 4, 4, 4], self.grid.block(3, 2))
+		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1, self.matrix))
+		self.assertEquals([2, 2, 2, 2], self.grid.block(2, 2, self.matrix))
+		self.assertEquals([3, 3, 3, 3], self.grid.block(5, 0, self.matrix))
+		self.assertEquals([4, 4, 4, 4], self.grid.block(3, 2, self.matrix))
 
 	def test_GridGetAllBlocks(self):
-		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks())
+		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks(self.matrix))
 
 	def test_emptyCellSuroundingAt21(self):
 		_ = Grid.EmptySign
-		grid =  Grid([[1, 2, _, _],
+		matrix = [[1, 2, _, _],
  	                  [3, 4, _, _],
       	              [5, _, _, 6],
            		      [_, 7, _, _],
                 	  [_, _, _, _],
-                 	  [_, _, _, _]], 2, 3)
-		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1)))
+                 	  [_, _, _, _]];
+
+		grid =  Grid(matrix, 2, 3)
+		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1), matrix))
 
 class TestBlockIndexExchange(unittest.TestCase):
 	def setUp(self):
