@@ -152,7 +152,7 @@ class TestCandidatesInRandomSeq(unittest.TestCase):
 _ = Grid.EmptySign
 class TestGrid(unittest.TestCase):
 	def setUp(self):
-		self.grid = Grid([[1, _], [3, 4]], 2, 2, 1, 1)
+		self.grid = Grid(2, 2, 1, 1)
 
 	def test_GridGetAllRows(self):
 		self.assertEquals([[1], [3, 4]], self.grid.allRows([[1, _], [3, 4]]))
@@ -171,12 +171,7 @@ class TestBlockInGrid(unittest.TestCase):
 			              [3, _, 4, _],
 			              [3, 3, 4, 4]];
 
-		self.grid = Grid([[1, 1, 2, 2],
-			 	          [1, 1, _, _],
-			      	      [_, _, 2, 2],
-			           	  [_, 3, _, 4],
-			              [3, _, 4, _],
-			              [3, 3, 4, 4]], 6, 4, 2, 3)
+		self.grid = Grid(6, 4, 3, 2)
 
 	def test_GridGetBlock(self):
 		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1, self.matrix))
@@ -190,24 +185,25 @@ class TestBlockInGrid(unittest.TestCase):
 	def test_emptyCellSuroundingAt21(self):
 		_ = Grid.EmptySign
 		matrix = [[1, 2, _, _],
- 	                  [3, 4, _, _],
-      	              [5, _, _, 6],
-           		      [_, 7, _, _],
-                	  [_, _, _, _],
-                 	  [_, _, _, _]];
+ 	              [3, 4, _, _],
+      	          [5, _, _, 6],
+           		  [_, 7, _, _],
+                  [_, _, _, _],
+                  [_, _, _, _]];
 
-		grid =  Grid(matrix, 6, 4, 2, 3)
+		grid =  Grid(6, 4, 3, 2)
 		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1), matrix))
 
 class TestBlockIndexExchange(unittest.TestCase):
 	def setUp(self):
 		_ = Grid.EmptySign
-		self.grid =  Grid([[ 0,  1, 10, 11],
-						   [ 2,  3, 12, 13],
-						   [ 4,  5, 14, 15],
-						   [20, 21, 30, 31],
-						   [22, 23, 32, 33],
-						   [24, 25, 34, 35]], 6, 4, 2, 3)
+		self.referenceMatrix = [[ 0,  1, 10, 11],
+						   		[ 2,  3, 12, 13],
+						   		[ 4,  5, 14, 15],
+						   		[20, 21, 30, 31],
+						  		[22, 23, 32, 33],
+						   		[24, 25, 34, 35]]
+		self.grid =  Grid(6, 4, 3, 2)
 		pass
 		
 	def test_blockIndexToMatrixIndex(self):
@@ -222,6 +218,14 @@ class TestBlockIndexExchange(unittest.TestCase):
 		self.assertEquals((2, 1), self.grid.matrixIndexToBlockIndex(3, 1))		
 		pass
 
+	def test_coordsOfRow(self):
+		self.assertEquals([(0, 0), (0, 1), (0, 2), (0, 3)], self.grid.coordsOfRow(0, 1))
+
+	def test_coordsOfColumn(self):
+		self.assertEquals([(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)], self.grid.
+			coordsOfColumn(0, 1))
+		pass
+
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
 		_ = Grid.EmptySign
@@ -231,7 +235,7 @@ class TestPuzzleIntegrate(unittest.TestCase):
 	    		  [8, 8, 8, 8],
 	              [8, 5, 8, 8],
 	              [8, 6, 8, 8]]
-		grid = Grid(matrix, 6, 4, 2, 3)
+		grid = Grid(6, 4, 3, 2)
 		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
 		validator = Validator()
 		puzzle = Puzzle(matrix, grid, validator, candidatesGen)

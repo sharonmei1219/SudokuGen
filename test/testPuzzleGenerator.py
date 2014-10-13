@@ -88,10 +88,6 @@ class TestPuzzleGeneratorIntegration(unittest.TestCase):
 		solutionFinder = QuickSolutionFinder()
 		solver = QuickSolver(solutionFinder)
 		puzzleGen = QuickPuzzleGenerator(factory, solver)
-		# for i in range(1):
-		# 	table = tableGen.getTable()
-		# 	puzzle = puzzleGen.constructPuzzleWithOnlySolution(table, 27)
-		# self.assertEquals("sharon", puzzle.toString())
 
 class TestHoleDigger(unittest.TestCase):
 
@@ -162,22 +158,15 @@ class TestHoleDigger(unittest.TestCase):
 	def test_integration(self):
 		tableGen = SudokuTableGenerator()
 
-		factory = PuzzleFactory(9, 3, 3)
-		solutionFinder = QuickSolutionFinder()
-		solver = QuickSolver(solutionFinder)
-		puzzleGen = QuickPuzzleGenerator(factory, solver)
-		digger = HoleDigger(puzzleGen)
-		for i in range(1):
-			table = tableGen.getTable()
-			puzzle = digger.constructPuzzleWithOnlySolution(table, 20)
-			slow_solutionFinder = SolutionFinder()
-			slow_solver = MultiSolutionSolver(slow_solutionFinder)
-			# self.assertEquals(1, slow_solver.solve(puzzle).solutionCount())
+		# factory = PuzzleFactory(9, 3, 3)
+		# solutionFinder = QuickSolutionFinder()
+		# solver = QuickSolver(solutionFinder)
+		# puzzleGen = QuickPuzzleGenerator(factory, solver)
+		# digger = HoleDigger(puzzleGen)
+		# for i in range(1):
+		# 	table = tableGen.getTable()
+		# 	puzzle = digger.constructPuzzleWithOnlySolution(table, 20)
+		# 	slow_solutionFinder = SolutionFinder()
+		# 	slow_solver = MultiSolutionSolver(slow_solutionFinder)
 
-		self.assertEquals("sharon", puzzle.toString())
-
-
-	def test_protoType(self):
-		sharon = MockObject()
-		sharon.name = 'sharon'
-		pass
+		# self.assertEquals("sharon", puzzle.toString())

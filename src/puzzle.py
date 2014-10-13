@@ -111,20 +111,17 @@ class Grid:
 	EmptySign = "/"
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
-	def __init__(self, matrix, matrixHeight, matrixWidth, bw, bh):
-		self.matrix = matrix
-		self.bw = bw
-		self.bh = bh
+	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
+		self.bw = blockWidth
+		self.bh = blockHeight
 
-		self.mHeight = len(matrix) #matrix Height
-		self.mWidth = len(matrix[0]) #matrix Width
+		self.mHeight = matrixHeight ##matrix Height
+		self.mWidth = matrixWidth #matrix Width
 
-		self.columnIndex = [[(i, j) for i in range(self.mHeight)] for j in range(self.mWidth)]
-		
-		self.nbPerRow = len(matrix[0]) // bw
+		self.nbPerRow = matrixWidth // blockWidth
 		to_i = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[0]
 		to_j = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[1]
-		bsize = bw * bh
+		bsize = blockWidth * blockHeight
 		bnum = self.mHeight * self.mWidth // bsize
 		self.blockIndex = [[(to_i(i, j), to_j(i,j)) for j in range(bsize)] for i in range(bnum)]
 		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(self.mWidth)] for i in range(self.mHeight)]
@@ -133,7 +130,7 @@ class Grid:
 		return [self.row(i, matrix) for i in range(0, len(matrix))]
 
 	def allColumns(self, matrix):
-		return [self.column(j, matrix) for j in range(0, len(self.columnIndex))]
+		return [self.column(j, matrix) for j in range(self.mWidth)]
 
 	def allBlocks(self, matrix):
 		blocks = [[self.block(i, j, matrix) for j in range(0, len(matrix[i]), self.bw)] for i in range(0, len(matrix), self.bh)]
@@ -148,13 +145,12 @@ class Grid:
 		return self.nonEmptyNumberIn(matrix[i])
 
 	def column(self, j, matrix):
-		col = [matrix[x][y] for (x, y) in self.columnIndex[j]]
+		col = [matrix[x][j] for x in range(self.mHeight)]
 		return self.nonEmptyNumberIn(col)
 
 	def suroundings(self, pos, matrix):
 		i, j = pos[0], pos[1]
 		return set(matrix[i] + self.column(j, matrix) + self.block(i, j, matrix)) - set(self.EmptySign)
-
 
 	def blockIndexToMatrixIndex(self, bi, bj):
 		i = int(bi // self.nbPerRow * self.bh + bj // self.bw)
@@ -163,6 +159,12 @@ class Grid:
 
 	def matrixIndexToBlockIndex(self, i, j):
 		return self.blockIndexMap[i][j]
+
+	def coordsOfRow(self, i, j):
+		return [(i, x) for x in range(self.mWidth)]
+
+	def coordsOfColumn(self, i, j):
+		return [(x, j) for x in range(self.mHeight)]
 
 
 _ = Grid.EmptySign
@@ -176,11 +178,11 @@ class PuzzleFactory:
 		self.candidatesGen = CandidatesGen(range(1, tableSize+1))
 
 	def creatPuzzleByMatrix(self, matrix):
-		grid = Grid(matrix, self.tableSize, self.tableSize, self.bw, self.bh)
+		grid = Grid(self.tableSize, self.tableSize, self.bw, self.bh)
 		return Puzzle(matrix, grid, self.validator, self.candidatesGen)
 
 	def emptyPuzzle(self):
-		grid = Grid(self.emptyMatrix(), self.tableSize, self.tableSize, self.bw, self.bh)
+		grid = Grid(self.tableSize, self.tableSize, self.bw, self.bh)
 		return Puzzle(self.emptyMatrix(), grid, self.validator, self.candidatesGen)
 
 	def getRandomPos(self, count):
