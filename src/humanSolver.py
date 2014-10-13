@@ -1,5 +1,6 @@
 from functools import reduce
 import operator
+import copy
 
 class Ranker:
 	def __init__(self, strategys):
@@ -18,7 +19,20 @@ class Tier_0_Strategy:
 		single = pMatrix.findNewSingle()
 		while single is not None:
 			single.update(pMatrix)
+			single.updatePuzzle(puzzle)
 			single = pMatrix.findNewSingle()
+
+class Tier_1_Strategy:
+	def __init__(self, strategy):
+		self.strategy = strategy
+		pass
+
+	def solve(self, pMatrix, puzzle):
+		finding = pMatrix.findNewPairOrBlock()
+		while finding is not None:
+			finding.update(pMatrix)
+			self.strategy.solve(pMatrix, puzzle)
+			finding = pMatrix.findNewPairOrBlock()
 
 
 class PossibilityMatrix:
@@ -36,20 +50,29 @@ class PossibilityMatrix:
 		pass
 
 	def findNewSingle(self):
+		single = self.findNakedSingle()
+		if single is not None: return single
 
+		single = self.findHiddenSingle()
+		if single is not None: return single
+
+		return None
+
+	def findNakedSingle(self):
 		for pos in self.grid.allPos():
 			if len(self.possibilitieAt(pos)) is 1:
 				value = next(iter(self.possibilitieAt(pos)))
 				single = Single(pos, value)
 				if single in self.knownSingle: continue
-				return single
+				return single		
+		return None
 
+	def findHiddenSingle(self):
 		for zone in self.grid.allRowsInIndex() + self.grid.allColumnsInIndex() + self.grid.allBlocksInIndex():
 			valuePosMap = self.buildValuePosMapInZone(zone)
 			single = self.findValueOnlyHasOnePossiblePosition(valuePosMap)
 			if single is not None: return single
-
-		return None
+		return None		
 
 	def buildValuePosMapInZone(self, zone):
 		valuePosMap = {}
@@ -69,6 +92,39 @@ class PossibilityMatrix:
 				if single in self.knownSingle: continue
 				return single
 		return None
+
+	def findNewPairOrBlock(self):
+		pairFinder = self.RowPairFinder()
+		pair = pairFinder.findPair(self)
+		if pair is not None : return pair
+		return None
+
+	class PairFinder:
+		def findPair(self, pMatrix):
+			for zone in self.zones(pMatrix):
+				pair = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
+				if pair is not None: return pair
+			return None
+
+
+		def findPosMeetRequirementInRest(self, union, poses, rest, nth, pMatrix):
+			if nth == 2:
+				return self.createPair(poses, union)
+
+			for pos in rest:
+				possibilities = pMatrix.possibilitieAt(pos)
+				if len(union | possibilities) > 2: continue
+				return self.findPosMeetRequirementInRest(union | possibilities, poses + [pos], rest[1:], nth + 1, pMatrix)
+			
+			pass	
+			
+	class RowPairFinder(PairFinder):
+		def zones(self, pMatrix):
+			return pMatrix.grid.allRowsInIndex()
+
+		def createPair(self, pos, possibilities):
+			return PairInRow(pos, possibilities)
+			
 
 	def updateRow(self, pos, possibilities, excepts):
 		coords = self.grid.coordsOfRow(pos[0], pos[1])
@@ -91,7 +147,6 @@ class PossibilityMatrix:
 		self.knownSingle += [single]
 		pass
 
-
 class Single:
 	def __init__(self, pos, value):
 		self.pos = pos;
@@ -106,9 +161,21 @@ class Single:
 		pMatrix.updateColum(self.pos, {self.value}, {self.pos})
 		pMatrix.updateBlock(self.pos, {self.value}, {self.pos})
 		pMatrix.addKnownSingle(self)
+		pMatrix.setPossibilityAt(self.pos, {self.value})
 		pass
 
 	def updatePuzzle(self, puzzle):
 		puzzle.change(self.pos, self.value)
 		pass
-				
+
+class PairInRow:
+	def __init__(self, pos, possibilities):
+		self.pos = pos
+		self.possibilities = possibilities
+		pass
+
+	def update(self, pMatrix):
+		pMatrix.updateRow(self.pos[0], self.possibilities, set(self.pos))
+		pMatrix.addKnownRowPair(self)
+		pass
+		
