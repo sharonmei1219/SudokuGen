@@ -71,7 +71,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		pass
 
 	def test_findNoSingle(self):
-		self.pMatrix = PossibilityMatrix([[]], Grid(1, 0, 1, 1))
+		self.pMatrix = PossibilityMatrix([[]], Grid(0, 0, 1, 1))
 		self.assertEquals(None, self.pMatrix.findNewSingle())
 		pass
 
@@ -106,8 +106,15 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		self.assertEquals([[{1}],[{2}]], self.pMatrix.matrix)
 		pass
 
+	def test_updateBlock(self):
+		self.pMatrix = PossibilityMatrix([[{1, 2}, {1, 2, 3}],
+										  [{2, 4}, {1, 5}]], Grid(2, 2, 2, 2))
+		self.pMatrix.updateBlock((0, 0), {1, 2}, {(0, 0)})
+		self.assertEquals([[{1, 2}, {3}],[{4}, {5}]], self.pMatrix.matrix)		
+		pass
+
 	def test_nakedSingleUpdatePuzzleMatrix(self):
-		single = NakedSingle(0, 0, 5)
+		single = Single((0, 0), 5)
 		single.updatePuzzle(self.puzzle)
 		self.puzzle.change.assert_called_once_with((0, 0), 5)
 
@@ -118,7 +125,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		self.pMatrix.updateBlock = MagicMock()
 		self.pMatrix.addKnownSingle = MagicMock()
 
-		single = NakedSingle(0, 1, 5)
+		single = Single((0, 1), 5)
 
 		single.update(self.pMatrix)
 
@@ -126,6 +133,33 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		self.pMatrix.updateColum.assert_called_once_with((0, 1), {5}, {(0, 1)})
 		self.pMatrix.updateBlock.assert_called_once_with((0, 1), {5}, {(0, 1)})
 		self.pMatrix.addKnownSingle.assert_called_once_with(single)
+		pass
+
+	def test_findHiddenSingleInARow(self):
+		self.pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}]], Grid(1, 2, 1, 1))
+		single = self.pMatrix.findNewSingle()
+
+		single.updatePuzzle(self.puzzle)
+		self.puzzle.change.assert_called_once_with((0, 0), 1)		
+		pass
+
+	def test_findHiddenSingleInAColumn(self):
+		self.pMatrix = PossibilityMatrix([[{3, 2}, {2, 3}], [{2, 3, 4}, {2, 3, 4}]], Grid(2, 2, 1, 1))
+		single = self.pMatrix.findNewSingle()
+
+		single.updatePuzzle(self.puzzle)
+		self.puzzle.change.assert_called_once_with((1, 0), 4)
+		pass
+
+	def test_findHiddenSingleInABlock(self):
+		self.pMatrix = PossibilityMatrix([[{3, 2}, {2, 3}, {2, 3}, {2, 3}], 
+			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}],
+			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}],
+			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}]], Grid(4, 4, 2, 2))
+		single = self.pMatrix.findNewSingle()
+
+		single.updatePuzzle(self.puzzle)
+		self.puzzle.change.assert_called_once_with((1, 0), 4)		
 		pass
 
 	pass

@@ -166,6 +166,21 @@ class Grid:
 	def coordsOfColumn(self, i, j):
 		return [(x, j) for x in range(self.mHeight)]
 
+	def coordsOfBlock(self, i, j):
+		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
+		return [(x, y) for (x, y) in self.blockIndex[bi]]
+
+	def allRowsInIndex(self):
+		return [self.coordsOfRow(i, 0) for i in range(self.mHeight)]
+
+	def allColumnsInIndex(self):
+		return [self.coordsOfColumn(0, j) for j in range(self.mWidth)]
+
+	def allBlocksInIndex(self):
+		return self.blockIndex
+
+	def allPos(self):
+		return reduce(operator.add, self.allRowsInIndex(), [])
 
 _ = Grid.EmptySign
 
