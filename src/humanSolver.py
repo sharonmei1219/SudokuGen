@@ -56,47 +56,16 @@ class PossibilityMatrix:
 		pass
 
 	def findNewSingle(self):
-		single = self.NakedRowSingleFinder().find(self)
+		single = self.NakedRowSingleFinder(1).find(self)
 		if single is not None: return single
 
-		single = self.NakedColumnSingleFinder().find(self)
+		single = self.NakedColumnSingleFinder(1).find(self)
 		if single is not None: return single
 
 		single = self.findHiddenSingle()
 		if single is not None: return single
 
 		return None
-
-	class NakedSingleFinder:
-		def find(self, pMatrix):
-			for zone in self.zones(pMatrix):
-				for pos in zone:
-					if len(pMatrix.possibilitieAt(pos)) is 1:
-						value = next(iter(pMatrix.possibilitieAt(pos)))
-						single = self.createResult([pos], pMatrix.possibilitieAt(pos))
-						if self.isNewResultFound(single, pMatrix): return single
-
-			return None
-		
-	class NakedRowSingleFinder(NakedSingleFinder):
-		def zones(self, pMatrix):
-			return pMatrix.grid.allRowsInIndex()
-
-		def createResult(self, pos, value):
-			return FindingInRow(pos, value)
-
-		def isNewResultFound(self, result, pMatrix):
-			return result is not None and result not in pMatrix.knownRowFindings
-	
-	class NakedColumnSingleFinder(NakedSingleFinder):
-		def zones(self, pMatrix):
-			return pMatrix.grid.allColumnsInIndex()
-
-		def createResult(self, pos, value):
-			return FindingInColumn(pos, value)
-
-		def isNewResultFound(self, result, pMatrix):
-			return result is not None and result not in pMatrix.knownColumnFindings
 
 	def findHiddenSingle(self):
 		for zone in self.grid.allRowsInIndex() + self.grid.allColumnsInIndex() + self.grid.allBlocksInIndex():
@@ -125,50 +94,58 @@ class PossibilityMatrix:
 		return None
 
 	def findNewPairOrLockedCell(self):
-		finders = [self.NakedRowPairFinder(), self.NakedColumnPairFinder()]
+		finders = [self.NakedRowSingleFinder(2), self.NakedColumnSingleFinder(2)]
 		for finder in finders:
 			findings = finder.find(self)
 			if findings is not None : return findings
 
-	class NakedPairFinder:
+
+	class NakedSingleFinder:
+		def __init__(self, criteria):
+			self.criteria = criteria
+			pass
 		def find(self, pMatrix):
 			for zone in self.zones(pMatrix):
-				pair = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
-				if pair is not None: return pair
+				finding = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
+				if finding is not None: return finding
+
 			return None
 
 		def findPosMeetRequirementInRest(self, union, poses, rest, nth, pMatrix):
-			if nth == 2:
-				return self.createPair(poses, union)
+			if nth == self.criteria:
+				return self.createResult(poses, union)
 
 			for i in range(len(rest)):
 				pos = rest[i]
 				possibilities = pMatrix.possibilitieAt(pos)
-				if len(union | possibilities) > 2: continue
+				if len(union | possibilities) > self.criteria : continue
 
-				pair = self.findPosMeetRequirementInRest(union | possibilities, poses + [pos], rest[i+1:], nth + 1, pMatrix)
-				if self.isNewPairFound(pair, pMatrix): return pair
+				finding = self.findPosMeetRequirementInRest(union | possibilities, poses + [pos], rest[i+1:], nth + 1, pMatrix)
+				if self.isNewResultFound(finding, pMatrix): return finding
 
-			
-	class NakedRowPairFinder(NakedPairFinder):
+			pass
+
+	class NakedRowSingleFinder(NakedSingleFinder):
 		def zones(self, pMatrix):
 			return pMatrix.grid.allRowsInIndex()
 
-		def createPair(self, pos, possibilities):
-			return FindingInRow(pos, possibilities)
+		def createResult(self, pos, value):
+			return FindingInRow(pos, value)
 
-		def isNewPairFound(self, pair, pMatrix):
-			return pair is not None and pair not in pMatrix.knownRowFindings
-	
-	class NakedColumnPairFinder(NakedPairFinder):
+		def isNewResultFound(self, result, pMatrix):
+			return result is not None and result not in pMatrix.knownRowFindings
+
+	class NakedColumnSingleFinder(NakedSingleFinder):
 		def zones(self, pMatrix):
 			return pMatrix.grid.allColumnsInIndex()
 
-		def createPair(self, pos, possibilities):
-			return FindingInColumn(pos, possibilities)
+		def createResult(self, pos, value):
+			return FindingInColumn(pos, value)
 
-		def isNewPairFound(self, pair, pMatrix):
-			return pair is not None and pair not in pMatrix.knownColumnFindings
+		def isNewResultFound(self, result, pMatrix):
+			return result is not None and result not in pMatrix.knownColumnFindings
+
+
 
 	def updateRow(self, pos, possibilities, excepts):
 		coords = self.grid.coordsOfRow(pos[0], pos[1])
@@ -226,4 +203,4 @@ class FindingInBlock(Finding):
 		pMatrix.updateBlock(self.pos[0], self.possibilities, set(self.pos))
 		pMatrix.addKnownBlockSingle(self)
 		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)			
+			pMatrix.setPossibilityAt(p, self.possibilities)
