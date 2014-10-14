@@ -210,11 +210,24 @@ class TestPossibilityMatrixFindPairs(unittest.TestCase):
 		pass
 
 	def test_findOnePairOnlyOnceInARow(self):
-		pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}, {1, 2}]], Grid(1, 3, 1, 1))
+		pMatrix = PossibilityMatrix([[{1, 2}, {3, 4}, {1, 2}, {3, 4}]], Grid(1, 4, 1, 1))
 		pMatrix.updateRow = MagicMock()
-		pMatrix.addKnownRowPair = MagicMock()		
+		pair = pMatrix.findNewPairOrBlock()
+		pMatrix.addKnownRowPair(pair)
 		pair = pMatrix.findNewPairOrBlock()
 		pair.update(pMatrix)
-		pMatrix.updateRow.assert_called_once_with((0, 0), {1, 2}, {(0, 0), (0, 2)})
-		pass		
+
+		pMatrix.updateRow.assert_called_once_with((0, 1), {3, 4}, {(0, 1), (0, 3)})
+		pass
+
+	def test_findOneNakedPairInAColumn(self):
+		pMatrix = PossibilityMatrix([[{1, 2}],[{3, 4}],[{1, 2}]], Grid(3, 1, 1, 1))
+		pMatrix.updateColum = MagicMock(name="updateColumn")
+		pMatrix.addKnownColumnPair = MagicMock()
+
+		pair = pMatrix.findNewPairOrBlock()
+		pair.update(pMatrix)
+		pMatrix.updateColum.assert_called_once_with((0, 0), {1, 2}, {(0, 0), (2, 0)})
+		pMatrix.addKnownColumnPair.assert_called_once_with(pair)
+		pass
 	pass
