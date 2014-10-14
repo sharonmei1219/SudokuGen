@@ -56,10 +56,10 @@ class PossibilityMatrix:
 		pass
 
 	def findNewSingle(self):
-		single = self.NakedRowSingleFinder(1).find(self)
+		single = self.NakedInRowFinder(1).find(self)
 		if single is not None: return single
 
-		single = self.NakedColumnSingleFinder(1).find(self)
+		single = self.NakedInColumnFinder(1).find(self)
 		if single is not None: return single
 
 		single = self.findHiddenSingle()
@@ -94,13 +94,13 @@ class PossibilityMatrix:
 		return None
 
 	def findNewPairOrLockedCell(self):
-		finders = [self.NakedRowSingleFinder(2), self.NakedColumnSingleFinder(2)]
+		finders = [self.NakedInRowFinder(2), self.NakedInColumnFinder(2)]
 		for finder in finders:
 			findings = finder.find(self)
 			if findings is not None : return findings
 
 
-	class NakedSingleFinder:
+	class NakedFinder:
 		def __init__(self, criteria):
 			self.criteria = criteria
 			pass
@@ -125,7 +125,7 @@ class PossibilityMatrix:
 
 			pass
 
-	class NakedRowSingleFinder(NakedSingleFinder):
+	class NakedInRowFinder(NakedFinder):
 		def zones(self, pMatrix):
 			return pMatrix.grid.allRowsInIndex()
 
@@ -135,7 +135,7 @@ class PossibilityMatrix:
 		def isNewResultFound(self, result, pMatrix):
 			return result is not None and result not in pMatrix.knownRowFindings
 
-	class NakedColumnSingleFinder(NakedSingleFinder):
+	class NakedInColumnFinder(NakedFinder):
 		def zones(self, pMatrix):
 			return pMatrix.grid.allColumnsInIndex()
 
