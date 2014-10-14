@@ -44,6 +44,7 @@ class PossibilityMatrix:
 	def __init__(self, matrix, grid):
 		self.matrix = matrix
 		self.knownRowSingle = []
+		self.knownColumnSingle = []
 		self.knownRowPair = []
 		self.knownColumnPair = []
 		self.grid = grid
@@ -57,7 +58,10 @@ class PossibilityMatrix:
 		pass
 
 	def findNewSingle(self):
-		single = self.findNakedSingle()
+		single = self.NakedRowSingleFinder().find(self)
+		if single is not None: return single
+
+		single = self.NakedColumnSingleFinder().find(self)
 		if single is not None: return single
 
 		single = self.findHiddenSingle()
@@ -65,14 +69,36 @@ class PossibilityMatrix:
 
 		return None
 
-	def findNakedSingle(self):
-		for pos in self.grid.allPos():
-			if len(self.possibilitieAt(pos)) is 1:
-				value = next(iter(self.possibilitieAt(pos)))
-				single = SingleInRow(pos, value)
-				if single in self.knownRowSingle: continue
-				return single		
-		return None
+	class NakedSingleFinder:
+		def find(self, pMatrix):
+			for zone in self.zones(pMatrix):
+				for pos in zone:
+					if len(pMatrix.possibilitieAt(pos)) is 1:
+						value = next(iter(pMatrix.possibilitieAt(pos)))
+						single = self.createResult(pos, value)
+						if self.isNewResultFound(single, pMatrix): return single
+
+			return None
+		
+	class NakedRowSingleFinder(NakedSingleFinder):
+		def zones(self, pMatrix):
+			return pMatrix.grid.allRowsInIndex()
+
+		def createResult(self, pos, value):
+			return SingleInRow(pos, value)
+
+		def isNewResultFound(self, result, pMatrix):
+			return result is not None and result not in pMatrix.knownRowSingle
+	
+	class NakedColumnSingleFinder(NakedSingleFinder):
+		def zones(self, pMatrix):
+			return pMatrix.grid.allColumnsInIndex()
+
+		def createResult(self, pos, value):
+			return SingleInColumn(pos, value)
+
+		def isNewResultFound(self, result, pMatrix):
+			return result is not None and result not in pMatrix.knownColumnSingle
 
 	def findHiddenSingle(self):
 		for zone in self.grid.allRowsInIndex() + self.grid.allColumnsInIndex() + self.grid.allBlocksInIndex():
@@ -167,6 +193,10 @@ class PossibilityMatrix:
 		self.knownRowSingle += [single]
 		pass
 
+	def addKnownColumnSingle(self, single):
+		self.knownColumnSingle += [single]
+		pass
+
 	def addKnownRowPair(self, pair):
 		self.knownRowPair += [pair]
 		pass
@@ -190,19 +220,25 @@ class Single:
 class SingleInRow(Single):
 	def update(self, pMatrix):
 		pMatrix.updateRow(self.pos, {self.value}, {self.pos})
-		pMatrix.updateColum(self.pos, {self.value}, {self.pos})
-		pMatrix.updateBlock(self.pos, {self.value}, {self.pos})
 		pMatrix.addKnownRowSingle(self)
 		pMatrix.setPossibilityAt(self.pos, {self.value})
 		pass
 
 class SingleInColumn(Single):
+	def update(self, pMatrix):
+		pMatrix.updateColum(self.pos, {self.value}, {self.pos})
+		pMatrix.addKnownColumnSingle(self)
+		pMatrix.setPossibilityAt(self.pos, {self.value})		
+		pass
 	pass
 
 class SingleInBlock(Single):
+	def update(self, pMatrix):
+		pMatrix.updateBlock(self.pos, {self.value}, {self.pos})
+		pMatrix.addKnownBlockSingle(self)
+		pMatrix.setPossibilityAt(self.pos, {self.value})
+		pass
 	pass
-		
-		
 
 class Pair:
 	def __init__(self, pos, possibilities):
