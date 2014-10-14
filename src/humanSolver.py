@@ -58,47 +58,53 @@ class PossibilityMatrix:
 		pass
 
 	def findNewSingle(self):
-		nakedSingleInRowFinder = self.NakedInRowFinder(1)
-		nakedSingleInColumnFinder = self.NakedInColumnFinder(1)
+		nakedSingleInRowFinder = self.NakedFinder(1, self.RowView())
+		nakedSingleInColumnFinder = self.NakedFinder(1, self.ColumnView())
+		nakedSingleInBlockFinder = self.NakedFinder(1, self.BlockView())
+		hiddenSingleInRowFinder = self.HiddenSingleFinder(self.RowView())
+		hiddenSingleInColumnFinder = self.HiddenSingleFinder(self.ColumnView())
+		hiddenSingleInBlockFinder = self.HiddenSingleFinder(self.BlockView())
 
-		finders = [nakedSingleInRowFinder, nakedSingleInColumnFinder]
+		finders = [nakedSingleInRowFinder, nakedSingleInColumnFinder, nakedSingleInBlockFinder, hiddenSingleInRowFinder,
+					hiddenSingleInColumnFinder, hiddenSingleInBlockFinder]
 		for finder in finders:
 			finding = finder.find(self)
 			if finding is not None: return finding
 
-		single = self.findHiddenSingle()
-		if single is not None: return single
-
 		return None
 
-	def findHiddenSingle(self):
-		for zone in self.grid.allRowsInIndex() + self.grid.allColumnsInIndex() + self.grid.allBlocksInIndex():
-			valuePosMap = self.buildValuePosMapInZone(zone)
-			single = self.findValueOnlyHasOnePossiblePosition(valuePosMap)
-			if single is not None: return single
-		return None		
+	class HiddenSingleFinder:
+		def __init__(self, viewDirection):
+			self.viewDir = viewDirection
+			pass
 
-	def buildValuePosMapInZone(self, zone):
-		valuePosMap = {}
-		for pos in zone:
-			for  value in self.possibilitieAt(pos):
-				if value not in valuePosMap: 
-					valuePosMap[value] = []
-				valuePosMap[value] += [pos]
-		return valuePosMap
+		def find(self, pMatrix):
+			for zone in self.viewDir.zones(pMatrix):
+				valuePosMap = self.buildValuePosMapInZone(zone, pMatrix)
+				single = self.findValueOnlyHasOnePossiblePosition(valuePosMap, pMatrix)
+				if single is not None: return single
+			return None
 
-	def findValueOnlyHasOnePossiblePosition(self, valuePosMap):
-		for value in valuePosMap:
-			if len(valuePosMap[value]) == 1:
-				single = FindingInRow(valuePosMap[value][0], value)
-				if single in self.knownRowFindings: continue
-				return single
-		return None
+		def buildValuePosMapInZone(self, zone, pMatrix):
+			valuePosMap = {}
+			for pos in zone:
+				for  value in pMatrix.possibilitieAt(pos):
+					if value not in valuePosMap:
+						valuePosMap[value] = []
+					valuePosMap[value] += [pos]
+			return valuePosMap		
+
+		def findValueOnlyHasOnePossiblePosition(self, valuePosMap, pMatrix):
+			for value in valuePosMap:
+				if len(valuePosMap[value]) == 1:
+					single = self.viewDir.createResult(valuePosMap[value], {value})
+					if self.viewDir.isNewResultFound(single, pMatrix): return single
+			return None
 
 	def findNewPairOrLockedCell(self):
-		nakedPairInRowFinder = self.NakedInRowFinder(2)
-		nakedPairInColumnFinder = self.NakedInColumnFinder(2)
-		nakedPairInBlockFinder = self.NakedInBlockFinder(2)
+		nakedPairInRowFinder = self.NakedFinder(2, self.RowView())
+		nakedPairInColumnFinder = self.NakedFinder(2, self.ColumnView())
+		nakedPairInBlockFinder = self.NakedFinder(2, self.BlockView())
 
 		finders = [nakedPairInRowFinder, nakedPairInColumnFinder, nakedPairInBlockFinder]
 
@@ -108,19 +114,20 @@ class PossibilityMatrix:
 		pass
 
 	class NakedFinder:
-		def __init__(self, criteria):
+		def __init__(self, criteria, viewDirection):
 			self.criteria = criteria
+			self.viewDir = viewDirection
 			pass
 
 		def find(self, pMatrix):
-			for zone in self.zones(pMatrix):
+			for zone in self.viewDir.zones(pMatrix):
 				finding = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
 				if finding is not None: return finding
 			return None
 
 		def findPosMeetRequirementInRest(self, union, poses, rest, nth, pMatrix):
 			if nth == self.criteria:
-				return self.createResult(poses, union)
+				return self.viewDir.createResult(poses, union)
 
 			for i in range(len(rest)):
 				pos = rest[i]
@@ -128,10 +135,10 @@ class PossibilityMatrix:
 				if len(union | possibilities) > self.criteria : continue
 
 				finding = self.findPosMeetRequirementInRest(union | possibilities, poses + [pos], rest[i+1:], nth + 1, pMatrix)
-				if self.isNewResultFound(finding, pMatrix): return finding
+				if self.viewDir.isNewResultFound(finding, pMatrix): return finding
 			pass
 
-	class NakedInRowFinder(NakedFinder):
+	class RowView:
 		def zones(self, pMatrix):
 			return pMatrix.grid.allRowsInIndex()
 
@@ -141,7 +148,7 @@ class PossibilityMatrix:
 		def isNewResultFound(self, result, pMatrix):
 			return result is not None and result not in pMatrix.knownRowFindings
 
-	class NakedInColumnFinder(NakedFinder):
+	class ColumnView:
 		def zones(self, pMatrix):
 			return pMatrix.grid.allColumnsInIndex()
 
@@ -151,7 +158,7 @@ class PossibilityMatrix:
 		def isNewResultFound(self, result, pMatrix):
 			return result is not None and result not in pMatrix.knownColumnFindings
 
-	class NakedInBlockFinder(NakedFinder):
+	class BlockView:
 		def zones(self, pMatrix):
 			return pMatrix.grid.allBlocksInIndex()
 
@@ -159,10 +166,7 @@ class PossibilityMatrix:
 			return FindingInBlock(poses, possibilities)
 
 		def isNewResultFound(self, result, pMatrix):
-			return result is not None and result not in pMatrix.knownBlockFindings
-
-		pass
-			
+			return result is not None and result not in pMatrix.knownBlockFindings			
 
 	def updateRow(self, pos, possibilities, excepts):
 		coords = self.grid.coordsOfRow(pos[0], pos[1])

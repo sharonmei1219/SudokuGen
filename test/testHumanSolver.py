@@ -123,7 +123,38 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		single.update(self.pMatrix)
 
 		self.pMatrix.updateColum.assert_called_once_with((1, 0), {2}, {(1, 0)})
-		pass	
+		pass
+
+	def test_findSingleInABlock(self):
+		self.pMatrix = PossibilityMatrix([[{1}, {3, 4}], [{2, 3}, {5}]], Grid(2, 2, 2, 2))
+		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownColumnFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding([(1, 1)], {5}))
+		self.pMatrix.addKnownColumnFindings(Finding([(1, 1)], {5}))
+
+		self.pMatrix.updateBlock = MagicMock(name="updateBlock")
+
+		single = self.pMatrix.findNewSingle()
+
+		single.update(self.pMatrix)
+		self.pMatrix.updateBlock.assert_called_once_with((0, 0), {1}, {(0, 0)})
+		pass
+
+	def test_findSingleInABlockOnlyOnce(self):
+		self.pMatrix = PossibilityMatrix([[{1}, {3, 4}], [{2, 3}, {5}]], Grid(2, 2, 2, 2))
+		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownColumnFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding([(1, 1)], {5}))
+		self.pMatrix.addKnownColumnFindings(Finding([(1, 1)], {5}))
+		self.pMatrix.addKnownBlockFindings(Finding([(0, 0)], {1}))
+
+		self.pMatrix.updateBlock = MagicMock(name="updateBlock")
+
+		single = self.pMatrix.findNewSingle()
+
+		single.update(self.pMatrix)
+		self.pMatrix.updateBlock.assert_called_once_with((1, 1), {5}, {(1, 1)})
+		pass
 
 
 	def test_updateRow(self):
@@ -191,13 +222,13 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 	def test_findHiddenSingleInARow(self):
 		self.pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}]], Grid(1, 2, 1, 1))
 		single = self.pMatrix.findNewSingle()
-		self.assertEqual(FindingInRow((0, 0), 1), single)	
+		self.assertEqual(FindingInRow([(0, 0)], {1}), single)	
 		pass
 
 	def test_findHiddenSingleInAColumn(self):
 		self.pMatrix = PossibilityMatrix([[{3, 2}, {2, 3}], [{2, 3, 4}, {2, 3, 4}]], Grid(2, 2, 1, 1))
 		single = self.pMatrix.findNewSingle()
-		self.assertEqual(FindingInRow((1, 0), 4), single)
+		self.assertEqual(FindingInRow([(1, 0)], {4}), single)
 		pass
 
 	def test_findHiddenSingleInABlock(self):
@@ -207,7 +238,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}]], Grid(4, 4, 2, 2))
 		single = self.pMatrix.findNewSingle()
 
-		self.assertEqual(FindingInRow((1, 0), 4), single)		
+		self.assertEqual(FindingInRow([(1, 0)], {4}), single)		
 		pass
 
 class TestTierOneStrategy(unittest.TestCase):
