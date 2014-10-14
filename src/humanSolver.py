@@ -22,8 +22,8 @@ class Tier_0_Strategy:
 			single = pMatrix.findNewSingle()
 
 	def updatePuzzle(self, single, puzzle):
-		pos = single.pos
-		value = single.value
+		pos = single.pos[0]
+		value = next(iter(single.possibilities))
 		puzzle.change(pos, value)
 		pass
 
@@ -43,10 +43,8 @@ class Tier_1_Strategy:
 class PossibilityMatrix:
 	def __init__(self, matrix, grid):
 		self.matrix = matrix
-		self.knownRowSingle = []
-		self.knownColumnSingle = []
-		self.knownRowPair = []
-		self.knownColumnPair = []
+		self.knownRowFindings = []
+		self.knownColumnFindings = []
 		self.grid = grid
 		pass
 
@@ -75,7 +73,7 @@ class PossibilityMatrix:
 				for pos in zone:
 					if len(pMatrix.possibilitieAt(pos)) is 1:
 						value = next(iter(pMatrix.possibilitieAt(pos)))
-						single = self.createResult(pos, value)
+						single = self.createResult([pos], pMatrix.possibilitieAt(pos))
 						if self.isNewResultFound(single, pMatrix): return single
 
 			return None
@@ -88,7 +86,7 @@ class PossibilityMatrix:
 			return SingleInRow(pos, value)
 
 		def isNewResultFound(self, result, pMatrix):
-			return result is not None and result not in pMatrix.knownRowSingle
+			return result is not None and result not in pMatrix.knownRowFindings
 	
 	class NakedColumnSingleFinder(NakedSingleFinder):
 		def zones(self, pMatrix):
@@ -98,7 +96,7 @@ class PossibilityMatrix:
 			return SingleInColumn(pos, value)
 
 		def isNewResultFound(self, result, pMatrix):
-			return result is not None and result not in pMatrix.knownColumnSingle
+			return result is not None and result not in pMatrix.knownColumnFindings
 
 	def findHiddenSingle(self):
 		for zone in self.grid.allRowsInIndex() + self.grid.allColumnsInIndex() + self.grid.allBlocksInIndex():
@@ -122,7 +120,7 @@ class PossibilityMatrix:
 		for value in valuePosMap:
 			if len(valuePosMap[value]) == 1:
 				single = SingleInRow(valuePosMap[value][0], value)
-				if single in self.knownRowSingle: continue
+				if single in self.knownRowFindings: continue
 				return single
 		return None
 
@@ -160,7 +158,7 @@ class PossibilityMatrix:
 			return PairInRow(pos, possibilities)
 
 		def isNewPairFound(self, pair, pMatrix):
-			return pair is not None and pair not in pMatrix.knownRowPair
+			return pair is not None and pair not in pMatrix.knownRowFindings
 	
 	class NakedColumnPairFinder(NakedPairFinder):
 		def zones(self, pMatrix):
@@ -170,7 +168,7 @@ class PossibilityMatrix:
 			return PairInColumn(pos, possibilities)
 
 		def isNewPairFound(self, pair, pMatrix):
-			return pair is not None and pair not in pMatrix.knownColumnPair
+			return pair is not None and pair not in pMatrix.knownColumnFindings
 
 	def updateRow(self, pos, possibilities, excepts):
 		coords = self.grid.coordsOfRow(pos[0], pos[1])
@@ -189,54 +187,49 @@ class PossibilityMatrix:
 			if pos in excepts: continue
 			self.setPossibilityAt(pos, self.possibilitieAt(pos) - possibilities)
 
-	def addKnownRowSingle(self, single):
-		self.knownRowSingle += [single]
+	def addKnownRowFindings(self, single):
+		self.knownRowFindings += [single]
 		pass
 
-	def addKnownColumnSingle(self, single):
-		self.knownColumnSingle += [single]
-		pass
-
-	def addKnownRowPair(self, pair):
-		self.knownRowPair += [pair]
-		pass
-
-	def addKnownColumnPair(self, pair):
-		self.knownColumnPair += [pair]
+	def addKnownColumnFindings(self, single):
+		self.knownColumnFindings += [single]
 		pass
 
 class Single:
 	def __init__(self, pos, value):
 		self.pos = pos;
-		self.value = value
+		self.possibilities = value
 		pass
 
 	def __eq__(self, single):
-		return self.pos == single.pos and self.value == single.value
+		return self.pos == single.pos and self.possibilities == single.possibilities
 
 	def __str__(self):
-		return str(self.pos) + " " + str(self.value)
+		return str(self.pos) + " " + str(self.possibilities)
 
 class SingleInRow(Single):
 	def update(self, pMatrix):
-		pMatrix.updateRow(self.pos, {self.value}, {self.pos})
-		pMatrix.addKnownRowSingle(self)
-		pMatrix.setPossibilityAt(self.pos, {self.value})
+		pMatrix.updateRow(self.pos[0], self.possibilities, set(self.pos))
+		pMatrix.addKnownRowFindings(self)
+		for p in self.pos:
+			pMatrix.setPossibilityAt(p, self.possibilities)
 		pass
 
 class SingleInColumn(Single):
 	def update(self, pMatrix):
-		pMatrix.updateColum(self.pos, {self.value}, {self.pos})
-		pMatrix.addKnownColumnSingle(self)
-		pMatrix.setPossibilityAt(self.pos, {self.value})		
+		pMatrix.updateColum(self.pos[0], self.possibilities, set(self.pos))
+		pMatrix.addKnownColumnFindings(self)
+		for p in self.pos:
+			pMatrix.setPossibilityAt(p, self.possibilities)	
 		pass
 	pass
 
 class SingleInBlock(Single):
 	def update(self, pMatrix):
-		pMatrix.updateBlock(self.pos, {self.value}, {self.pos})
+		pMatrix.updateBlock(self.pos[0], self.possibilities, set(self.pos))
 		pMatrix.addKnownBlockSingle(self)
-		pMatrix.setPossibilityAt(self.pos, {self.value})
+		for p in self.pos:
+			pMatrix.setPossibilityAt(p, self.possibilities)
 		pass
 	pass
 
@@ -246,14 +239,21 @@ class Pair:
 		self.possibilities = possibilities
 
 	def __eq__(self, pair):
-		return self.pos == pair.pos	
+		return self.pos == pair.pos
+
+	def __str__(self):
+		return str(self.pos) + " " + str(self.possibilities)		
 
 class PairInRow(Pair):
 	def update(self, pMatrix):
 		pMatrix.updateRow(self.pos[0], self.possibilities, set(self.pos))
-		pMatrix.addKnownRowPair(self)
+		pMatrix.addKnownRowFindings(self)
+		for p in self.pos:
+			pMatrix.setPossibilityAt(p, self.possibilities)
 
 class PairInColumn(Pair):
 	def update(self, pMatrix):
 		pMatrix.updateColum(self.pos[0], self.possibilities, set(self.pos))
-		pMatrix.addKnownColumnPair(self)
+		pMatrix.addKnownColumnFindings(self)
+		for p in self.pos:
+			pMatrix.setPossibilityAt(p, self.possibilities)		
