@@ -69,7 +69,7 @@ class TestTierZeroStrategy(unittest.TestCase):
 		stg = Tier_0_Strategy()
 		puzzle = MockObject()
 		puzzle.change = MagicMock()
-		single = SingleInRow([(0, 1)], {2})
+		single = FindingInRow([(0, 1)], {2})
 		stg.updatePuzzle(single, puzzle)
 		puzzle.change.assert_called_once_with((0, 1), 2)
 		pass
@@ -89,7 +89,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 	def test_findOneSingle(self):
 		self.pMatrix = PossibilityMatrix([[{1}]], Grid(1, 1, 1, 1))
 		single = self.pMatrix.findNewSingle()
-		self.assertEqual(SingleInRow([(0, 0)], {1}), single)
+		self.assertEqual(FindingInRow([(0, 0)], {1}), single)
 		pass
 
 	def test_findSingleOnlyOnce(self):
@@ -98,12 +98,12 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		single.update(self.pMatrix)
 
 		single = self.pMatrix.findNewSingle()
-		self.assertEqual(SingleInRow([(0, 1)], {2}), single)
+		self.assertEqual(FindingInRow([(0, 1)], {2}), single)
 		pass
 
 	def test_findSingleInColumn(self):
 		self.pMatrix = PossibilityMatrix([[{1}]], Grid(1, 1, 1, 1))
-		self.pMatrix.addKnownRowFindings(Single([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
 
 		self.pMatrix.updateColum = MagicMock(name="updateColum")
 		single = self.pMatrix.findNewSingle()
@@ -114,9 +114,9 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 
 	def test_findSingleInColumnOnlyOnce(self):
 		self.pMatrix = PossibilityMatrix([[{1}], [{2}]], Grid(2, 1, 1, 1))
-		self.pMatrix.addKnownRowFindings(Single([(0, 0)], {1}))
-		self.pMatrix.addKnownRowFindings(Single([(1, 0)], {2}))
-		self.pMatrix.addKnownColumnFindings(SingleInColumn([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding([(1, 0)], {2}))
+		self.pMatrix.addKnownColumnFindings(FindingInColumn([(0, 0)], {1}))
 
 		self.pMatrix.updateColum = MagicMock(name="updateColum")
 		single = self.pMatrix.findNewSingle()
@@ -151,7 +151,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		self.pMatrix.addKnownRowFindings = MagicMock()
 		self.pMatrix.setPossibilityAt = MagicMock()
 
-		single = SingleInRow([(0, 1)], {5})
+		single = FindingInRow([(0, 1)], {5})
 
 		single.update(self.pMatrix)
 
@@ -166,7 +166,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		self.pMatrix.addKnownColumnFindings = MagicMock(name = "addKnownColumnFindings")
 		self.pMatrix.setPossibilityAt = MagicMock()
 
-		single = SingleInColumn([(0, 1)], {5})
+		single = FindingInColumn([(0, 1)], {5})
 		single.update(self.pMatrix)
 
 		self.pMatrix.updateColum.assert_called_once_with((0, 1), {5}, {(0, 1)})
@@ -180,7 +180,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 		self.pMatrix.addKnownBlockSingle = MagicMock(name = "addKnownBlockSingle")
 		self.pMatrix.setPossibilityAt = MagicMock()
 
-		single = SingleInBlock([(0, 1)], {5})
+		single = FindingInBlock([(0, 1)], {5})
 		single.update(self.pMatrix)
 
 		self.pMatrix.updateBlock.assert_called_once_with((0, 1), {5}, {(0, 1)})
@@ -191,13 +191,13 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 	def test_findHiddenSingleInARow(self):
 		self.pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}]], Grid(1, 2, 1, 1))
 		single = self.pMatrix.findNewSingle()
-		self.assertEqual(SingleInRow((0, 0), 1), single)	
+		self.assertEqual(FindingInRow((0, 0), 1), single)	
 		pass
 
 	def test_findHiddenSingleInAColumn(self):
 		self.pMatrix = PossibilityMatrix([[{3, 2}, {2, 3}], [{2, 3, 4}, {2, 3, 4}]], Grid(2, 2, 1, 1))
 		single = self.pMatrix.findNewSingle()
-		self.assertEqual(SingleInRow((1, 0), 4), single)
+		self.assertEqual(FindingInRow((1, 0), 4), single)
 		pass
 
 	def test_findHiddenSingleInABlock(self):
@@ -207,7 +207,7 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}]], Grid(4, 4, 2, 2))
 		single = self.pMatrix.findNewSingle()
 
-		self.assertEqual(SingleInRow((1, 0), 4), single)		
+		self.assertEqual(FindingInRow((1, 0), 4), single)		
 		pass
 
 class TestTierOneStrategy(unittest.TestCase):

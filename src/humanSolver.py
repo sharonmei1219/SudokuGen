@@ -83,7 +83,7 @@ class PossibilityMatrix:
 			return pMatrix.grid.allRowsInIndex()
 
 		def createResult(self, pos, value):
-			return SingleInRow(pos, value)
+			return FindingInRow(pos, value)
 
 		def isNewResultFound(self, result, pMatrix):
 			return result is not None and result not in pMatrix.knownRowFindings
@@ -93,7 +93,7 @@ class PossibilityMatrix:
 			return pMatrix.grid.allColumnsInIndex()
 
 		def createResult(self, pos, value):
-			return SingleInColumn(pos, value)
+			return FindingInColumn(pos, value)
 
 		def isNewResultFound(self, result, pMatrix):
 			return result is not None and result not in pMatrix.knownColumnFindings
@@ -119,7 +119,7 @@ class PossibilityMatrix:
 	def findValueOnlyHasOnePossiblePosition(self, valuePosMap):
 		for value in valuePosMap:
 			if len(valuePosMap[value]) == 1:
-				single = SingleInRow(valuePosMap[value][0], value)
+				single = FindingInRow(valuePosMap[value][0], value)
 				if single in self.knownRowFindings: continue
 				return single
 		return None
@@ -155,7 +155,7 @@ class PossibilityMatrix:
 			return pMatrix.grid.allRowsInIndex()
 
 		def createPair(self, pos, possibilities):
-			return PairInRow(pos, possibilities)
+			return FindingInRow(pos, possibilities)
 
 		def isNewPairFound(self, pair, pMatrix):
 			return pair is not None and pair not in pMatrix.knownRowFindings
@@ -165,7 +165,7 @@ class PossibilityMatrix:
 			return pMatrix.grid.allColumnsInIndex()
 
 		def createPair(self, pos, possibilities):
-			return PairInColumn(pos, possibilities)
+			return FindingInColumn(pos, possibilities)
 
 		def isNewPairFound(self, pair, pMatrix):
 			return pair is not None and pair not in pMatrix.knownColumnFindings
@@ -195,7 +195,7 @@ class PossibilityMatrix:
 		self.knownColumnFindings += [single]
 		pass
 
-class Single:
+class Finding:
 	def __init__(self, pos, value):
 		self.pos = pos;
 		self.possibilities = value
@@ -207,53 +207,23 @@ class Single:
 	def __str__(self):
 		return str(self.pos) + " " + str(self.possibilities)
 
-class SingleInRow(Single):
+class FindingInRow(Finding):
 	def update(self, pMatrix):
 		pMatrix.updateRow(self.pos[0], self.possibilities, set(self.pos))
 		pMatrix.addKnownRowFindings(self)
 		for p in self.pos:
 			pMatrix.setPossibilityAt(p, self.possibilities)
-		pass
 
-class SingleInColumn(Single):
+class FindingInColumn(Finding):
 	def update(self, pMatrix):
 		pMatrix.updateColum(self.pos[0], self.possibilities, set(self.pos))
 		pMatrix.addKnownColumnFindings(self)
 		for p in self.pos:
 			pMatrix.setPossibilityAt(p, self.possibilities)	
-		pass
-	pass
 
-class SingleInBlock(Single):
+class FindingInBlock(Finding):
 	def update(self, pMatrix):
 		pMatrix.updateBlock(self.pos[0], self.possibilities, set(self.pos))
 		pMatrix.addKnownBlockSingle(self)
 		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)
-		pass
-	pass
-
-class Pair:
-	def __init__(self, pos, possibilities):
-		self.pos = pos
-		self.possibilities = possibilities
-
-	def __eq__(self, pair):
-		return self.pos == pair.pos
-
-	def __str__(self):
-		return str(self.pos) + " " + str(self.possibilities)		
-
-class PairInRow(Pair):
-	def update(self, pMatrix):
-		pMatrix.updateRow(self.pos[0], self.possibilities, set(self.pos))
-		pMatrix.addKnownRowFindings(self)
-		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)
-
-class PairInColumn(Pair):
-	def update(self, pMatrix):
-		pMatrix.updateColum(self.pos[0], self.possibilities, set(self.pos))
-		pMatrix.addKnownColumnFindings(self)
-		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)		
+			pMatrix.setPossibilityAt(p, self.possibilities)			
