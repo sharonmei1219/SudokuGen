@@ -331,17 +331,23 @@ class TestPossibilityMatrixFindPairs(unittest.TestCase):
 		pass
 
 class TestHiddenPairFinder(unittest.TestCase):
+	def setUp(self):
+		self.finder = HiddenFinder(2, RowView())
+		pass
+
 	def test_findNoHiddenPair(self):
-		pMatrix = PossibilityMatrix([[]], Grid(1, 0, 1, 1))
-		self.finder = HiddenPairFinder()
+		pMatrix = PossibilityMatrix([[{1, 2}, {1, 2}, {1}]], Grid(1, 3, 1, 1))
 		self.assertEquals(None, self.finder.find(pMatrix))
 		pass
 
 	def test_findOneHiddenPairInARow(self):
 		pMatrix = PossibilityMatrix([[{1, 2}, {1, 2}]], Grid(1, 2, 1, 1))
-		self.finder = HiddenPairFinder()
-		print(self.finder.find(pMatrix))
 		self.assertEquals(Finding({(0, 0), (0, 1)}, {1, 2}), self.finder.find(pMatrix))
 		pass
-	pass
+
+	def test_findHiddenPairInARowOnlyOnce(self):
+		pMatrix = PossibilityMatrix([[{1, 2}, {3, 4}, {1, 2}, {3, 4}]], Grid(1, 4, 1, 1))
+		pMatrix.addKnownRowFindings(Finding({(0, 0), (0, 2)}, {1, 2}))
+		self.assertEquals(Finding({(0, 1), (0, 3)}, {3, 4}), self.finder.find(pMatrix))		
+		pass
 		

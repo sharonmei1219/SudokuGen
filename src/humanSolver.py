@@ -19,9 +19,9 @@ class Tier_0_Strategy:
 		self.nakedSingleInRowFinder = NakedFinder(1, RowView())
 		self.nakedSingleInColumnFinder = NakedFinder(1, ColumnView())
 		self.nakedSingleInBlockFinder = NakedFinder(1, BlockView())
-		self.hiddenSingleInRowFinder = HiddenSingleFinder(RowView())
-		self.hiddenSingleInColumnFinder = HiddenSingleFinder(ColumnView())
-		self.hiddenSingleInBlockFinder = HiddenSingleFinder(BlockView())
+		self.hiddenSingleInRowFinder = HiddenFinder(1, RowView())
+		self.hiddenSingleInColumnFinder = HiddenFinder(1, ColumnView())
+		self.hiddenSingleInBlockFinder = HiddenFinder(1, BlockView())
 
 		self.finders = [self.nakedSingleInRowFinder, 
 		                self.nakedSingleInColumnFinder, 
@@ -228,48 +228,18 @@ class NakedFinder:
 			if self.viewDir.isNewResultFound(finding, pMatrix): return finding
 		pass
 
-class HiddenSingleFinder:
-	def __init__(self, viewDirection):
+
+class HiddenFinder:
+	def __init__(self, criteria, viewDirection):
 		self.viewDir = viewDirection
+		self.criteria = criteria
 		pass
 
 	def find(self, pMatrix):
 		for zone in self.viewDir.zones(pMatrix):
 			valuePosMap = self.buildValuePosMapInZone(zone, pMatrix)
-			single = self.findValueOnlyHasOnePossiblePosition(valuePosMap, pMatrix)
+			single = self.findHiddens(set(), set(), valuePosMap, pMatrix, list(valuePosMap), 0)
 			if single is not None: return single
-		return None
-
-	def buildValuePosMapInZone(self, zone, pMatrix):
-		valuePosMap = {}
-		for pos in zone:
-			for  value in pMatrix.possibilitieAt(pos):
-				if value not in valuePosMap:
-					valuePosMap[value] = set()
-				valuePosMap[value] |= {pos}
-		return valuePosMap		
-
-	def findValueOnlyHasOnePossiblePosition(self, valuePosMap, pMatrix):
-		for value in valuePosMap:
-			if len(valuePosMap[value]) == 1:
-				single = self.viewDir.createResult(valuePosMap[value], {value})
-				if self.viewDir.isNewResultFound(single, pMatrix): return single
-		return None
-
-class HiddenPairFinder:
-	def find(self, pMatrix):
-		zone = pMatrix.grid.allRowsInIndex()[0]
-		valuePosMap = self.buildValuePosMapInZone(zone, pMatrix)
-		keys = list(valuePosMap)
-		for i in range(len(keys)):
-			keyI = keys[i]
-			if len(valuePosMap[keyI]) > 2: continue
-			for j in range(i+1, len(keys)):
-				keyJ = keys[j]
-				if len(valuePosMap[keyJ] | valuePosMap[keyI]) > 2: continue
-				return FindingInRow(valuePosMap[keyI] | valuePosMap[keyJ], {keyI, keyJ})
-				pass
-			pass
 		pass
 
 	def buildValuePosMapInZone(self, zone, pMatrix):
@@ -279,5 +249,16 @@ class HiddenPairFinder:
 				if value not in valuePosMap:
 					valuePosMap[value] = set()
 				valuePosMap[value] |= {pos}
-		return valuePosMap			
-	pass
+		return valuePosMap
+
+	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
+		if nth == self.criteria:
+			finding = self.viewDir.createResult(poses, possibilities)
+			if self.viewDir.isNewResultFound(finding, pMatrix): return finding
+
+		for i in range(len(restKeys)):
+			key = restKeys[i]
+			if len(valuePosMap[key] | poses) > self.criteria: continue
+			finding = self.findHiddens(valuePosMap[key] | poses, possibilities | {key}, valuePosMap, pMatrix, restKeys[i+1:], nth+1)
+			if finding is not None: return finding
+		pass
