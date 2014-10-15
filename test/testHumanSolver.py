@@ -49,17 +49,16 @@ class TestTierZeroStrategy(unittest.TestCase):
 		pass
 
 	def test_NoSingleFound(self):
-		self.pMatrix.findNewSingle = MagicMock(return_value = None)
+		self.stg.findNewSingle = MagicMock(return_value = None)
 		self.stg.solve(self.pMatrix, self.puzzle)
-		self.pMatrix.findNewSingle.assert_called_once_with()
+		self.stg.findNewSingle.assert_called_once_with(self.pMatrix)
 		pass
 
 	def test_TwoSingleFound(self):
-		self.pMatrix.findNewSingle = MagicMock(side_effect = [self.single_0, self.single_1, None])
-
+		self.stg.findNewSingle = MagicMock(side_effect = [self.single_0, self.single_1, None])
 		self.stg.solve(self.pMatrix, self.puzzle)
 
-		self.assertEquals([call(), call(), call()], self.pMatrix.findNewSingle.mock_calls)
+		self.assertEquals([call(self.pMatrix), call(self.pMatrix), call(self.pMatrix)], self.stg.findNewSingle.mock_calls)
 		self.single_0.update.assert_called_once_with(self.pMatrix)
 		self.single_1.update.assert_called_once_with(self.pMatrix)
 		self.assertEquals([call(self.single_0, self.puzzle), call(self.single_1, self.puzzle)], self.stg.updatePuzzle.mock_calls)
@@ -79,34 +78,35 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 	def setUp(self):
 		self.puzzle = MockObject()
 		self.puzzle.change = MagicMock()
+		self.stg_0 = Tier_0_Strategy()
 		pass
 
 	def test_findNoSingle(self):
 		self.pMatrix = PossibilityMatrix([[]], Grid(0, 0, 1, 1))
-		self.assertEquals(None, self.pMatrix.findNewSingle())
+		self.assertEquals(None, self.stg_0.findNewSingle(self.pMatrix))
 		pass
 
 	def test_findOneSingle(self):
 		self.pMatrix = PossibilityMatrix([[{1}]], Grid(1, 1, 1, 1))
-		single = self.pMatrix.findNewSingle()
-		self.assertEqual(FindingInRow([(0, 0)], {1}), single)
+		single = self.stg_0.findNewSingle(self.pMatrix)
+		self.assertEqual(FindingInRow({(0, 0)}, {1}), single)
 		pass
 
 	def test_findSingleOnlyOnce(self):
 		self.pMatrix = PossibilityMatrix([[{1}, {2}]], Grid(1, 2, 1, 1))
-		single = self.pMatrix.findNewSingle()
+		single = self.stg_0.findNewSingle(self.pMatrix)
 		single.update(self.pMatrix)
 
-		single = self.pMatrix.findNewSingle()
-		self.assertEqual(FindingInRow([(0, 1)], {2}), single)
+		single = self.stg_0.findNewSingle(self.pMatrix)
+		self.assertEqual(FindingInRow({(0, 1)}, {2}), single)
 		pass
 
 	def test_findSingleInColumn(self):
 		self.pMatrix = PossibilityMatrix([[{1}]], Grid(1, 1, 1, 1))
-		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding({(0, 0)}, {1}))
 
 		self.pMatrix.updateColum = MagicMock(name="updateColum")
-		single = self.pMatrix.findNewSingle()
+		single = self.stg_0.findNewSingle(self.pMatrix)
 		single.update(self.pMatrix)
 
 		self.pMatrix.updateColum.assert_called_once_with((0, 0), {1}, {(0, 0)})
@@ -114,12 +114,12 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 
 	def test_findSingleInColumnOnlyOnce(self):
 		self.pMatrix = PossibilityMatrix([[{1}], [{2}]], Grid(2, 1, 1, 1))
-		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
-		self.pMatrix.addKnownRowFindings(Finding([(1, 0)], {2}))
-		self.pMatrix.addKnownColumnFindings(FindingInColumn([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding({(0, 0)}, {1}))
+		self.pMatrix.addKnownRowFindings(Finding({(1, 0)}, {2}))
+		self.pMatrix.addKnownColumnFindings(FindingInColumn({(0, 0)}, {1}))
 
 		self.pMatrix.updateColum = MagicMock(name="updateColum")
-		single = self.pMatrix.findNewSingle()
+		single = self.stg_0.findNewSingle(self.pMatrix)
 		single.update(self.pMatrix)
 
 		self.pMatrix.updateColum.assert_called_once_with((1, 0), {2}, {(1, 0)})
@@ -127,14 +127,14 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 
 	def test_findSingleInABlock(self):
 		self.pMatrix = PossibilityMatrix([[{1}, {3, 4}], [{2, 3}, {5}]], Grid(2, 2, 2, 2))
-		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
-		self.pMatrix.addKnownColumnFindings(Finding([(0, 0)], {1}))
-		self.pMatrix.addKnownRowFindings(Finding([(1, 1)], {5}))
-		self.pMatrix.addKnownColumnFindings(Finding([(1, 1)], {5}))
+		self.pMatrix.addKnownRowFindings(Finding({(0, 0)}, {1}))
+		self.pMatrix.addKnownColumnFindings(Finding({(0, 0)}, {1}))
+		self.pMatrix.addKnownRowFindings(Finding({(1, 1)}, {5}))
+		self.pMatrix.addKnownColumnFindings(Finding({(1, 1)}, {5}))
 
 		self.pMatrix.updateBlock = MagicMock(name="updateBlock")
 
-		single = self.pMatrix.findNewSingle()
+		single = self.stg_0.findNewSingle(self.pMatrix)
 
 		single.update(self.pMatrix)
 		self.pMatrix.updateBlock.assert_called_once_with((0, 0), {1}, {(0, 0)})
@@ -142,15 +142,15 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 
 	def test_findSingleInABlockOnlyOnce(self):
 		self.pMatrix = PossibilityMatrix([[{1}, {3, 4}], [{2, 3}, {5}]], Grid(2, 2, 2, 2))
-		self.pMatrix.addKnownRowFindings(Finding([(0, 0)], {1}))
-		self.pMatrix.addKnownColumnFindings(Finding([(0, 0)], {1}))
-		self.pMatrix.addKnownRowFindings(Finding([(1, 1)], {5}))
-		self.pMatrix.addKnownColumnFindings(Finding([(1, 1)], {5}))
-		self.pMatrix.addKnownBlockFindings(Finding([(0, 0)], {1}))
+		self.pMatrix.addKnownRowFindings(Finding({(0, 0)}, {1}))
+		self.pMatrix.addKnownColumnFindings(Finding({(0, 0)}, {1}))
+		self.pMatrix.addKnownRowFindings(Finding({(1, 1)}, {5}))
+		self.pMatrix.addKnownColumnFindings(Finding({(1, 1)}, {5}))
+		self.pMatrix.addKnownBlockFindings(Finding({(0, 0)}, {1}))
 
 		self.pMatrix.updateBlock = MagicMock(name="updateBlock")
 
-		single = self.pMatrix.findNewSingle()
+		single = self.stg_0.findNewSingle(self.pMatrix)
 
 		single.update(self.pMatrix)
 		self.pMatrix.updateBlock.assert_called_once_with((1, 1), {5}, {(1, 1)})
@@ -221,14 +221,14 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 
 	def test_findHiddenSingleInARow(self):
 		self.pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}]], Grid(1, 2, 1, 1))
-		single = self.pMatrix.findNewSingle()
-		self.assertEqual(FindingInRow([(0, 0)], {1}), single)	
+		single = self.stg_0.findNewSingle(self.pMatrix)
+		self.assertEqual(FindingInRow({(0, 0)}, {1}), single)	
 		pass
 
 	def test_findHiddenSingleInAColumn(self):
 		self.pMatrix = PossibilityMatrix([[{3, 2}, {2, 3}], [{2, 3, 4}, {2, 3, 4}]], Grid(2, 2, 1, 1))
-		single = self.pMatrix.findNewSingle()
-		self.assertEqual(FindingInRow([(1, 0)], {4}), single)
+		single = self.stg_0.findNewSingle(self.pMatrix)
+		self.assertEqual(FindingInRow({(1, 0)}, {4}), single)
 		pass
 
 	def test_findHiddenSingleInABlock(self):
@@ -236,9 +236,9 @@ class TestPossibilityMatrixFindSingles(unittest.TestCase):
 			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}],
 			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}],
 			                             [{2, 3, 4}, {2, 3}, {2, 3, 4}, {2, 3, 4}]], Grid(4, 4, 2, 2))
-		single = self.pMatrix.findNewSingle()
+		single = self.stg_0.findNewSingle(self.pMatrix)
 
-		self.assertEqual(FindingInRow([(1, 0)], {4}), single)		
+		self.assertEqual(FindingInRow({(1, 0)}, {4}), single)		
 		pass
 
 class TestTierOneStrategy(unittest.TestCase):
@@ -251,32 +251,38 @@ class TestTierOneStrategy(unittest.TestCase):
 		pass
 		
 	def test_noTier1Findings(self):
-		self.pMatrix.findNewPairOrLockedCell = MagicMock(return_value = None)
+		self.stg_1.findNewPairOrLockedCell = MagicMock(return_value = None)
 		self.stg_1.solve(self.pMatrix, self.puzzle)
-		self.pMatrix.findNewPairOrLockedCell.assert_called_once_with()
+		self.stg_1.findNewPairOrLockedCell.assert_called_once_with(self.pMatrix)
 		pass
 
 	def test_1Tier1Findings(self):
 		self.finding = MockObject()
 		self.finding.update = MagicMock()
-		self.pMatrix.findNewPairOrLockedCell = MagicMock(side_effect = [self.finding, None])
+		self.stg_1.findNewPairOrLockedCell = MagicMock(side_effect = [self.finding, None])
 
 		self.stg_1.solve(self.pMatrix, self.puzzle)
 
-		self.assertEquals([call(), call], self.pMatrix.findNewPairOrLockedCell.mock_calls)
+		self.assertEquals([call(self.pMatrix), call(self.pMatrix)], self.stg_1.findNewPairOrLockedCell.mock_calls)
 		pass
 
 class TestPossibilityMatrixFindPairs(unittest.TestCase):
+
+	def setUp(self):
+		self.stg_0 = Tier_0_Strategy()
+		self.stg_1 = Tier_1_Strategy(self.stg_0)
+		pass
+
 	def test_findNoPairs(self):
 		pMatrix = PossibilityMatrix([[]], Grid(0, 0, 1, 1))
-		self.assertEquals(None, pMatrix.findNewPairOrLockedCell())
+		self.assertEquals(None, self.stg_1.findNewPairOrLockedCell(pMatrix))
 		pass
 
 	def test_findOneNakedPairInARow(self):
 		pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}, {1, 2}]], Grid(1, 3, 1, 1))
 		pMatrix.updateRow = MagicMock()
 		pMatrix.addKnownRowFindings = MagicMock()
-		pair = pMatrix.findNewPairOrLockedCell()
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
 		pair.update(pMatrix)
 		pMatrix.updateRow.assert_called_once_with((0, 0), {1, 2}, {(0, 0), (0, 2)})
 		pMatrix.addKnownRowFindings.assert_called_once_with(pair)
@@ -285,9 +291,9 @@ class TestPossibilityMatrixFindPairs(unittest.TestCase):
 	def test_findOnePairOnlyOnceInARow(self):
 		pMatrix = PossibilityMatrix([[{1, 2}, {3, 4}, {1, 2}, {3, 4}]], Grid(1, 4, 1, 1))
 		pMatrix.updateRow = MagicMock()
-		pair = pMatrix.findNewPairOrLockedCell()
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
 		pMatrix.addKnownRowFindings(pair)
-		pair = pMatrix.findNewPairOrLockedCell()
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
 		pair.update(pMatrix)
 
 		pMatrix.updateRow.assert_called_once_with((0, 1), {3, 4}, {(0, 1), (0, 3)})
@@ -298,28 +304,44 @@ class TestPossibilityMatrixFindPairs(unittest.TestCase):
 		pMatrix.updateColum = MagicMock(name="updateColumn")
 		pMatrix.addKnownColumnFindings = MagicMock()
 
-		pair = pMatrix.findNewPairOrLockedCell()
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
 		pair.update(pMatrix)
-		pMatrix.updateColum.assert_called_once_with((0, 0), {1, 2}, {(0, 0), (2, 0)})
+		pMatrix.updateColum.assert_called_once_with(next(iter({(0, 0), (2, 0)})), {1, 2}, {(0, 0), (2, 0)})
 		pMatrix.addKnownColumnFindings.assert_called_once_with(pair)
 		pass
 
 	def test_findNakedPairOnceInAColumn(self):
 		pMatrix = PossibilityMatrix([[{1, 2}],[{3, 4}],[{1, 2}], [{3, 4}]], Grid(4, 1, 1, 1))
-		pMatrix.addKnownColumnFindings(FindingInColumn([(0, 0), (2, 0)], {1, 2}))
-		pair = pMatrix.findNewPairOrLockedCell()
-		self.assertEquals(FindingInColumn([(1, 0), (3, 0)], {3, 4}), pair)
+		pMatrix.addKnownColumnFindings(FindingInColumn({(0, 0), (2, 0)}, {1, 2}))
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
+		self.assertEquals(FindingInColumn({(1, 0), (3, 0)}, {3, 4}), pair)
 		pass
 
 	def test_findOneNakedPairInABlock(self):
 		pMatrix = PossibilityMatrix([[{1, 2}, {3, 4}], [{3, 4}, {1, 2}]], Grid(2, 2, 2, 2))
-		pair = pMatrix.findNewPairOrLockedCell()
-		self.assertEquals(FindingInBlock([(0, 0), (1, 1)], {1, 2}), pair)		
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
+		self.assertEquals(FindingInBlock({(0, 0), (1, 1)}, {1, 2}), pair)		
 		pass
 
 	def test_findNakedPairInABlockOnlyOnce(self):
 		pMatrix = PossibilityMatrix([[{1, 2}, {3, 4}], [{3, 4}, {1, 2}]], Grid(2, 2, 2, 2))
-		pMatrix.addKnownBlockFindings(FindingInBlock([(0, 0), (1, 1)], {1, 2}))
-		pair = pMatrix.findNewPairOrLockedCell()
-		self.assertEquals(FindingInBlock([(0, 1), (1, 0)], {3, 4}), pair)		
+		pMatrix.addKnownBlockFindings(FindingInBlock({(0, 0), (1, 1)}, {1, 2}))
+		pair = self.stg_1.findNewPairOrLockedCell(pMatrix)
+		self.assertEquals(FindingInBlock({(0, 1), (1, 0)}, {3, 4}), pair)		
 		pass
+
+class TestHiddenPairFinder(unittest.TestCase):
+	def test_findNoHiddenPair(self):
+		pMatrix = PossibilityMatrix([[]], Grid(1, 0, 1, 1))
+		self.finder = HiddenPairFinder()
+		self.assertEquals(None, self.finder.find(pMatrix))
+		pass
+
+	def test_findOneHiddenPairInARow(self):
+		pMatrix = PossibilityMatrix([[{1, 2}, {1, 2}]], Grid(1, 2, 1, 1))
+		self.finder = HiddenPairFinder()
+		print(self.finder.find(pMatrix))
+		self.assertEquals(Finding({(0, 0), (0, 1)}, {1, 2}), self.finder.find(pMatrix))
+		pass
+	pass
+		
