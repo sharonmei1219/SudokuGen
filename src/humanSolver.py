@@ -122,7 +122,7 @@ class PossibilityMatrix:
 
 
 class Finding:
-	def __init__(self, pos, value):
+	def __init__(self, pos, value, viewDir):
 		self.pos = pos
 		self.possibilities = value
 		pass
@@ -139,24 +139,27 @@ class Finding:
 
 class FindingInRow(Finding):
 	def update(self, pMatrix):
-		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), RowView())
-		pMatrix.addKnownRowFindings(self)
+		self.view = RowView()
+		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
+		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
 		for p in self.pos:
 			pMatrix.setPossibilityAt(p, self.possibilities)
 		pass
 
 class FindingInColumn(Finding):
 	def update(self, pMatrix):
-		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), ColumnView())
-		pMatrix.addKnownColumnFindings(self)
+		self.view = ColumnView()
+		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
+		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
 		for p in self.pos:
 			pMatrix.setPossibilityAt(p, self.possibilities)
 		pass
 
 class FindingInBlock(Finding):
 	def update(self, pMatrix):
-		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), BlockView())
-		pMatrix.addKnownBlockFindings(self)
+		self.view = BlockView()
+		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
+		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
 		for p in self.pos:
 			pMatrix.setPossibilityAt(p, self.possibilities)
 		pass
@@ -166,7 +169,7 @@ class RowView:
 		return pMatrix.grid.allRowsInIndex()
 
 	def createResult(self, pos, value):
-		return FindingInRow(pos, value)
+		return FindingInRow(pos, value, self)
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownRowFindings
@@ -183,7 +186,7 @@ class ColumnView:
 		return pMatrix.grid.allColumnsInIndex()
 
 	def createResult(self, pos, value):
-		return FindingInColumn(pos, value)
+		return FindingInColumn(pos, value, self)
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownColumnFindings
@@ -200,7 +203,7 @@ class BlockView:
 		return pMatrix.grid.allBlocksInIndex()
 
 	def createResult(self, poses, possibilities):
-		return FindingInBlock(poses, possibilities)
+		return FindingInBlock(poses, possibilities, self)
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownBlockFindings
