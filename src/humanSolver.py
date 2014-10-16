@@ -94,7 +94,7 @@ class PossibilityMatrix:
 	def findWithFinders(self, finders):
 		for finder in finders:
 			findings = finder.find(self)
-			if findings is not None : return findings		
+			if findings is not None : return findings
 		pass
 
 	def update(self, pos, possibilities, excepts, viewDirection):
@@ -120,6 +120,13 @@ class PossibilityMatrix:
 		self.knownBlockFindings += [finding]
 		pass
 
+	def buildValuePosMapInZone(self, zone):
+		valuePosMap = {}
+		for pos in zone:
+			for  value in self.possibilitieAt(pos):
+				if value not in valuePosMap: valuePosMap[value] = set()
+				valuePosMap[value] |= {pos}
+		return valuePosMap
 
 class Finding:
 	def __init__(self, pos, value, viewDir):
@@ -145,8 +152,11 @@ class Finding:
 		pass
 
 class RowView:
-	def zones(self, pMatrix):
-		return pMatrix.grid.allRowsInIndex()
+	def zones(self, grid):
+		return grid.allRowsInIndex()
+
+	def zoneWithPosIn(self, pos, grid):
+		return grid.coordsOfRow(pos[0], pos[1])
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownRowFindings
@@ -155,12 +165,12 @@ class RowView:
 		pMatrix.addKnownRowFindings(result)
 		pass
 
-	def zoneWithPosIn(self, pos, grid):
-		return grid.coordsOfRow(pos[0], pos[1])
-
 class ColumnView:
-	def zones(self, pMatrix):
-		return pMatrix.grid.allColumnsInIndex()
+	def zones(self, grid):
+		return grid.allColumnsInIndex()
+
+	def zoneWithPosIn(self, pos, grid):
+		return grid.coordsOfColumn(pos[0], pos[1])
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownColumnFindings
@@ -169,12 +179,12 @@ class ColumnView:
 		pMatrix.addKnownColumnFindings(result)
 		pass
 
-	def zoneWithPosIn(self, pos, grid):
-		return grid.coordsOfColumn(pos[0], pos[1])
-
 class BlockView:
-	def zones(self, pMatrix):
-		return pMatrix.grid.allBlocksInIndex()
+	def zones(self, grid):
+		return grid.allBlocksInIndex()
+
+	def zoneWithPosIn(self, pos, grid):
+		return grid.coordsOfBlock(pos[0], pos[1])
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownBlockFindings
@@ -182,9 +192,6 @@ class BlockView:
 	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
 		pMatrix.addKnownBlockFindings(result)
 		pass
-
-	def zoneWithPosIn(self, pos, grid):
-		return grid.coordsOfBlock(pos[0], pos[1])
 
 
 class NakedFinder:
@@ -194,7 +201,7 @@ class NakedFinder:
 		pass
 
 	def find(self, pMatrix):
-		for zone in self.viewDir.zones(pMatrix):
+		for zone in self.viewDir.zones(pMatrix.grid):
 			finding = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
 			if finding is not None: return finding
 		return None
@@ -220,19 +227,11 @@ class HiddenFinder:
 		pass
 
 	def find(self, pMatrix):
-		for zone in self.viewDir.zones(pMatrix):
-			valuePosMap = self.buildValuePosMapInZone(zone, pMatrix)
+		for zone in self.viewDir.zones(pMatrix.grid):
+			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
 			single = self.findHiddens(set(), set(), valuePosMap, pMatrix, list(valuePosMap), 0)
 			if single is not None: return single
 		pass
-
-	def buildValuePosMapInZone(self, zone, pMatrix):
-		valuePosMap = {}
-		for pos in zone:
-			for  value in pMatrix.possibilitieAt(pos):
-				if value not in valuePosMap: valuePosMap[value] = set()
-				valuePosMap[value] |= {pos}
-		return valuePosMap
 
 	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
 		if nth == self.criteria:
