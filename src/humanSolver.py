@@ -125,6 +125,7 @@ class Finding:
 	def __init__(self, pos, value, viewDir):
 		self.pos = pos
 		self.possibilities = value
+		self.view = viewDir
 		pass
 
 	def __eq__(self, finding):
@@ -136,28 +137,7 @@ class Finding:
 	def anyPos(self):
 		return next(iter(self.pos))
 
-
-class FindingInRow(Finding):
 	def update(self, pMatrix):
-		self.view = RowView()
-		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
-		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
-		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)
-		pass
-
-class FindingInColumn(Finding):
-	def update(self, pMatrix):
-		self.view = ColumnView()
-		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
-		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
-		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)
-		pass
-
-class FindingInBlock(Finding):
-	def update(self, pMatrix):
-		self.view = BlockView()
 		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
 		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
 		for p in self.pos:
@@ -167,9 +147,6 @@ class FindingInBlock(Finding):
 class RowView:
 	def zones(self, pMatrix):
 		return pMatrix.grid.allRowsInIndex()
-
-	def createResult(self, pos, value):
-		return FindingInRow(pos, value, self)
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownRowFindings
@@ -185,9 +162,6 @@ class ColumnView:
 	def zones(self, pMatrix):
 		return pMatrix.grid.allColumnsInIndex()
 
-	def createResult(self, pos, value):
-		return FindingInColumn(pos, value, self)
-
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownColumnFindings
 
@@ -201,9 +175,6 @@ class ColumnView:
 class BlockView:
 	def zones(self, pMatrix):
 		return pMatrix.grid.allBlocksInIndex()
-
-	def createResult(self, poses, possibilities):
-		return FindingInBlock(poses, possibilities, self)
 
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in pMatrix.knownBlockFindings
@@ -230,7 +201,7 @@ class NakedFinder:
 
 	def findPosMeetRequirementInRest(self, union, poses, rest, nth, pMatrix):
 		if nth == self.criteria:
-			return self.viewDir.createResult(set(poses), union)
+			return Finding(set(poses), union, self.viewDir)
 
 		for i in range(len(rest)):
 			pos = rest[i]
@@ -265,7 +236,7 @@ class HiddenFinder:
 
 	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
 		if nth == self.criteria:
-			finding = self.viewDir.createResult(poses, possibilities)
+			finding = Finding(poses, possibilities,self.viewDir)
 			if self.viewDir.isNewResultFound(finding, pMatrix): return finding
 
 		for i in range(len(restKeys)):
