@@ -45,9 +45,15 @@ class Tier_0_Strategy:
 		pass
 
 	def findNewSingle(self, pMatrix):
-		findings = pMatrix.findWithFinders(self.finders)
+		findings = self.findWithFinders(pMatrix)
 		if findings is not None : return findings
-		pass	
+		pass
+
+	def findWithFinders(self, pMatrix):
+		for finder in self.finders:
+			findings = finder.find(pMatrix)
+			if findings is not None : return findings
+		pass		
 
 
 class Tier_1_Strategy:
@@ -71,9 +77,15 @@ class Tier_1_Strategy:
 		pass
 
 	def findNewPairOrLockedCell(self, pMatrix):
-		findings = pMatrix.findWithFinders(self.finders)
+		findings = self.findWithFinders(pMatrix)
 		if findings is not None : return findings
-		pass		
+		pass
+
+	def findWithFinders(self, pMatrix):
+		for finder in self.finders:
+			findings = finder.find(pMatrix)
+			if findings is not None : return findings
+		pass	
 
 class PossibilityMatrix:
 	def __init__(self, matrix, grid):
@@ -89,12 +101,6 @@ class PossibilityMatrix:
 	
 	def setPossibilityAt(self, pos, possibilities):
 		self.matrix[pos[0]][pos[1]] = possibilities
-		pass
-
-	def findWithFinders(self, finders):
-		for finder in finders:
-			findings = finder.find(self)
-			if findings is not None : return findings
 		pass
 
 	def update(self, pos, possibilities, excepts, viewDirection):
