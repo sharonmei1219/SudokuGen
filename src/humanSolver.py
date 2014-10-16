@@ -14,7 +14,14 @@ class Ranker:
 				return strategy.rank()
 		pass
 
-class Tier_0_Strategy:
+class Stragegy:
+	def findWithFinders(self, pMatrix):
+		for finder in self.finders:
+			findings = finder.find(pMatrix)
+			if findings is not None : return findings
+		pass
+
+class Tier_0_Strategy(Stragegy):
 	def __init__(self):
 		nakedSingleInRowFinder = NakedFinder(1, RowView())
 		nakedSingleInColumnFinder = NakedFinder(1, ColumnView())
@@ -32,11 +39,11 @@ class Tier_0_Strategy:
 		pass
 
 	def solve(self, pMatrix, puzzle):
-		single = self.findNewSingle(pMatrix)
+		single = self.findNewClue(pMatrix)
 		while single is not None:
 			single.update(pMatrix)
 			self.updatePuzzle(single, puzzle)
-			single = self.findNewSingle(pMatrix)
+			single = self.findNewClue(pMatrix)
 
 	def updatePuzzle(self, single, puzzle):
 		pos = single.pos[0]
@@ -44,19 +51,12 @@ class Tier_0_Strategy:
 		puzzle.change(pos, value)
 		pass
 
-	def findNewSingle(self, pMatrix):
+	def findNewClue(self, pMatrix):
 		findings = self.findWithFinders(pMatrix)
 		if findings is not None : return findings
 		pass
 
-	def findWithFinders(self, pMatrix):
-		for finder in self.finders:
-			findings = finder.find(pMatrix)
-			if findings is not None : return findings
-		pass		
-
-
-class Tier_1_Strategy:
+class Tier_1_Strategy(Stragegy):
 	def __init__(self, strategy):
 		self.strategy = strategy
 		nakedPairInRowFinder = NakedFinder(2, RowView())
@@ -69,23 +69,17 @@ class Tier_1_Strategy:
 		pass
 
 	def solve(self, pMatrix, puzzle):
-		finding = self.findNewPairOrLockedCell(pMatrix)
+		finding = self.findNewClue(pMatrix)
 		while finding is not None:
 			finding.update(pMatrix)
 			self.strategy.solve(pMatrix, puzzle)
-			finding = self.findNewPairOrLockedCell(pMatrix)
+			finding = self.findNewClue(pMatrix)
 		pass
 
-	def findNewPairOrLockedCell(self, pMatrix):
+	def findNewClue(self, pMatrix):
 		findings = self.findWithFinders(pMatrix)
 		if findings is not None : return findings
 		pass
-
-	def findWithFinders(self, pMatrix):
-		for finder in self.finders:
-			findings = finder.find(pMatrix)
-			if findings is not None : return findings
-		pass	
 
 class PossibilityMatrix:
 	def __init__(self, matrix, grid):
