@@ -21,6 +21,11 @@ class Stragegy:
 			if findings is not None : return findings
 		pass
 
+	def findNewClue(self, pMatrix):
+		findings = self.findWithFinders(pMatrix)
+		if findings is not None : return findings
+		pass		
+
 class Tier_0_Strategy(Stragegy):
 	def __init__(self):
 		nakedSingleInRowFinder = NakedFinder(1, RowView())
@@ -39,21 +44,16 @@ class Tier_0_Strategy(Stragegy):
 		pass
 
 	def solve(self, pMatrix, puzzle):
-		single = self.findNewClue(pMatrix)
-		while single is not None:
-			single.update(pMatrix)
-			self.updatePuzzle(single, puzzle)
-			single = self.findNewClue(pMatrix)
+		finding = self.findNewClue(pMatrix)
+		while finding is not None:
+			finding.update(pMatrix)
+			self.updatePuzzle(finding, puzzle)
+			finding = self.findNewClue(pMatrix)
 
 	def updatePuzzle(self, single, puzzle):
 		pos = single.pos[0]
 		value = next(iter(single.possibilities))
 		puzzle.change(pos, value)
-		pass
-
-	def findNewClue(self, pMatrix):
-		findings = self.findWithFinders(pMatrix)
-		if findings is not None : return findings
 		pass
 
 class Tier_1_Strategy(Stragegy):
@@ -74,11 +74,6 @@ class Tier_1_Strategy(Stragegy):
 			finding.update(pMatrix)
 			self.strategy.solve(pMatrix, puzzle)
 			finding = self.findNewClue(pMatrix)
-		pass
-
-	def findNewClue(self, pMatrix):
-		findings = self.findWithFinders(pMatrix)
-		if findings is not None : return findings
 		pass
 
 class PossibilityMatrix:
@@ -106,10 +101,6 @@ class PossibilityMatrix:
 		for pos in coords:
 			if pos in excepts: continue
 			self.setPossibilityAt(pos, self.possibilitieAt(pos) - possibilities)
-		pass
-
-	def addKnownRowFindings(self, single):
-		self.knownRowFindings += [single]
 		pass
 
 	def addKnownColumnFindings(self, single):
@@ -140,6 +131,9 @@ class Finding:
 
 	def __str__(self):
 		return str(self.pos) + " " + str(self.possibilities)
+	
+	def __repr__(self):
+		return self.__str__()
 
 	def anyPos(self):
 		return next(iter(self.pos))
@@ -151,48 +145,54 @@ class Finding:
 			pMatrix.setPossibilityAt(p, self.possibilities)
 		pass
 
-class RowView:
+class ViewDirection:
+	def posesInSameZone(self, poses, grid):
+		return any([all([pos in zone for pos in poses]) for zone in self.zones(grid)])
+
+	def isNewResultFound(self, result, pMatrix):
+		return result is not None and result not in self.result(pMatrix)
+
+class RowView(ViewDirection):
 	def zones(self, grid):
 		return grid.allRowsInIndex()
 
 	def zoneWithPosIn(self, pos, grid):
 		return grid.coordsOfRow(pos[0], pos[1])
 
-	def isNewResultFound(self, result, pMatrix):
-		return result is not None and result not in pMatrix.knownRowFindings
+	def result(self, pMatrix):
+		return pMatrix.knownRowFindings
 
 	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
-		pMatrix.addKnownRowFindings(result)
+		self.result(pMatrix).append(result)
 		pass
 
-class ColumnView:
+class ColumnView(ViewDirection):
 	def zones(self, grid):
 		return grid.allColumnsInIndex()
 
 	def zoneWithPosIn(self, pos, grid):
 		return grid.coordsOfColumn(pos[0], pos[1])
 
-	def isNewResultFound(self, result, pMatrix):
-		return result is not None and result not in pMatrix.knownColumnFindings
+	def result(self, pMatrix):
+		return pMatrix.knownColumnFindings
 
 	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
 		pMatrix.addKnownColumnFindings(result)
 		pass
 
-class BlockView:
+class BlockView(ViewDirection):
 	def zones(self, grid):
 		return grid.allBlocksInIndex()
 
 	def zoneWithPosIn(self, pos, grid):
 		return grid.coordsOfBlock(pos[0], pos[1])
 
-	def isNewResultFound(self, result, pMatrix):
-		return result is not None and result not in pMatrix.knownBlockFindings
+	def result(self, pMatrix):
+		return pMatrix.knownBlockFindings
 
 	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
 		pMatrix.addKnownBlockFindings(result)
 		pass
-
 
 class NakedFinder:
 	def __init__(self, criteria, viewDirection):
@@ -235,7 +235,7 @@ class HiddenFinder:
 
 	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
 		if nth == self.criteria:
-			finding = Finding(poses, possibilities,self.viewDir)
+			finding = Finding(poses, possibilities, self.viewDir)
 			if self.viewDir.isNewResultFound(finding, pMatrix): return finding
 
 		for i in range(len(restKeys)):
@@ -243,4 +243,28 @@ class HiddenFinder:
 			if len(valuePosMap[key] | poses) > self.criteria: continue
 			finding = self.findHiddens(valuePosMap[key] | poses, possibilities | {key}, valuePosMap, pMatrix, restKeys[i+1:], nth+1)
 			if finding is not None: return finding
+		pass
+
+class LockedCellFinder:
+	def __init__(self, sourceViewDir, affectViewDir):
+		self.sourceViewDir = sourceViewDir
+		self.affectViewDir = affectViewDir
+		pass
+
+	def findNewClue(self, pMatrix):
+		zones = self.sourceViewDir.zones(pMatrix.grid)
+		for zone in zones:
+			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
+			
+			for value in valuePosMap:
+				poses = valuePosMap[value]
+				
+				if not self.affectViewDir.posesInSameZone(poses, pMatrix.grid):
+					continue
+				
+				finding = Finding(poses, {value}, self.affectViewDir)
+				if not self.affectViewDir.isNewResultFound(finding, pMatrix):
+					continue
+
+				return Finding(poses, {value}, self.affectViewDir)
 		pass
