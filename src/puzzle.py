@@ -112,6 +112,10 @@ class Grid:
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
+		self.gridRow = GridRow(matrixHeight, matrixWidth)
+		self.gridColumn = GridColumn(matrixHeight, matrixWidth)
+		self.gridBlock = GridBlock(matrixHeight, matrixWidth, blockHeight, blockWidth)
+
 		self.bw = blockWidth
 		self.bh = blockHeight
 
@@ -119,11 +123,9 @@ class Grid:
 		self.mWidth = matrixWidth #matrix Width
 
 		self.nbPerRow = matrixWidth // blockWidth
-		to_i = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[0]
-		to_j = lambda bi, bj: self.blockIndexToMatrixIndex(bi, bj)[1]
 		bsize = blockWidth * blockHeight
 		bnum = self.mHeight * self.mWidth // bsize
-		self.blockIndex = [[(to_i(i, j), to_j(i,j)) for j in range(bsize)] for i in range(bnum)]
+		self.blockIndex = [[self.blockIndexToMatrixIndex(i, j) for j in range(bsize)] for i in range(bnum)]
 		self.blockIndexMap = [[(i // self.bh * self.nbPerRow + j // self.bw, i % self.bh * self.bw + j % self.bw) for j in range(self.mWidth)] for i in range(self.mHeight)]
 
 	def allRows(self, matrix):
@@ -161,26 +163,78 @@ class Grid:
 		return self.blockIndexMap[i][j]
 
 	def coordsOfRow(self, i, j):
-		return [(i, x) for x in range(self.mWidth)]
+		return self.gridRow.zoneWithPosIn((i, j))
 
 	def coordsOfColumn(self, i, j):
-		return [(x, j) for x in range(self.mHeight)]
+		return self.gridColumn.zoneWithPosIn((i, j))
 
 	def coordsOfBlock(self, i, j):
-		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
-		return [(x, y) for (x, y) in self.blockIndex[bi]]
+		return self.gridBlock.zoneWithPosIn((i, j))
 
 	def allRowsInIndex(self):
-		return [self.coordsOfRow(i, 0) for i in range(self.mHeight)]
+		return self.gridRow.zones()
 
 	def allColumnsInIndex(self):
-		return [self.coordsOfColumn(0, j) for j in range(self.mWidth)]
+		return self.gridColumn.zones()
 
 	def allBlocksInIndex(self):
-		return self.blockIndex
+		return self.gridBlock.zones()
 
 	def allPos(self):
-		return reduce(operator.add, self.allRowsInIndex(), [])
+		return reduce(operator.add, self.gridRow.zones(), [])
+
+	def rowView(self):
+		return self.gridRow;
+
+class GridRow:
+	def __init__(self, matrixHeight, matrixWidth):
+		self.matrixHeight = matrixHeight
+		self.matrixWidth = matrixWidth
+		pass
+
+	def zones(self):
+		return [self.zoneWithPosIn((i, 0)) for i in range(self.matrixHeight)]
+
+	def zoneWithPosIn(self, pos):
+		return [(pos[0], x) for x in range(self.matrixWidth)]
+
+class GridColumn:
+	def __init__(self, matrixHeight, matrixWidth):
+		self.matrixHeight = matrixHeight
+		self.matrixWidth = matrixWidth
+
+	def zones(self):
+		return [self.zoneWithPosIn((0, j)) for j in range(self.matrixWidth)]
+
+	def zoneWithPosIn(self, pos):
+		return [(x, pos[1]) for x in range(self.matrixHeight)]
+
+class GridBlock:
+	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
+		self.matrixHeight = matrixHeight
+		self.matrixWidth = matrixWidth
+
+		self.blockHeight = blockHeight
+		self.blockWidth = blockWidth
+
+		self.nbPerRow = matrixWidth // blockWidth
+		bsize = blockWidth * blockHeight
+		bnum = self.matrixHeight * self.matrixWidth // bsize
+		self.blockIndex = [[self.blockIndexToMatrixIndex(i, j) for j in range(bsize)] for i in range(bnum)]
+		self.blockIndexMap = [[(i // self.blockHeight * self.nbPerRow + j // self.blockWidth, i % self.blockHeight * self.blockWidth + j % self.blockWidth) for j in range(self.matrixWidth)] for i in range(self.matrixHeight)]
+
+	def blockIndexToMatrixIndex(self, bi, bj):
+		i = int(bi // self.nbPerRow * self.blockHeight + bj // self.blockWidth)
+		j = int(bi % self.nbPerRow * self.blockWidth + bj % self.blockWidth)
+		return (i, j)
+
+	def zones(self):
+		return self.blockIndex
+
+	def zoneWithPosIn(self, pos):
+		(bi, bj) = self.blockIndexMap[pos[0]][pos[1]]
+		return self.blockIndex[bi]
+
 
 _ = Grid.EmptySign
 

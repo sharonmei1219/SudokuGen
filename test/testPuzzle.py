@@ -153,6 +153,7 @@ _ = Grid.EmptySign
 class TestGrid(unittest.TestCase):
 	def setUp(self):
 		self.grid = Grid(2, 2, 1, 1)
+		self.gridRow = GridRow(2, 2)
 
 	def test_GridGetAllRows(self):
 		self.assertEquals([[1], [3, 4]], self.grid.allRows([[1, _], [3, 4]]))
@@ -161,7 +162,7 @@ class TestGrid(unittest.TestCase):
 		self.assertEquals([[1, 3], [4]], self.grid.allColumns([[1, _], [3, 4]]))
 
 	def test_GridGetAllRowsInPos(self):
-		self.assertEquals([[(0, 0), (0, 1)], [(1, 0), (1, 1)]], self.grid.allRowsInIndex())
+		self.assertEquals([[(0, 0), (0, 1)], [(1, 0), (1, 1)]], self.gridRow.zones())
 
 	def test_GridGetAllColumnsInPos(self):
 		self.assertEquals([[(0, 0), (1, 0)], [(0, 1), (1, 1)]], self.grid.allColumnsInIndex())

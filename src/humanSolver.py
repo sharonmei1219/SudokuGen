@@ -67,22 +67,12 @@ class ViewDirection:
 	def posesInSameZone(self, poses, grid):
 		return any([all([pos in zone for pos in poses]) for zone in self.zones(grid)])
 
-	def isNewResultFound(self, result, pMatrix):
-		return result is not None and result not in self.result(pMatrix)
-
-	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
-		self.result(pMatrix).append(result)
-		pass
-
 class RowView(ViewDirection):
 	def zones(self, grid):
-		return grid.allRowsInIndex()
+		return grid.gridRow.zones()
 
 	def zoneWithPosIn(self, pos, grid):
-		return grid.coordsOfRow(pos[0], pos[1])
-
-	def result(self, pMatrix):
-		return knownRowFindings
+		return grid.gridRow.zoneWithPosIn(pos)
 
 class ColumnView(ViewDirection):
 	def zones(self, grid):
@@ -91,9 +81,6 @@ class ColumnView(ViewDirection):
 	def zoneWithPosIn(self, pos, grid):
 		return grid.coordsOfColumn(pos[0], pos[1])
 
-	def result(self, pMatrix):
-		return knownColumnFindings
-
 class BlockView(ViewDirection):
 	def zones(self, grid):
 		return grid.allBlocksInIndex()
@@ -101,8 +88,6 @@ class BlockView(ViewDirection):
 	def zoneWithPosIn(self, pos, grid):
 		return grid.coordsOfBlock(pos[0], pos[1])
 
-	def result(self, pMatrix):
-		return knownBlockFindings
 
 class NakedFinder:
 	def __init__(self, criteria, viewDirection, knownResult):
@@ -176,9 +161,10 @@ class HiddenFinder:
 		pass
 
 class LockedCellFinder:
-	def __init__(self, sourceViewDir, affectViewDir):
+	def __init__(self, sourceViewDir, affectViewDir, knownResult):
 		self.sourceViewDir = sourceViewDir
 		self.affectViewDir = affectViewDir
+		self.knownResult = knownResult
 		pass
 
 	def findNewClue(self, pMatrix):
@@ -193,8 +179,11 @@ class LockedCellFinder:
 					continue
 				
 				finding = Finding(poses, {value}, self.affectViewDir)
-				if not self.affectViewDir.isNewResultFound(finding, pMatrix):
+				if not self.isNewResultFound(finding):
 					continue
 
 				return Finding(poses, {value}, self.affectViewDir)
 		pass
+
+	def isNewResultFound(self, result):
+		return result is not None and result not in self.knownResult

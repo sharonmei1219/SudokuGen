@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from unittest.mock import ANY
 from unittest.mock import call
 from humanSolver import *
-from puzzle import Grid
+from puzzle import *
 
 class MockObject:
 	pass
@@ -156,9 +156,8 @@ class TestViewDirection(unittest.TestCase):
 		pass
 
 	def testGetRowWithPosIn(self):
-		view = RowView()
-		zone = view.zoneWithPosIn((0, 0), self.grid)
-		self.grid.coordsOfRow.assert_called_once_with(0, 0)
+		view = GridRow(2, 2)
+		zone = view.zoneWithPosIn((0, 0))
 		self.assertEquals([(0, 0), (0, 1)], zone)
 		pass
 
@@ -178,7 +177,7 @@ class TestLockedCellFinder(unittest.TestCase):
 	def testFindLockedCellFromARow(self):
 		pMatrix = PossibilityMatrix([[{1}, {1}, {2, 3, 4}, {3, 4, 5}],
 									 [{1, 2}, {1, 3}, {4, 5, 6}, {5, 6, 7}]], Grid(2, 4, 2, 2))
-		finder = LockedCellFinder(RowView(), BlockView())
+		finder = LockedCellFinder(RowView(), BlockView(), [])
 		result = finder.findNewClue(pMatrix)
 
 		self.assertEquals(Finding({(0, 0), (0, 1)}, {1}, BlockView()), result)
