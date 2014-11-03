@@ -139,8 +139,7 @@ class Grid:
 		return reduce(operator.add, blocks) #flatten blocks
 
 	def block(self, i, j, matrix):
-		(bi, bj) = self.matrixIndexToBlockIndex(i, j)
-		blc = [matrix[x][y] for (x, y) in self.blockIndex[bi]]
+		blc = [matrix[x][y] for (x, y) in self.gridBlock.zoneWithPosIn((i, j))]
 		return self.nonEmptyNumberIn(blc)
 
 	def row(self, i, matrix):
