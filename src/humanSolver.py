@@ -38,10 +38,9 @@ class PossibilityMatrix:
 		return valuePosMap
 
 class Finding:
-	def __init__(self, pos, value, viewDir):
+	def __init__(self, pos, value):
 		self.pos = pos
 		self.possibilities = value
-		self.view = viewDir
 		pass
 
 	def __eq__(self, finding):
@@ -55,13 +54,6 @@ class Finding:
 
 	def anyPos(self):
 		return next(iter(self.pos))
-
-	def update(self, pMatrix):
-		pMatrix.update(self.anyPos(), self.possibilities, set(self.pos), self.view)
-		self.view.addKnownFindingsToPossibilityMatrix(self, pMatrix)
-		for p in self.pos:
-			pMatrix.setPossibilityAt(p, self.possibilities)
-		pass
 
 class ViewDirection:
 	def posesInSameZone(self, poses, grid):
@@ -90,21 +82,22 @@ class BlockView(ViewDirection):
 
 
 class NakedFinder:
-	def __init__(self, criteria, viewDirection, knownResult):
+	def __init__(self, criteria, viewDirection, viewGrid, knownResult):
 		self.criteria = criteria
 		self.viewDir = viewDirection
 		self.knownResult = knownResult
+		self.viewGrid = viewGrid
 		pass
 
 	def find(self, pMatrix):
-		for zone in self.viewDir.zones(pMatrix.grid):
+		for zone in self.viewGrid.zones():
 			finding = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
 			if finding is not None: return finding
 		return None
 
 	def findPosMeetRequirementInRest(self, union, poses, rest, nth, pMatrix):
 		if nth == self.criteria:
-			return Finding(set(poses), union, self.viewDir)
+			return Finding(set(poses), union)
 
 		for i in range(len(rest)):
 			pos = rest[i]
@@ -137,7 +130,7 @@ class HiddenFinder:
 
 	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
 		if nth == self.criteria:
-			finding = Finding(poses, possibilities, self.viewDir)
+			finding = Finding(poses, possibilities)
 			if self.isNewResultFound(finding): return finding
 
 		for i in range(len(restKeys)):
@@ -178,11 +171,11 @@ class LockedCellFinder:
 				if not self.affectViewDir.posesInSameZone(poses, pMatrix.grid):
 					continue
 				
-				finding = Finding(poses, {value}, self.affectViewDir)
+				finding = Finding(poses, {value})
 				if not self.isNewResultFound(finding):
 					continue
 
-				return Finding(poses, {value}, self.affectViewDir)
+				return Finding(poses, {value})
 		pass
 
 	def isNewResultFound(self, result):
