@@ -1,87 +1,13 @@
 from functools import reduce
 import operator
 
-class Ranker:
-	def __init__(self, strategys):
-		self.strategys = strategys
-		pass
-
-	def rank(self, puzzle):
-		pMatrix = self.createPossibilityMatrix(puzzle)
-		for strategy in self.strategys:
-			strategy.solve(pMatrix, puzzle)
-			if puzzle.solved():
-				return strategy.rank()
-		pass
-
-class Stragegy:
-	def findWithFinders(self, pMatrix):
-		for finder in self.finders:
-			findings = finder.find(pMatrix)
-			if findings is not None : return findings
-		pass
-
-	def findNewClue(self, pMatrix):
-		findings = self.findWithFinders(pMatrix)
-		if findings is not None : return findings
-		pass		
-
-class Tier_0_Strategy(Stragegy):
-	def __init__(self):
-		nakedSingleInRowFinder = NakedFinder(1, RowView())
-		nakedSingleInColumnFinder = NakedFinder(1, ColumnView())
-		nakedSingleInBlockFinder = NakedFinder(1, BlockView())
-		hiddenSingleInRowFinder = HiddenFinder(1, RowView())
-		hiddenSingleInColumnFinder = HiddenFinder(1, ColumnView())
-		hiddenSingleInBlockFinder = HiddenFinder(1, BlockView())
-
-		self.finders = [nakedSingleInRowFinder, 
-		                nakedSingleInColumnFinder, 
-		                nakedSingleInBlockFinder, 
-		                hiddenSingleInRowFinder,
-						hiddenSingleInColumnFinder, 
-						hiddenSingleInBlockFinder]
-		pass
-
-	def solve(self, pMatrix, puzzle):
-		finding = self.findNewClue(pMatrix)
-		while finding is not None:
-			finding.update(pMatrix)
-			self.updatePuzzle(finding, puzzle)
-			finding = self.findNewClue(pMatrix)
-
-	def updatePuzzle(self, single, puzzle):
-		pos = single.pos[0]
-		value = next(iter(single.possibilities))
-		puzzle.change(pos, value)
-		pass
-
-class Tier_1_Strategy(Stragegy):
-	def __init__(self, strategy):
-		self.strategy = strategy
-		nakedPairInRowFinder = NakedFinder(2, RowView())
-		nakedPairInColumnFinder = NakedFinder(2, ColumnView())
-		nakedPairInBlockFinder = NakedFinder(2, BlockView())
-
-		self.finders = [nakedPairInRowFinder, 
-				   		nakedPairInColumnFinder, 
-						nakedPairInBlockFinder]		
-		pass
-
-	def solve(self, pMatrix, puzzle):
-		finding = self.findNewClue(pMatrix)
-		while finding is not None:
-			finding.update(pMatrix)
-			self.strategy.solve(pMatrix, puzzle)
-			finding = self.findNewClue(pMatrix)
-		pass
+knownRowFindings = []
+knownColumnFindings = []
+knownBlockFindings = []
 
 class PossibilityMatrix:
 	def __init__(self, matrix, grid):
 		self.matrix = matrix
-		self.knownRowFindings = []
-		self.knownColumnFindings = []
-		self.knownBlockFindings = []
 		self.grid = grid
 		pass
 
@@ -101,14 +27,6 @@ class PossibilityMatrix:
 		for pos in coords:
 			if pos in excepts: continue
 			self.setPossibilityAt(pos, self.possibilitieAt(pos) - possibilities)
-		pass
-
-	def addKnownColumnFindings(self, single):
-		self.knownColumnFindings += [single]
-		pass
-
-	def addKnownBlockFindings(self, finding):
-		self.knownBlockFindings += [finding]
 		pass
 
 	def buildValuePosMapInZone(self, zone):
@@ -152,6 +70,10 @@ class ViewDirection:
 	def isNewResultFound(self, result, pMatrix):
 		return result is not None and result not in self.result(pMatrix)
 
+	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
+		self.result(pMatrix).append(result)
+		pass
+
 class RowView(ViewDirection):
 	def zones(self, grid):
 		return grid.allRowsInIndex()
@@ -160,11 +82,7 @@ class RowView(ViewDirection):
 		return grid.coordsOfRow(pos[0], pos[1])
 
 	def result(self, pMatrix):
-		return pMatrix.knownRowFindings
-
-	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
-		self.result(pMatrix).append(result)
-		pass
+		return knownRowFindings
 
 class ColumnView(ViewDirection):
 	def zones(self, grid):
@@ -174,11 +92,7 @@ class ColumnView(ViewDirection):
 		return grid.coordsOfColumn(pos[0], pos[1])
 
 	def result(self, pMatrix):
-		return pMatrix.knownColumnFindings
-
-	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
-		pMatrix.addKnownColumnFindings(result)
-		pass
+		return knownColumnFindings
 
 class BlockView(ViewDirection):
 	def zones(self, grid):
@@ -188,16 +102,13 @@ class BlockView(ViewDirection):
 		return grid.coordsOfBlock(pos[0], pos[1])
 
 	def result(self, pMatrix):
-		return pMatrix.knownBlockFindings
-
-	def addKnownFindingsToPossibilityMatrix(self, result, pMatrix):
-		pMatrix.addKnownBlockFindings(result)
-		pass
+		return knownBlockFindings
 
 class NakedFinder:
-	def __init__(self, criteria, viewDirection):
+	def __init__(self, criteria, viewDirection, knownResult):
 		self.criteria = criteria
 		self.viewDir = viewDirection
+		self.knownResult = knownResult
 		pass
 
 	def find(self, pMatrix):
@@ -216,14 +127,20 @@ class NakedFinder:
 			if len(union | possibilities) > self.criteria : continue
 
 			finding = self.findPosMeetRequirementInRest(union | possibilities, poses + [pos], rest[i+1:], nth + 1, pMatrix)
-			if self.viewDir.isNewResultFound(finding, pMatrix): return finding
+			if self.isNewResultFound(finding): return finding
 		pass
 
+	def isNewResultFound(self, result):
+		return result is not None and result not in self.knownResult
+
+	def addKnownFinding(self, result):
+		self.knownResult.append(result)
 
 class HiddenFinder:
-	def __init__(self, criteria, viewDirection):
+	def __init__(self, criteria, viewDirection, knownResult):
 		self.viewDir = viewDirection
 		self.criteria = criteria
+		self.knownResult = knownResult
 		pass
 
 	def find(self, pMatrix):
@@ -236,13 +153,26 @@ class HiddenFinder:
 	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
 		if nth == self.criteria:
 			finding = Finding(poses, possibilities, self.viewDir)
-			if self.viewDir.isNewResultFound(finding, pMatrix): return finding
+			if self.isNewResultFound(finding): return finding
 
 		for i in range(len(restKeys)):
 			key = restKeys[i]
 			if len(valuePosMap[key] | poses) > self.criteria: continue
 			finding = self.findHiddens(valuePosMap[key] | poses, possibilities | {key}, valuePosMap, pMatrix, restKeys[i+1:], nth+1)
 			if finding is not None: return finding
+		pass
+
+	def isNewResultFound(self, result):
+		return result is not None and result not in self.knownResult
+		pass
+
+	def addKnownFinding(self, result):
+		self.knownResult.append(result)
+
+	def update(self, finding, pMatrix):
+		for pos in finding.pos:
+			pMatrix.setPossibilityAt(pos, finding.possibilities)
+		self.knownResult.append(finding)
 		pass
 
 class LockedCellFinder:
