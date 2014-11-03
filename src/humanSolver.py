@@ -55,36 +55,9 @@ class Finding:
 	def anyPos(self):
 		return next(iter(self.pos))
 
-class ViewDirection:
-	def posesInSameZone(self, poses, grid):
-		return any([all([pos in zone for pos in poses]) for zone in self.zones(grid)])
-
-class RowView(ViewDirection):
-	def zones(self, grid):
-		return grid.gridRow.zones()
-
-	def zoneWithPosIn(self, pos, grid):
-		return grid.gridRow.zoneWithPosIn(pos)
-
-class ColumnView(ViewDirection):
-	def zones(self, grid):
-		return grid.allColumnsInIndex()
-
-	def zoneWithPosIn(self, pos, grid):
-		return grid.coordsOfColumn(pos[0], pos[1])
-
-class BlockView(ViewDirection):
-	def zones(self, grid):
-		return grid.allBlocksInIndex()
-
-	def zoneWithPosIn(self, pos, grid):
-		return grid.coordsOfBlock(pos[0], pos[1])
-
-
 class NakedFinder:
-	def __init__(self, criteria, viewDirection, viewGrid, knownResult):
+	def __init__(self, criteria, viewGrid, knownResult):
 		self.criteria = criteria
-		self.viewDir = viewDirection
 		self.knownResult = knownResult
 		self.viewGrid = viewGrid
 		pass
@@ -122,7 +95,7 @@ class HiddenFinder:
 		pass
 
 	def find(self, pMatrix):
-		for zone in self.viewDir.zones(pMatrix.grid):
+		for zone in self.viewDir.zones():
 			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
 			single = self.findHiddens(set(), set(), valuePosMap, pMatrix, list(valuePosMap), 0)
 			if single is not None: return single
@@ -161,14 +134,14 @@ class LockedCellFinder:
 		pass
 
 	def findNewClue(self, pMatrix):
-		zones = self.sourceViewDir.zones(pMatrix.grid)
+		zones = self.sourceViewDir.zones()
 		for zone in zones:
 			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
 			
 			for value in valuePosMap:
 				poses = valuePosMap[value]
 				
-				if not self.affectViewDir.posesInSameZone(poses, pMatrix.grid):
+				if not self.affectViewDir.posesInSameZone(poses):
 					continue
 				
 				finding = Finding(poses, {value})

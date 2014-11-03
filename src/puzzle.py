@@ -162,31 +162,14 @@ class Grid:
 	def matrixIndexToBlockIndex(self, i, j):
 		return self.blockIndexMap[i][j]
 
-	def coordsOfRow(self, i, j):
-		return self.gridRow.zoneWithPosIn((i, j))
-
-	def coordsOfColumn(self, i, j):
-		return self.gridColumn.zoneWithPosIn((i, j))
-
-	def coordsOfBlock(self, i, j):
-		return self.gridBlock.zoneWithPosIn((i, j))
-
-	def allRowsInIndex(self):
-		return self.gridRow.zones()
-
-	def allColumnsInIndex(self):
-		return self.gridColumn.zones()
-
-	def allBlocksInIndex(self):
-		return self.gridBlock.zones()
-
 	def allPos(self):
 		return reduce(operator.add, self.gridRow.zones(), [])
 
-	def rowView(self):
-		return self.gridRow;
+class GridDirection:
+	def posesInSameZone(self, poses):
+		return any([all([pos in zone for pos in poses]) for zone in self.zones()])
 
-class GridRow:
+class GridRow(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
 		self.matrixHeight = matrixHeight
 		self.matrixWidth = matrixWidth
@@ -198,7 +181,7 @@ class GridRow:
 	def zoneWithPosIn(self, pos):
 		return [(pos[0], x) for x in range(self.matrixWidth)]
 
-class GridColumn:
+class GridColumn(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
 		self.matrixHeight = matrixHeight
 		self.matrixWidth = matrixWidth
@@ -209,7 +192,7 @@ class GridColumn:
 	def zoneWithPosIn(self, pos):
 		return [(x, pos[1]) for x in range(self.matrixHeight)]
 
-class GridBlock:
+class GridBlock(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
 		self.matrixHeight = matrixHeight
 		self.matrixWidth = matrixWidth
