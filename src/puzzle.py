@@ -133,13 +133,15 @@ class Grid:
 		values = [[matrix[x][y] for (x, y) in zone] for zone in zones]
 		return [self.nonEmptyNumberIn(value) for value in values]		
 
+	def flatten(self, twoDArray):
+		return reduce(operator.add, twoDArray, [])
+
 	def suroundings(self, pos, matrix):
-		zones = [view.zoneWithPosIn(pos) for view in self.views]
-		poses = reduce(operator.add, zones, [])
+		poses = self.flatten([view.zoneWithPosIn(pos) for view in self.views])
 		return set([matrix[i][j] for (i, j) in poses]) - set(self.EmptySign)
 
 	def allPos(self):
-		return reduce(operator.add, self.gridRow.zones(), [])
+		return self.flatten(self.gridRow.zones())
 
 class GridDirection:
 	def posesInSameZone(self, poses):
@@ -190,7 +192,6 @@ class GridBlock(GridDirection):
 	def zoneWithPosIn(self, pos):
 		(bi, bj) = self.blockIndexMap[pos[0]][pos[1]]
 		return self.blockIndex[bi]
-
 
 _ = Grid.EmptySign
 
