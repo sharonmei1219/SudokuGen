@@ -176,19 +176,13 @@ class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
 		_ = Grid.EmptySign
 		self.matrix = [[1, 1, 2, 2],
-			 	          [1, 1, _, _],
-			      	      [_, _, 2, 2],
-			           	  [_, 3, _, 4],
-			              [3, _, 4, _],
-			              [3, 3, 4, 4]];
+			 	       [1, 1, _, _],
+			      	   [_, _, 2, 2],
+			           [_, 3, _, 4],
+			           [3, _, 4, _],
+			           [3, 3, 4, 4]];
 
 		self.grid = Grid(6, 4, 3, 2)
-
-	def test_GridGetBlock(self):
-		self.assertEquals([1, 1, 1, 1], self.grid.block(2, 1, self.matrix))
-		self.assertEquals([2, 2, 2, 2], self.grid.block(2, 2, self.matrix))
-		self.assertEquals([3, 3, 3, 3], self.grid.block(5, 0, self.matrix))
-		self.assertEquals([4, 4, 4, 4], self.grid.block(3, 2, self.matrix))
 
 	def test_GridGetAllBlocks(self):
 		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks(self.matrix))
@@ -214,7 +208,7 @@ class TestBlockIndexExchange(unittest.TestCase):
 						   		[20, 21, 30, 31],
 						  		[22, 23, 32, 33],
 						   		[24, 25, 34, 35]]
-		self.grid =  Grid(6, 4, 3, 2)
+		self.grid =  GridBlock(6, 4, 3, 2)
 		pass
 		
 	def test_blockIndexToMatrixIndex(self):
@@ -224,26 +218,27 @@ class TestBlockIndexExchange(unittest.TestCase):
 		pass
 
 	def test_matrixIndexToBlockIndex(self):
-		self.assertEquals((3, 0), self.grid.matrixIndexToBlockIndex(3, 2))
-		self.assertEquals((3, 5), self.grid.matrixIndexToBlockIndex(5, 3))
-		self.assertEquals((2, 1), self.grid.matrixIndexToBlockIndex(3, 1))		
+		self.assertEquals((3, 0), self.grid.blockIndexMap[3][2])
+		self.assertEquals((3, 5), self.grid.blockIndexMap[5][3])
+		self.assertEquals((2, 1), self.grid.blockIndexMap[3][1])		
 		pass
 
 	def test_coordsOfRow(self):
-		self.assertEquals([(0, 0), (0, 1), (0, 2), (0, 3)], self.grid.gridRow.zoneWithPosIn((0, 1)))
+		grid = GridRow(6, 4)
+		self.assertEquals([(0, 0), (0, 1), (0, 2), (0, 3)], grid.zoneWithPosIn((0, 1)))
 
 	def test_coordsOfColumn(self):
-		self.assertEquals([(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)], self.grid.gridColumn.
-			zoneWithPosIn((0, 1)))
+		grid = GridColumn(6, 4)
+		self.assertEquals([(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)], grid.zoneWithPosIn((0, 1)))
 
 	def test_coordsOfBlock(self):
-		self.assertEquals([(3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)], self.grid.gridBlock.zoneWithPosIn((4, 2)))
+		self.assertEquals([(3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)], self.grid.zoneWithPosIn((4, 2)))
 
 	def test_GridGetAllBlocksInPos(self):
 		self.assertEquals([[(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)],
 			               [(0, 2), (0, 3), (1, 2), (1, 3), (2, 2), (2, 3)],
 			               [(3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)],
-			               [(3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)]], self.grid.gridBlock.zones())		
+			               [(3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)]], self.grid.zones())		
 		pass
 
 class TestPuzzleIntegrate(unittest.TestCase):
