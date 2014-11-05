@@ -332,3 +332,31 @@ class TestPuzzleCompare(unittest.TestCase):
 	def newPuzzle(self, matrix):
 		return self.factory.creatPuzzleByMatrix(matrix)
 		pass
+
+class TestViewDirection(unittest.TestCase):
+	def testGetRowWithPosIn(self):
+		view = GridRow(2, 2)
+		zone = view.zoneWithPosIn((0, 0))
+		self.assertEquals([(0, 0), (0, 1)], zone)
+		pass
+
+	def testGetColumnWithPosIn(self):
+		view = GridColumn(2, 2)
+		zone = view.zoneWithPosIn((0, 0))
+		self.assertEquals([(0, 0), (1, 0)], zone)
+		pass
+
+	def testGetBlockWithPosIn(self):
+		view = GridBlock(4, 4, 2, 2)
+		zone = view.zoneWithPosIn((0, 0))
+		self.assertEquals([(0, 0), (0, 1), (1, 0), (1, 1)], zone)
+		pass
+
+
+class TestViewDirectionPosesInSameZone(unittest.TestCase):
+	def testPosesInSameBlock(self):
+		view = GridBlock(4, 4, 2, 2)
+		poses = {(0, 0), (0, 1)}
+		self.assertTrue(view.posesInSameZone(poses))
+		pass
+	pass

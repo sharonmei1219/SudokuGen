@@ -1,32 +1,22 @@
 from functools import reduce
 import operator
 
-knownRowFindings = []
-knownColumnFindings = []
-knownBlockFindings = []
-
 class PossibilityMatrix:
-	def __init__(self, matrix, grid):
+	def __init__(self, matrix):
 		self.matrix = matrix
-		self.grid = grid
 		pass
 
 	def possibilitieAt(self, pos):
 		return self.matrix[pos[0]][pos[1]]
-	
-	def setPossibilityAt(self, pos, possibilities):
-		self.matrix[pos[0]][pos[1]] = possibilities
+
+	def erasePossibility(self, possibilities, poses):
+		for (i, j) in poses:
+			self.matrix[i][j] -= possibilities
 		pass
 
-	def update(self, pos, possibilities, excepts, viewDirection):
-		coords = viewDirection.zoneWithPosIn(pos, self.grid)
-		self.updateGroupOfCellsExcept(coords, possibilities, excepts)
-		pass
-
-	def updateGroupOfCellsExcept(self, coords, possibilities, excepts):
-		for pos in coords:
-			if pos in excepts: continue
-			self.setPossibilityAt(pos, self.possibilitieAt(pos) - possibilities)
+	def setPossibility(self, possibilities, poses):
+		for (i, j)  in poses:
+			self.matrix[i][j] = possibilities
 		pass
 
 	def buildValuePosMapInZone(self, zone):
@@ -77,7 +67,12 @@ class NakedFinder:
 			possibilities = pMatrix.possibilitieAt(pos)
 			if len(union | possibilities) > self.criteria : continue
 
-			finding = self.findPosMeetRequirementInRest(union | possibilities, poses + [pos], rest[i+1:], nth + 1, pMatrix)
+			finding = self.findPosMeetRequirementInRest(union | possibilities, 
+				                                        poses + [pos], 
+				                                        rest[i+1:], 
+				                                        nth + 1, 
+				                                        pMatrix)
+			
 			if self.isNewResultFound(finding): return finding
 		pass
 
@@ -109,7 +104,13 @@ class HiddenFinder:
 		for i in range(len(restKeys)):
 			key = restKeys[i]
 			if len(valuePosMap[key] | poses) > self.criteria: continue
-			finding = self.findHiddens(valuePosMap[key] | poses, possibilities | {key}, valuePosMap, pMatrix, restKeys[i+1:], nth+1)
+			
+			finding = self.findHiddens(valuePosMap[key] | poses, 
+				                       possibilities | {key}, 
+				                       valuePosMap, 
+				                       pMatrix, 
+				                       restKeys[i+1:], nth+1)
+
 			if finding is not None: return finding
 		pass
 
@@ -120,12 +121,6 @@ class HiddenFinder:
 	def addKnownFinding(self, result):
 		self.knownResult.append(result)
 
-	def update(self, finding, pMatrix):
-		for pos in finding.pos:
-			pMatrix.setPossibilityAt(pos, finding.possibilities)
-		self.knownResult.append(finding)
-		pass
-
 class LockedCellFinder:
 	def __init__(self, sourceViewDir, affectViewDir, knownResult):
 		self.sourceViewDir = sourceViewDir
@@ -133,7 +128,7 @@ class LockedCellFinder:
 		self.knownResult = knownResult
 		pass
 
-	def findNewClue(self, pMatrix):
+	def find(self, pMatrix):
 		zones = self.sourceViewDir.zones()
 		for zone in zones:
 			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
