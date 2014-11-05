@@ -81,6 +81,13 @@ class NakedFinder:
 
 	def addKnownFinding(self, result):
 		self.knownResult.append(result)
+		pass
+
+	def update(self, finding, pMatrix):
+		zone = self.viewGrid.zoneWithPosIn(finding.anyPos())
+		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
+		self.addKnownFinding(finding)
+		pass
 
 class HiddenFinder:
 	def __init__(self, criteria, viewDirection, knownResult):
@@ -116,10 +123,15 @@ class HiddenFinder:
 
 	def isNewResultFound(self, result):
 		return result is not None and result not in self.knownResult
-		pass
 
 	def addKnownFinding(self, result):
 		self.knownResult.append(result)
+		pass
+
+	def update(self, finding, pMatrix):
+		pMatrix.setPossibility(finding.possibilities, finding.pos)
+		self.addKnownFinding(finding)
+		pass
 
 class LockedCellFinder:
 	def __init__(self, sourceViewDir, affectViewDir, knownResult):
