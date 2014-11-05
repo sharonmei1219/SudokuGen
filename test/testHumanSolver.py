@@ -214,4 +214,20 @@ class TestHiddenFinderUpdateItsResult(unittest.TestCase):
 		pass
 	pass
 
+class TestLockedCellFinderUpdate(unittest.TestCase):
+	def testLockedCellFinderUpdate(self):
+		pMatrix = MockObject()
+		pMatrix.erasePossibility = MagicMock()
+		knownResult = []
+
+		finding = Finding({(0, 0), (0, 1)}, {1})
+
+		gridRow = GridRow(4, 4)
+		gridBlock = GridBlock(4, 4, 2, 2)
+		finder = LockedCellFinder(gridRow, gridBlock, knownResult)
+		finder.update(finding, pMatrix)
+
+		pMatrix.erasePossibility.assert_called_once_with({1}, {(1, 0), (1, 1)})
+		self.assertEquals(finding, knownResult[0])
+		pass
 		

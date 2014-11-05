@@ -158,5 +158,15 @@ class LockedCellFinder:
 				return Finding(poses, {value})
 		pass
 
+	def addKnownFinding(self, result):
+		self.knownResult.append(result)
+		pass
+
 	def isNewResultFound(self, result):
 		return result is not None and result not in self.knownResult
+
+	def update(self, finding, pMatrix):
+		zone = self.affectViewDir.zoneWithPosIn(finding.anyPos())
+		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
+		self.addKnownFinding(finding)
+		pass
