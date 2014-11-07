@@ -250,7 +250,7 @@ class TestXWingFinder(unittest.TestCase):
 	def testFindNoXWing(self):
 		searchingDirection = GridRow(1, 1)
 		impactedDirection = GridColumn(1, 1)
-		finder = XWingFinder(searchingDirection, impactedDirection)
+		finder = XWingFinder(2, searchingDirection, impactedDirection, [])
 		pMatrix = PossibilityMatrix([[{1}]])
 		self.assertEquals(None, finder.find(pMatrix))
 		pass
@@ -259,7 +259,7 @@ class TestXWingFinder(unittest.TestCase):
 		searchingDirection = GridRow(3, 4)
 		impactedDirection = GridColumn(3, 4)
 
-		finder = XWingFinder(searchingDirection, impactedDirection)
+		finder = XWingFinder(2, searchingDirection, impactedDirection, [])
 		pMatrix = PossibilityMatrix([[{1, 2, 3, 4}, {1, 2, 3, 4}, {6, 2, 3, 4}, {6, 2, 3, 4}],
 									 [{1, 2, 3, 4}, {1, 2, 3, 4}, {4, 2, 3}, {2, 3, 4}],
 									 [{7, 8, 9}, {7, 8, 9}, {6, 8}, {6, 2}]]);
@@ -267,6 +267,22 @@ class TestXWingFinder(unittest.TestCase):
 		finder.update([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], pMatrix)
 		finding = finder.find(pMatrix)
 		self.assertEquals([Finding({(0, 2), (2, 2)}, {6}), Finding({(0, 3), (2, 3)}, {6})], finding)
+		pass
+
+	def testXWingFinderUpdate(self):
+		pMatrix = MockObject()
+		pMatrix.erasePossibility = MagicMock()
+
+		searchingDirection = GridRow(3, 4)
+		impactedDirection = GridColumn(3, 4)
+		knownResult = []
+
+		finder = XWingFinder(2, searchingDirection, impactedDirection, knownResult)
+
+		finder.update([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], pMatrix)
+
+		self.assertEquals([call({1}, {(2, 0)}), call({1}, {(2, 1)})], pMatrix.erasePossibility.mock_calls)
+		self.assertEquals([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], knownResult)
 		pass
 	pass
 		

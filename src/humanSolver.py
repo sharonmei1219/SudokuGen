@@ -181,11 +181,11 @@ class LockedCellFinder:
 		pass
 
 class XWingFinder:
-	def __init__(self, searchingDirection, impactDirection):
+	def __init__(self, criteria, searchingDirection, impactDirection, knownResult):
 		self.searchingDirection = searchingDirection
 		self.impactDirection = impactDirection
-		self.criteria = 2
-		self.knownResult = []
+		self.criteria = criteria
+		self.knownResult = knownResult
 		pass
 
 	def find(self, pMatrix):
