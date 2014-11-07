@@ -147,6 +147,10 @@ class GridDirection:
 	def posesInSameZone(self, poses):
 		return any([all([pos in zone for pos in poses]) for zone in self.zones()])
 
+	def split(self, poses):
+		areas = [{pos for pos in poses if pos in zone} for zone in self.zones()]
+		return [area for area in areas if len(area) > 0]
+
 class GridRow(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
 		self.matrixHeight = matrixHeight

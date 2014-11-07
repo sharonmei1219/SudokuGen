@@ -230,4 +230,27 @@ class TestLockedCellFinderUpdate(unittest.TestCase):
 		pMatrix.erasePossibility.assert_called_once_with({1}, {(1, 0), (1, 1)})
 		self.assertEquals(finding, knownResult[0])
 		pass
+
+class TestXWingFinder(unittest.TestCase):
+	def testFindNoXWing(self):
+		searchingDirection = GridRow(1, 1)
+		impactedDirection = GridColumn(1, 1)
+		finder = XWingFinder(searchingDirection, impactedDirection)
+		pMatrix = PossibilityMatrix([[{1}]])
+		self.assertEquals(None, finder.find(pMatrix))
+		pass
+
+	def testFind1stXWing(self):
+		searchingDirection = GridRow(3, 3)
+		impactedDirection = GridColumn(3, 3)
+
+		finder = XWingFinder(searchingDirection, impactedDirection)
+		pMatrix = PossibilityMatrix([[{1, 2, 3}, {1, 2, 3}, {2, 3}],
+									 [{1, 4, 5}, {1, 4, 5}, {4, 5}],
+									 [{7, 8, 9}, {7, 8, 9}, {3, 8}]]);
+
+		finding = finder.find(pMatrix)
+		self.assertEquals(2, len(finding))
+		pass
+	pass
 		

@@ -170,3 +170,32 @@ class LockedCellFinder:
 		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
 		self.addKnownFinding(finding)
 		pass
+
+class XWingFinder:
+	def __init__(self, searchingDirection, impactDirection):
+		self.searchingDirection = searchingDirection
+		self.impactDirection = impactDirection
+		pass
+
+	def find(self, pMatrix):
+		allpositions = [(i, j) for i in range(len(pMatrix.matrix)) for j in range(len(pMatrix.matrix[0]))]
+		allPossibilities = set().union(*[pMatrix.matrix[i][j] for (i, j) in allpositions])
+
+		for value in allPossibilities:
+			poses = [(i, j) for (i, j) in allpositions if (value in pMatrix.matrix[i][j])]
+
+			areas = self.searchingDirection.split(poses)
+
+			for i in range(len(areas)):
+				if len(areas[i]) == 2:
+					for j in range(i+1, len(areas)):
+						if len(areas[j]) != 2: continue
+						mergedArea = areas[i] | areas[j]
+						splitedInOtherDir = self.impactDirection.split(mergedArea)
+						if len(splitedInOtherDir) == 2:
+							return [Finding(splitedInOtherDir[0], {value}), Finding(splitedInOtherDir[1], {value})]
+
+						pass
+				pass
+			pass
+		return None

@@ -360,3 +360,17 @@ class TestViewDirectionPosesInSameZone(unittest.TestCase):
 		self.assertTrue(view.posesInSameZone(poses))
 		pass
 	pass
+
+class TestViewDirectionSplitPosesInDifferentZone(unittest.TestCase):
+	def testSplitOnePosInOneZone(self):
+		view = GridRow(2, 2)
+		poses = [(0, 0)]
+		self.assertEquals([{(0, 0)}], view.split(poses))
+		pass
+
+	def testSplitPosesInDifferentZone(self):
+		view = GridRow(2, 2)
+		poses = [(0, 0), (1, 0), (1, 1)]
+		self.assertEquals([{(0, 0)}, {(1, 0), (1, 1)}], view.split(poses))
+		pass
+		
