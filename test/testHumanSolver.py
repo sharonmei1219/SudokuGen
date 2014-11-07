@@ -184,6 +184,21 @@ class TestPossibilityMatrix(unittest.TestCase):
 		self.assertEquals({3, 4, 5}, pMatrix.possibilitieAt((0, 2)))
 		pass
 
+	def testAllPositions(self):
+		pMatrix = PossibilityMatrix([[{1}, {1}], [{1}, {1}]])
+		self.assertEquals([(0, 0), (0, 1), (1, 0), (1, 1)], pMatrix.allPositions())
+		pass
+
+	def testAllPossibilities(self):
+		pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}], [{3, 4}, {4, 1}]])
+		self.assertEquals({1, 2, 3, 4}, pMatrix.allPossibilities())
+		pass
+
+	def testPositions(self):
+		pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}], [{3, 4}, {4, 1}]])
+		self.assertEquals([(0, 0), (1, 1)], pMatrix.positionsOfValue(1))		
+		pass
+
 class TestNakedFinderUpdateItsResult(unittest.TestCase):
 	def testNakedFinderUpdateInRow(self):
 		pMatrix = MockObject()

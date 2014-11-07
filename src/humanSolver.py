@@ -27,6 +27,15 @@ class PossibilityMatrix:
 				valuePosMap[value] |= {pos}
 		return valuePosMap
 
+	def allPositions(self):
+		return [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0]))]
+
+	def allPossibilities(self):
+		return set.union(*(set.union(*self.matrix[i]) for i in range(len(self.matrix))))
+
+	def positionsOfValue(self, value):
+		return [(i, j) for (i, j) in self.allPositions() if value in self.matrix[i][j]]
+
 class Finding:
 	def __init__(self, pos, value):
 		self.pos = pos
@@ -175,27 +184,26 @@ class XWingFinder:
 	def __init__(self, searchingDirection, impactDirection):
 		self.searchingDirection = searchingDirection
 		self.impactDirection = impactDirection
+		self.criteria = 2
 		pass
 
 	def find(self, pMatrix):
-		allpositions = [(i, j) for i in range(len(pMatrix.matrix)) for j in range(len(pMatrix.matrix[0]))]
-		allPossibilities = set().union(*[pMatrix.matrix[i][j] for (i, j) in allpositions])
+		allPossibilities = pMatrix.allPossibilities()
 
 		for value in allPossibilities:
-			poses = [(i, j) for (i, j) in allpositions if (value in pMatrix.matrix[i][j])]
-
+			poses = pMatrix.positionsOfValue(value)
 			areas = self.searchingDirection.split(poses)
+			return self.iterativelyFind(areas, 0, set(), value, 0)
 
-			for i in range(len(areas)):
-				if len(areas[i]) == 2:
-					for j in range(i+1, len(areas)):
-						if len(areas[j]) != 2: continue
-						mergedArea = areas[i] | areas[j]
-						splitedInOtherDir = self.impactDirection.split(mergedArea)
-						if len(splitedInOtherDir) == 2:
-							return [Finding(splitedInOtherDir[0], {value}), Finding(splitedInOtherDir[1], {value})]
-
-						pass
-				pass
-			pass
 		return None
+
+	def iterativelyFind(self, areas, startingPoint, mergedArea, value, cnt):
+		if cnt == self.criteria:
+			splits = self.impactDirection.split(mergedArea)
+			return [Finding(splits[0], {value}), Finding(splits[1], {value})]
+
+		for j in range(startingPoint, len(areas)):
+			splits = self.impactDirection.split(mergedArea | areas[j])
+			if len(splits) > self.criteria: continue
+			return self.iterativelyFind(areas, j + 1, mergedArea | areas[j], value, cnt + 1)
+		pass
