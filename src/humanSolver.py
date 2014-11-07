@@ -185,6 +185,7 @@ class XWingFinder:
 		self.searchingDirection = searchingDirection
 		self.impactDirection = impactDirection
 		self.criteria = 2
+		self.knownResult = []
 		pass
 
 	def find(self, pMatrix):
@@ -193,7 +194,8 @@ class XWingFinder:
 		for value in allPossibilities:
 			poses = pMatrix.positionsOfValue(value)
 			areas = self.searchingDirection.split(poses)
-			return self.iterativelyFind(areas, 0, set(), value, 0)
+			result = self.iterativelyFind(areas, 0, set(), value, 0)
+			if result is not None: return result
 
 		return None
 
@@ -205,5 +207,17 @@ class XWingFinder:
 		for j in range(startingPoint, len(areas)):
 			splits = self.impactDirection.split(mergedArea | areas[j])
 			if len(splits) > self.criteria: continue
-			return self.iterativelyFind(areas, j + 1, mergedArea | areas[j], value, cnt + 1)
+			result = self.iterativelyFind(areas, j + 1, mergedArea | areas[j], value, cnt + 1)
+			if self.isNewResultFound(result): return result
+
 		pass
+
+	def update(self, findings, pMatrix):
+		for finding in findings:
+			zone = self.impactDirection.zoneWithPosIn(finding.anyPos())
+			pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
+		self.knownResult += findings
+		pass
+
+	def isNewResultFound(self, result):
+		return result is not None and result[0] not in self.knownResult

@@ -255,17 +255,18 @@ class TestXWingFinder(unittest.TestCase):
 		self.assertEquals(None, finder.find(pMatrix))
 		pass
 
-	def testFind1stXWing(self):
-		searchingDirection = GridRow(3, 3)
-		impactedDirection = GridColumn(3, 3)
+	def testFind2ndXWing(self):
+		searchingDirection = GridRow(3, 4)
+		impactedDirection = GridColumn(3, 4)
 
 		finder = XWingFinder(searchingDirection, impactedDirection)
-		pMatrix = PossibilityMatrix([[{1, 2, 3}, {1, 2, 3}, {2, 3}],
-									 [{1, 4, 5}, {1, 4, 5}, {4, 5}],
-									 [{7, 8, 9}, {7, 8, 9}, {3, 8}]]);
+		pMatrix = PossibilityMatrix([[{1, 2, 3, 4}, {1, 2, 3, 4}, {6, 2, 3, 4}, {6, 2, 3, 4}],
+									 [{1, 2, 3, 4}, {1, 2, 3, 4}, {4, 2, 3}, {2, 3, 4}],
+									 [{7, 8, 9}, {7, 8, 9}, {6, 8}, {6, 2}]]);
 
+		finder.update([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], pMatrix)
 		finding = finder.find(pMatrix)
-		self.assertEquals(2, len(finding))
+		self.assertEquals([Finding({(0, 2), (2, 2)}, {6}), Finding({(0, 3), (2, 3)}, {6})], finding)
 		pass
 	pass
 		
