@@ -234,8 +234,7 @@ class KnownResult:
 
 	def isNewResult(self, finding):
 		for pos in finding.pos:
-			if pos in self.knownFindings: return False
+			if pos in self.knownFindings:
+				if self.knownFindings[pos] <= len(finding.possibilities): return False
 		return True
-		pass
-	pass
 		

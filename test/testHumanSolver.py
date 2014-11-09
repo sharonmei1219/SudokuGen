@@ -295,15 +295,26 @@ class TestXWingFinder(unittest.TestCase):
 	pass
 
 class TestKnownResult(unittest.TestCase):
+	def setUp(self):
+		self.knownResult = KnownResult()
+		pass
 	def testAnyFindingIsNewFindingAfterKnownResultCreation(self):
-		knownResult = KnownResult()
-		self.assertTrue(knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		self.assertTrue(self.knownResult.isNewResult(Finding({(0, 0)}, {1})))
 		pass
 
 	def testFindingBecomesKnown_AKA_NotNew_afterItsAddInKnownResult(self):
-		knownResult = KnownResult()
-		knownResult.add(Finding({(0, 0)}, {1}))
-		self.assertFalse(knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		self.knownResult.add(Finding({(0, 0)}, {1}))
+		self.assertFalse(self.knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		pass
+
+	def testFindPairFirstWillNotImpactFindNewSingleLater(self):
+		self.knownResult.add(Finding({(0, 0), (0, 1)}, {1, 2}))
+		self.assertTrue(self.knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		pass
+
+	def testFindSingleFirstWillImpactFindNewPair(self):
+		self.knownResult.add(Finding({(0, 0)}, {1}))
+		self.assertFalse(self.knownResult.isNewResult(Finding({(0, 0), (0, 1)}, {1, 2})))
 		pass
 	pass
 		
