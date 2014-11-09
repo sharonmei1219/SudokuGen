@@ -221,3 +221,21 @@ class XWingFinder:
 
 	def isNewResultFound(self, result):
 		return result is not None and result[0] not in self.knownResult
+
+class KnownResult:
+	def __init__(self):
+		self.knownFindings = {}
+		pass
+
+	def add(self, finding):
+		for pos in finding.pos:
+			self.knownFindings[pos] = len(finding.possibilities)
+		pass
+
+	def isNewResult(self, finding):
+		for pos in finding.pos:
+			if pos in self.knownFindings: return False
+		return True
+		pass
+	pass
+		

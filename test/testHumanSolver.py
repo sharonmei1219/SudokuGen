@@ -53,13 +53,13 @@ class TestNakedPairFinder(unittest.TestCase):
 		self.assertEquals(Finding({(0, 1), (0, 2)}, {4, 5}), result)			
 		pass
 
-	def testFind2SingleAsOnePair(self):
-		grid = GridRow(1, 4)		
-		pMatrix = PossibilityMatrix([[{2}, {3}, {4, 5, 6}, {4, 5, 6}]])
-		self.finder = NakedFinder(2, grid, [])		
-		result = self.finder.find(pMatrix)
-		self.assertEquals(Finding({(0, 1), (0, 2)}, {4, 5}), result)			
-		pass
+	# def testFind2SingleAsOnePair(self):
+	# 	grid = GridRow(1, 4)		
+	# 	pMatrix = PossibilityMatrix([[{2}, {3}, {4, 5, 6}, {4, 5, 6}]])
+	# 	self.finder = NakedFinder(2, grid, [])		
+	# 	result = self.finder.find(pMatrix)
+	# 	self.assertEquals(Finding({(0, 1), (0, 2)}, {4, 5}), result)			
+	# 	pass
 
 	def testFindNakedPairIn2ndRow(self):
 		grid = GridRow(2, 2)		
@@ -293,4 +293,18 @@ class TestXWingFinder(unittest.TestCase):
 		self.assertEquals([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], knownResult)
 		pass
 	pass
+
+class TestKnownResult(unittest.TestCase):
+	def testAnyFindingIsNewFindingAfterKnownResultCreation(self):
+		knownResult = KnownResult()
+		self.assertTrue(knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		pass
+
+	def testFindingBecomesKnown_AKA_NotNew_afterItsAddInKnownResult(self):
+		knownResult = KnownResult()
+		knownResult.add(Finding({(0, 0)}, {1}))
+		self.assertFalse(knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		pass
+	pass
+		
 		
