@@ -233,8 +233,11 @@ class KnownResult:
 		pass
 
 	def isNewResult(self, finding):
-		for pos in finding.pos:
-			if pos in self.knownFindings:
-				if self.knownFindings[pos] <= len(finding.possibilities): return False
+		accuracy = len(finding.pos)
+		return all([self.noFindingMoreAccurateKnown(pos, accuracy) for pos in finding.pos])
+
+	def noFindingMoreAccurateKnown(self, pos, accuracy):
+		if pos not in self.knownFindings: return True
+		if self.knownFindings[pos] <= accuracy: return False
 		return True
 		
