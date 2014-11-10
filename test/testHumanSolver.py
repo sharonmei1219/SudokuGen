@@ -13,7 +13,7 @@ class TestNakedSingleFinder(unittest.TestCase):
 	def testFindNoNakedSingle(self):
 		grid = GridRow(1, 1)
 		pMatrix = PossibilityMatrix([[{1, 2}]])
-		self.finder = NakedFinder(1, grid, [])		
+		self.finder = NakedFinder(1, grid, KnownResult())		
 		result = self.finder.find(pMatrix)
 		self.assertEquals(None, result)
 		pass
@@ -21,7 +21,7 @@ class TestNakedSingleFinder(unittest.TestCase):
 	def testFindNakedSingleIn2ndRow(self):
 		grid = GridRow(2, 1)
 		pMatrix = PossibilityMatrix([[{1, 2}], [{1}]])
-		self.finder = NakedFinder(1, grid, [])
+		self.finder = NakedFinder(1, grid, KnownResult())
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0)}, {1}), result)
 		pass
@@ -29,7 +29,7 @@ class TestNakedSingleFinder(unittest.TestCase):
 	def testFind2ndNakedSingleAfter1stSingleHasBeenUpdated(self):
 		grid = GridRow(1, 2)
 		pMatrix = PossibilityMatrix([[{1}, {2}]])
-		self.finder = NakedFinder(1, grid, [])
+		self.finder = NakedFinder(1, grid, KnownResult())
 		self.finder.update(Finding({(0, 0)}, {1}), pMatrix)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(0, 1)}, {2}), result)
@@ -39,7 +39,7 @@ class TestNakedPairFinder(unittest.TestCase):
 	def testFindNoNakedPairInRow(self):
 		grid = GridRow(1, 2)
 		pMatrix = PossibilityMatrix([[{1}, {2, 3}]])
-		self.finder = NakedFinder(2, grid, [])
+		self.finder = NakedFinder(2, grid, KnownResult())
 		result = self.finder.find(pMatrix)
 		self.assertEquals(None, result)
 		pass
@@ -47,24 +47,28 @@ class TestNakedPairFinder(unittest.TestCase):
 	def testFind2ndNakedPairInRowAfter1stPairHasBeenUpdated(self):
 		grid = GridRow(1, 4)		
 		pMatrix = PossibilityMatrix([[{2, 3}, {4, 5}, {4, 5}, {2, 3}]])
-		self.finder = NakedFinder(2, grid, [])
+		self.finder = NakedFinder(2, grid, KnownResult())
 		self.finder.update(Finding({(0, 3), (0, 0)}, {2, 3}), pMatrix)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(0, 1), (0, 2)}, {4, 5}), result)			
 		pass
 
-	# def testFind2SingleAsOnePair(self):
-	# 	grid = GridRow(1, 4)		
-	# 	pMatrix = PossibilityMatrix([[{2}, {3}, {4, 5, 6}, {4, 5, 6}]])
-	# 	self.finder = NakedFinder(2, grid, [])		
-	# 	result = self.finder.find(pMatrix)
-	# 	self.assertEquals(Finding({(0, 1), (0, 2)}, {4, 5}), result)			
-	# 	pass
+	def testFind2SingleAsOnePair(self):
+		grid = GridRow(1, 4)
+		pMatrix = PossibilityMatrix([[{2}, {3}, {4, 5}, {4, 5}]])
+		knownResult = KnownResult()
+		knownResult.add(Finding({(0, 0)}, {2}))
+		knownResult.add(Finding({(0, 1)}, {3}))
+		self.finder = NakedFinder(2, grid, knownResult)	
+
+		result = self.finder.find(pMatrix)
+		self.assertEquals(Finding({(0, 2), (0, 3)}, {4, 5}), result)			
+		pass
 
 	def testFindNakedPairIn2ndRow(self):
 		grid = GridRow(2, 2)		
 		pMatrix = PossibilityMatrix([[{2, 3, 4}, {2, 3, 5}], [{1, 4}, {1, 4}]])
-		self.finder = NakedFinder(2, grid, [])
+		self.finder = NakedFinder(2, grid, KnownResult())
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0), (1, 1)}, {1, 4}), result)			
 		pass		
@@ -73,7 +77,7 @@ class TestNakedTrippleFinder(unittest.TestCase):
 	def testFind2ndNakedTrippleAfter1stHasBeenUpdated(self):
 		grid = Grid(1, 6, 1, 1)
 		pMatrix = PossibilityMatrix([[{1, 2}, {4, 5}, {5, 6}, {2, 3}, {4, 6}, {1, 3}]])
-		self.finder = NakedFinder(3, grid.gridRow, [])
+		self.finder = NakedFinder(3, grid.gridRow, KnownResult())
 		self.finder.update(Finding({(0, 0), (0, 3), (0, 5)}, {1, 2, 3}), pMatrix)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(0, 1), (0, 2), (0, 4)}, {4, 5, 6}), result)
@@ -82,7 +86,7 @@ class TestNakedTrippleFinder(unittest.TestCase):
 	def testFindNakedTrippleIn2ndLine(self):
 		grid = Grid(2, 3, 1, 1)
 		pMatrix = PossibilityMatrix([[{1, 4}, {2, 3}, {1, 3}], [{4, 5}, {5, 6}, {4, 6}]])
-		self.finder = NakedFinder(3, grid.gridRow, [])		
+		self.finder = NakedFinder(3, grid.gridRow, KnownResult())		
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0), (1, 1), (1, 2)}, {4, 5, 6}), result)
 		pass
@@ -211,14 +215,14 @@ class TestNakedFinderUpdateItsResult(unittest.TestCase):
 	def testNakedFinderUpdateInRow(self):
 		pMatrix = MockObject()
 		pMatrix.erasePossibility = MagicMock()
-		knownResult = []
+		knownResult = KnownResult()
 
 		finding = Finding({(0, 0), (0, 1)}, {1, 2})
 		finder = NakedFinder(1, GridRow(1, 3), knownResult)
 		finder.update(finding, pMatrix)
 
 		pMatrix.erasePossibility.assert_called_once_with({1, 2}, {(0, 2)})
-		self.assertEquals(finding, knownResult[0])
+		self.assertFalse(knownResult.isNewResult(finding))
 		pass
 	pass
 

@@ -86,10 +86,11 @@ class NakedFinder:
 		pass
 
 	def isNewResultFound(self, result):
-		return result is not None and result not in self.knownResult
+		# return  result not in self.knownResult
+		return result is not None and self.knownResult.isNewResult(result)
 
 	def addKnownFinding(self, result):
-		self.knownResult.append(result)
+		self.knownResult.add(result)
 		pass
 
 	def update(self, finding, pMatrix):
