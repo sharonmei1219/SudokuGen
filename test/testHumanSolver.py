@@ -171,7 +171,7 @@ class TestLockedCellFinder(unittest.TestCase):
 		grid = Grid(2, 4, 2, 2)
 		pMatrix = PossibilityMatrix([[{1}, {1}, {2, 3, 4}, {3, 4, 5}],
 									 [{1, 2}, {1, 3}, {4, 5, 6}, {5, 6, 7}]])
-		finder = LockedCellFinder(grid.gridRow, grid.gridBlock, [])
+		finder = LockedCellFinder(grid.gridRow, grid.gridBlock, KnownResultTypeOne())
 		result = finder.find(pMatrix)
 
 		self.assertEquals(Finding({(0, 0), (0, 1)}, {1}), result)
@@ -244,7 +244,7 @@ class TestLockedCellFinderUpdate(unittest.TestCase):
 	def testLockedCellFinderUpdate(self):
 		pMatrix = MockObject()
 		pMatrix.erasePossibility = MagicMock()
-		knownResult = []
+		knownResult = KnownResultTypeOne()
 
 		finding = Finding({(0, 0), (0, 1)}, {1})
 
@@ -254,7 +254,7 @@ class TestLockedCellFinderUpdate(unittest.TestCase):
 		finder.update(finding, pMatrix)
 
 		pMatrix.erasePossibility.assert_called_once_with({1}, {(1, 0), (1, 1)})
-		self.assertEquals(finding, knownResult[0])
+		self.assertFalse(knownResult.isNewResult(finding))
 		pass
 
 class TestXWingFinder(unittest.TestCase):
@@ -270,7 +270,7 @@ class TestXWingFinder(unittest.TestCase):
 		searchingDirection = GridRow(3, 4)
 		impactedDirection = GridColumn(3, 4)
 
-		finder = XWingFinder(2, searchingDirection, impactedDirection, [])
+		finder = XWingFinder(2, searchingDirection, impactedDirection, KnownResultTypeOne())
 		pMatrix = PossibilityMatrix([[{1, 2, 3, 4}, {1, 2, 3, 4}, {6, 2, 3, 4}, {6, 2, 3, 4}],
 									 [{1, 2, 3, 4}, {1, 2, 3, 4}, {4, 2, 3}, {2, 3, 4}],
 									 [{7, 8, 9}, {7, 8, 9}, {6, 8}, {6, 2}]]);
@@ -286,14 +286,15 @@ class TestXWingFinder(unittest.TestCase):
 
 		searchingDirection = GridRow(3, 4)
 		impactedDirection = GridColumn(3, 4)
-		knownResult = []
+		knownResult = KnownResultTypeOne()
 
 		finder = XWingFinder(2, searchingDirection, impactedDirection, knownResult)
 
 		finder.update([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], pMatrix)
 
 		self.assertEquals([call({1}, {(2, 0)}), call({1}, {(2, 1)})], pMatrix.erasePossibility.mock_calls)
-		self.assertEquals([Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})], knownResult)
+		self.assertFalse(knownResult.isNewResult(Finding({(0, 0), (1, 0)}, {1})))
+		self.assertFalse(knownResult.isNewResult(Finding({(0, 1), (1, 1)}, {1})))
 		pass
 	pass
 

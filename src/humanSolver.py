@@ -54,6 +54,13 @@ class Finding:
 	def anyPos(self):
 		return next(iter(self.pos))
 
+	def moreAccurateThan(self, otherFinding):
+		if len(self.pos) < len(otherFinding.pos): return True
+		if len(self.pos) == len(otherFinding.pos):
+			if len(self.possibilities) > len(otherFinding.possibilities):
+				return True
+		return False
+
 class NakedFinder:
 	def __init__(self, criteria, viewGrid, knownResult):
 		self.criteria = criteria
@@ -63,11 +70,11 @@ class NakedFinder:
 
 	def find(self, pMatrix):
 		for zone in self.viewGrid.zones():
-			finding = self.findPosMeetRequirementInRest(set(), [], zone, 0, pMatrix)
+			finding = self.iterativelyFind(set(), set(), zone, 0, pMatrix)
 			if finding is not None: return finding
 		return None
 
-	def findPosMeetRequirementInRest(self, union, poses, rest, nth, pMatrix):
+	def iterativelyFind(self, union, poses, rest, nth, pMatrix):
 		if nth == self.criteria:
 			return Finding(set(poses), union)
 
@@ -76,11 +83,11 @@ class NakedFinder:
 			possibilities = pMatrix.possibilitieAt(pos)
 			if len(union | possibilities) > self.criteria : continue
 
-			finding = self.findPosMeetRequirementInRest(union | possibilities, 
-				                                        poses + [pos], 
-				                                        rest[i+1:], 
-				                                        nth + 1, 
-				                                        pMatrix)
+			finding = self.iterativelyFind(union | possibilities, 
+				                           poses | {pos}, 
+				                           rest[i+1:], 
+				                           nth + 1, 
+				                           pMatrix)
 			
 			if self.isNewResultFound(finding): return finding
 		pass
@@ -88,14 +95,10 @@ class NakedFinder:
 	def isNewResultFound(self, result):
 		return result is not None and self.knownResult.isNewResult(result)
 
-	def addKnownFinding(self, result):
-		self.knownResult.add(result)
-		pass
-
 	def update(self, finding, pMatrix):
 		zone = self.viewGrid.zoneWithPosIn(finding.anyPos())
 		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
-		self.addKnownFinding(finding)
+		self.knownResult.add(finding)
 		pass
 
 class HiddenFinder:
@@ -108,11 +111,11 @@ class HiddenFinder:
 	def find(self, pMatrix):
 		for zone in self.viewDir.zones():
 			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
-			single = self.findHiddens(set(), set(), valuePosMap, pMatrix, list(valuePosMap), 0)
+			single = self.iterativelyFind(set(), set(), valuePosMap, pMatrix, list(valuePosMap), 0)
 			if single is not None: return single
 		pass
 
-	def findHiddens(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
+	def iterativelyFind(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
 		if nth == self.criteria:
 			finding = Finding(poses, possibilities)
 			if self.isNewResultFound(finding): return finding
@@ -121,11 +124,11 @@ class HiddenFinder:
 			key = restKeys[i]
 			if len(valuePosMap[key] | poses) > self.criteria: continue
 			
-			finding = self.findHiddens(valuePosMap[key] | poses, 
-				                       possibilities | {key}, 
-				                       valuePosMap, 
-				                       pMatrix, 
-				                       restKeys[i+1:], nth+1)
+			finding = self.iterativelyFind(valuePosMap[key] | poses, 
+				                           possibilities | {key}, 
+				                           valuePosMap, 
+				                           pMatrix, 
+				                           restKeys[i+1:], nth+1)
 
 			if finding is not None: return finding
 		pass
@@ -133,13 +136,9 @@ class HiddenFinder:
 	def isNewResultFound(self, result):
 		return result is not None and self.knownResult.isNewResult(result)
 
-	def addKnownFinding(self, result):
-		self.knownResult.add(result)
-		pass
-
 	def update(self, finding, pMatrix):
 		pMatrix.setPossibility(finding.possibilities, finding.pos)
-		self.addKnownFinding(finding)
+		self.knownResult.add(finding)
 		pass
 
 class LockedCellFinder:
@@ -163,17 +162,13 @@ class LockedCellFinder:
 				return Finding(zone, {value})				
 		pass
 
-	def addKnownFinding(self, result):
-		self.knownResult.append(result)
-		pass
-
 	def isNewResultFound(self, result):
-		return result is not None and result not in self.knownResult
+		return result is not None and self.knownResult.isNewResult(result)
 
 	def update(self, finding, pMatrix):
 		zone = self.affectViewDir.zoneWithPosIn(finding.anyPos())
 		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
-		self.addKnownFinding(finding)
+		self.knownResult.add(finding)
 		pass
 
 class XWingFinder:
@@ -212,13 +207,12 @@ class XWingFinder:
 		for finding in findings:
 			zone = self.impactDirection.zoneWithPosIn(finding.anyPos())
 			pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
-		self.knownResult += findings
+			self.knownResult.add(finding)
 		pass
 
 	def isNewResultFound(self, result):
-		return result is not None and result[0] not in self.knownResult
+		return result is not None and self.knownResult.isNewResult(result[0])
 
-#known result for single pair triple quat
 class KnownResultTypeOne:
 	def __init__(self):
 		self.knownFindings = {}
@@ -226,14 +220,12 @@ class KnownResultTypeOne:
 
 	def add(self, finding):
 		for pos in finding.pos:
-			self.knownFindings[pos] = len(finding.possibilities)
+			self.knownFindings[pos] = finding
 		pass
 
 	def isNewResult(self, finding):
-		accuracy = len(finding.pos)
-		return all([self.noFindingMoreAccurateKnown(pos, accuracy) for pos in finding.pos])
+		return all([self.moreAccurateFound(pos, finding) for pos in finding.pos])
 
-	def noFindingMoreAccurateKnown(self, pos, accuracy):
+	def moreAccurateFound(self, pos, finding):
 		if pos not in self.knownFindings: return True
-		if self.knownFindings[pos] <= accuracy: return False
-		return True
+		return finding.moreAccurateThan(self.knownFindings[pos])
