@@ -319,6 +319,13 @@ class TestKnownResult(unittest.TestCase):
 		self.knownResult.add(Finding({(0, 0)}, {1}))
 		self.assertFalse(self.knownResult.isNewResult(Finding({(0, 0), (0, 1)}, {1, 2})))
 		pass
+
+	def testFindPairFirstAndThenFindSingle(self):
+		self.knownResult.add(Finding({(0, 0), (0, 1)}, {1, 2}))
+		self.knownResult.add(Finding({(0, 0)}, {1}))
+		self.assertFalse(self.knownResult.isNewResult(Finding({(0, 0), (0, 1)}, {1, 2})))
+		self.assertFalse(self.knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		pass
 	pass
 		
 		

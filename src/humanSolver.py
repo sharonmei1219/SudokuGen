@@ -150,21 +150,17 @@ class LockedCellFinder:
 		pass
 
 	def find(self, pMatrix):
-		zones = self.sourceViewDir.zones()
-		for zone in zones:
-			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
-			
-			for value in valuePosMap:
-				poses = valuePosMap[value]
-				
-				if not self.affectViewDir.posesInSameZone(poses):
+		for value in pMatrix.allPossibilities():
+			zones = self.sourceViewDir.split(pMatrix.positionsOfValue(value))
+			for zone in zones:
+				if not self.affectViewDir.posesInSameZone(zone):
 					continue
 				
-				finding = Finding(poses, {value})
+				finding = Finding(zone, {value})
 				if not self.isNewResultFound(finding):
 					continue
 
-				return Finding(poses, {value})
+				return Finding(zone, {value})				
 		pass
 
 	def addKnownFinding(self, result):
@@ -240,4 +236,4 @@ class KnownResult:
 		if pos not in self.knownFindings: return True
 		if self.knownFindings[pos] <= accuracy: return False
 		return True
-		
+
