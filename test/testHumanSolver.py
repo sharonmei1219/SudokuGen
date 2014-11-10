@@ -329,4 +329,11 @@ class TestKnownResult(unittest.TestCase):
 		pass
 	pass
 		
+class TestFinding(unittest.TestCase):
+	def testFindingAdd(self):
+		f1 = Finding({(0, 0)}, {1})
+		f2 = Finding({(0, 1)}, {2})
+		self.assertEquals(Finding({(0, 0), (0, 1)}, {1, 2}), f1 + f2)
+		pass
+	pass
 		

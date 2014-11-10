@@ -51,6 +51,9 @@ class Finding:
 	def __repr__(self):
 		return self.__str__()
 
+	def __add__(self, otherFinding):
+		return Finding(self.pos | otherFinding.pos, self.possibilities | otherFinding.possibilities)
+
 	def anyPos(self):
 		return next(iter(self.pos))
 
@@ -70,22 +73,22 @@ class NakedFinder:
 
 	def find(self, pMatrix):
 		for zone in self.viewGrid.zones():
-			finding = self.iterativelyFind(set(), set(), zone, 0, pMatrix)
+			finding = self.iterativelyFind(Finding(set(), set()), zone, 0, pMatrix)
 			if finding is not None: return finding
 		return None
 
-	def iterativelyFind(self, union, poses, rest, nth, pMatrix):
+	def iterativelyFind(self, f1, restPos, nth, pMatrix):
 		if nth == self.criteria:
-			return Finding(set(poses), union)
+			return f1
 
-		for i in range(len(rest)):
-			pos = rest[i]
+		for i in range(len(restPos)):
+			pos = restPos[i]
 			possibilities = pMatrix.possibilitieAt(pos)
-			if len(union | possibilities) > self.criteria : continue
+			f2 = Finding({pos}, possibilities)
+			if len((f1 + f2).possibilities) > self.criteria : continue
 
-			finding = self.iterativelyFind(union | possibilities, 
-				                           poses | {pos}, 
-				                           rest[i+1:], 
+			finding = self.iterativelyFind(f1 + f2,
+				                           restPos[i+1:], 
 				                           nth + 1, 
 				                           pMatrix)
 			
@@ -111,24 +114,25 @@ class HiddenFinder:
 	def find(self, pMatrix):
 		for zone in self.viewDir.zones():
 			valuePosMap = pMatrix.buildValuePosMapInZone(zone)
-			single = self.iterativelyFind(set(), set(), valuePosMap, pMatrix, list(valuePosMap), 0)
+			single = self.iterativelyFind(Finding(set(), set()), list(valuePosMap), 0, valuePosMap)
 			if single is not None: return single
 		pass
 
-	def iterativelyFind(self, poses, possibilities, valuePosMap, pMatrix, restKeys, nth):
+	def iterativelyFind(self, f1, restKeys, nth, valuePosMap):	
 		if nth == self.criteria:
-			finding = Finding(poses, possibilities)
+			finding = f1
 			if self.isNewResultFound(finding): return finding
 
 		for i in range(len(restKeys)):
 			key = restKeys[i]
-			if len(valuePosMap[key] | poses) > self.criteria: continue
+			posesOfkey = valuePosMap[key]
+			f2 = Finding(posesOfkey, {key})
+			if len((f1 + f2).pos) > self.criteria: continue
 			
-			finding = self.iterativelyFind(valuePosMap[key] | poses, 
-				                           possibilities | {key}, 
-				                           valuePosMap, 
-				                           pMatrix, 
-				                           restKeys[i+1:], nth+1)
+			finding = self.iterativelyFind(f1 + f2, 
+				                           restKeys[i+1:], 
+				                           nth+1,
+				                           valuePosMap)
 
 			if finding is not None: return finding
 		pass
