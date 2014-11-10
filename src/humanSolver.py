@@ -1,9 +1,7 @@
-from functools import reduce
-import operator
-
 class PossibilityMatrix:
 	def __init__(self, matrix):
 		self.matrix = matrix
+		self.observers = []
 		pass
 
 	def possibilitieAt(self, pos):
@@ -11,12 +9,18 @@ class PossibilityMatrix:
 
 	def erasePossibility(self, possibilities, poses):
 		for (i, j) in poses:
-			self.matrix[i][j] -= possibilities
+			newPossibility = self.matrix[i][j] - possibilities
+			self.set(newPossibility, i, j)
 		pass
 
 	def setPossibility(self, possibilities, poses):
-		for (i, j)  in poses:
-			self.matrix[i][j] = possibilities
+		for (i, j) in poses:
+			self.set(possibilities, i, j)
+		pass
+
+	def set(self, possibilities, i, j):
+		self.update(self.matrix[i][j], possibilities, i, j)
+		self.matrix[i][j] = possibilities
 		pass
 
 	def buildValuePosMapInZone(self, zone):
@@ -35,6 +39,15 @@ class PossibilityMatrix:
 
 	def positionsOfValue(self, value):
 		return [(i, j) for (i, j) in self.allPositions() if value in self.matrix[i][j]]
+
+	def register(self, observer):
+		self.observers.append(observer)
+		pass
+
+	def update(self, originPossibilities, updatedPossibilities, i, j):
+		for observer in self.observers:
+			observer.update(originPossibilities, updatedPossibilities, i, j)
+		pass
 
 class Finding:
 	def __init__(self, pos, value):
@@ -233,3 +246,20 @@ class KnownResultTypeOne:
 	def moreAccurateFound(self, pos, finding):
 		if pos not in self.knownFindings: return True
 		return finding.moreAccurateThan(self.knownFindings[pos])
+
+class PossibilityMatrixUpdateObserver:
+	def __init__(self):
+		self.changed = False
+		pass
+
+	def isMatrixChanged(self):
+		return self.changed
+
+	def update(self, originPossibilities, updatedPossibilities, i, j):
+		if originPossibilities != updatedPossibilities:
+			self.changed = True
+		pass
+
+	def clear(self):
+		self.changed = False
+		pass

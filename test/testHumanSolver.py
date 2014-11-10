@@ -210,6 +210,15 @@ class TestPossibilityMatrix(unittest.TestCase):
 		self.assertEquals([(0, 0), (1, 1)], pMatrix.positionsOfValue(1))		
 		pass
 
+	def testMatrixObserver(self):
+		observer = MockObject()
+		observer.update = MagicMock()
+		pMatrix = PossibilityMatrix([[{1, 2}, {1, 2}]])
+		pMatrix.register(observer)
+		pMatrix.set({3, 4}, 0, 0)
+		observer.update.assert_called_once_with({1, 2}, {3, 4}, 0, 0)
+		pass
+
 class TestNakedFinderUpdateItsResult(unittest.TestCase):
 	def testNakedFinderUpdateInRow(self):
 		pMatrix = MockObject()
@@ -336,4 +345,28 @@ class TestFinding(unittest.TestCase):
 		self.assertEquals(Finding({(0, 0), (0, 1)}, {1, 2}), f1 + f2)
 		pass
 	pass
-		
+
+class TestMatrixUpdateObserver(unittest.TestCase):
+	def testAfterCreationItObservesNoChange(self):
+		observer = PossibilityMatrixUpdateObserver()
+		self.assertFalse(observer.isMatrixChanged())
+		pass
+
+	def testObservesChange(self):
+		observer = PossibilityMatrixUpdateObserver()
+		observer.update({1}, {2}, 0, 0)
+		self.assertTrue(observer.isMatrixChanged())
+		pass
+
+	def testClearObservasions(self):
+		observer = PossibilityMatrixUpdateObserver()
+		observer.update({1}, {2}, 0, 0)
+		observer.clear()
+		self.assertFalse(observer.isMatrixChanged())
+		pass
+
+	def testObserveNonEffectiveChange(self):
+		observer = PossibilityMatrixUpdateObserver()
+		observer.update({1}, {1}, 0, 0)
+		self.assertFalse(observer.isMatrixChanged())		
+		pass
