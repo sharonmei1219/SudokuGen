@@ -77,7 +77,20 @@ class Finding:
 				return True
 		return False
 
-class NakedFinder:
+class Finder:
+	def findAndUpdate(self, pMatrix):
+		foundSomething = False
+		finding = self.find(pMatrix)
+
+		while finding != None:
+			self.update(finding, pMatrix)
+			foundSomething = True;
+			finding = self.find(pMatrix)
+		
+		return foundSomething
+		
+
+class NakedFinder(Finder):
 	def __init__(self, criteria, viewGrid, knownResult):
 		self.criteria = criteria
 		self.knownResult = knownResult
@@ -117,7 +130,7 @@ class NakedFinder:
 		self.knownResult.add(finding)
 		pass
 
-class HiddenFinder:
+class HiddenFinder(Finder):
 	def __init__(self, criteria, viewDirection, knownResult):
 		self.viewDir = viewDirection
 		self.criteria = criteria
@@ -158,7 +171,7 @@ class HiddenFinder:
 		self.knownResult.add(finding)
 		pass
 
-class LockedCellFinder:
+class LockedCellFinder(Finder):
 	def __init__(self, sourceViewDir, affectViewDir, knownResult):
 		self.sourceViewDir = sourceViewDir
 		self.affectViewDir = affectViewDir
@@ -188,7 +201,7 @@ class LockedCellFinder:
 		self.knownResult.add(finding)
 		pass
 
-class XWingFinder:
+class XWingFinder(Finder):
 	def __init__(self, criteria, searchingDirection, impactDirection, knownResult):
 		self.searchingDirection = searchingDirection
 		self.impactDirection = impactDirection

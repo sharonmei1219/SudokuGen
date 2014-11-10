@@ -370,3 +370,26 @@ class TestMatrixUpdateObserver(unittest.TestCase):
 		observer.update({1}, {1}, 0, 0)
 		self.assertFalse(observer.isMatrixChanged())		
 		pass
+
+class TestFindAndUpdate(unittest.TestCase):
+	def testFindNothing(self):
+		pMatrix = MockObject()
+		finder = Finder()
+		finder.find = MagicMock(return_value = None)
+		self.assertFalse(finder.findAndUpdate(pMatrix))
+		pass
+
+	def testFindTwoFinding(self):
+		pMatrix = MockObject()
+		finding1 = MockObject()
+		finding2 = MockObject()
+		finder = Finder()
+		finder.update = MagicMock()
+		finder.find = MagicMock(side_effect = [finding1, finding2, None])
+		self.assertTrue(finder.findAndUpdate(pMatrix))
+		self.assertEquals([call(pMatrix), call(pMatrix), call(pMatrix)], finder.find.mock_calls)
+		self.assertEquals([call(finding1, pMatrix), call(finding2, pMatrix)], finder.update.mock_calls)
+		pass
+
+
+		
