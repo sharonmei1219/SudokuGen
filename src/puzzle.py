@@ -119,17 +119,16 @@ class Grid:
 		self.views = [self.gridRow, self.gridColumn, self.gridBlock]
 
 	def allRows(self, matrix):
-		zones = self.gridRow.zones()
-		values = [[matrix[x][y] for (x, y) in zone] for zone in zones]
-		return [self.nonEmptyNumberIn(value) for value in values]
+		return self.allInADirection(matrix, self.gridRow)
 
 	def allColumns(self, matrix):
-		zones = self.gridColumn.zones()
-		values = [[matrix[x][y] for (x, y) in zone] for zone in zones]
-		return [self.nonEmptyNumberIn(value) for value in values]
+		return self.allInADirection(matrix, self.gridColumn)
 
 	def allBlocks(self, matrix):
-		zones = self.gridBlock.zones()
+		return self.allInADirection(matrix, self.gridBlock)
+
+	def allInADirection(self, matrix, gridDirection):
+		zones = gridDirection.zones()
 		values = [[matrix[x][y] for (x, y) in zone] for zone in zones]
 		return [self.nonEmptyNumberIn(value) for value in values]		
 
