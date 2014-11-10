@@ -218,7 +218,8 @@ class XWingFinder:
 	def isNewResultFound(self, result):
 		return result is not None and result[0] not in self.knownResult
 
-class KnownResult:
+#known result for single pair triple quat
+class KnownResultTypeOne:
 	def __init__(self):
 		self.knownFindings = {}
 		pass
@@ -236,4 +237,3 @@ class KnownResult:
 		if pos not in self.knownFindings: return True
 		if self.knownFindings[pos] <= accuracy: return False
 		return True
-
