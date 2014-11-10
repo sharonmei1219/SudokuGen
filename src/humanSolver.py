@@ -130,6 +130,10 @@ class NakedFinder(Finder):
 		self.knownResult.add(finding)
 		pass
 
+	def score(self, scorer):
+		scorer.recordPairTripleQuat(self.criteria)
+		pass
+
 class HiddenFinder(Finder):
 	def __init__(self, criteria, viewDirection, knownResult):
 		self.viewDir = viewDirection
@@ -171,6 +175,10 @@ class HiddenFinder(Finder):
 		self.knownResult.add(finding)
 		pass
 
+	def score(self, scorer):
+		scorer.recordPairTripleQuat(self.criteria)
+		pass
+
 class LockedCellFinder(Finder):
 	def __init__(self, sourceViewDir, affectViewDir, knownResult):
 		self.sourceViewDir = sourceViewDir
@@ -199,6 +207,10 @@ class LockedCellFinder(Finder):
 		zone = self.affectViewDir.zoneWithPosIn(finding.anyPos())
 		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
 		self.knownResult.add(finding)
+		pass
+
+	def score(self, scorer):
+		scorer.recordLockedCandidates()
 		pass
 
 class XWingFinder(Finder):
@@ -243,6 +255,10 @@ class XWingFinder(Finder):
 	def isNewResultFound(self, result):
 		return result is not None and self.knownResult.isNewResult(result[0])
 
+	def score(self, scorer):
+		scorer.recordXWingJellyFishSwordFish(self.criteria)
+		pass
+
 class KnownResultTypeOne:
 	def __init__(self):
 		self.knownFindings = {}
@@ -276,3 +292,30 @@ class PossibilityMatrixUpdateObserver:
 	def clear(self):
 		self.changed = False
 		pass
+
+class Scorer:
+	def __init__(self):
+		self.rank = 0
+		pass
+
+	def result(self):
+		return self.rank
+
+	def recordPairTripleQuat(self, criteria):
+		self.record(criteria - 1)
+		pass
+
+	def recordLockedCandidates(self):
+		self.record(1)
+		pass
+
+	def recordXWingJellyFishSwordFish(self, criteria):
+		self.record(criteria)
+		pass
+
+	def record(self, rank):
+		if rank > self.rank:
+			self.rank = rank
+		pass
+
+		

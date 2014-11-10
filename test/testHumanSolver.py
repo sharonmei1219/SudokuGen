@@ -391,5 +391,69 @@ class TestFindAndUpdate(unittest.TestCase):
 		self.assertEquals([call(finding1, pMatrix), call(finding2, pMatrix)], finder.update.mock_calls)
 		pass
 
+class TestScorer(unittest.TestCase):
+	def testScoreerCreation(self):
+		ranking = Scorer()
+		self.assertEquals(0, ranking.result())
+		pass
+
+	def testRecordScoreForPairTripleQuat(self):
+		ranking = Scorer()
+		ranking.recordPairTripleQuat(2)
+		self.assertEquals(1, ranking.result())
+		pass
+
+	def testRecordHighestScore(self):
+		ranking = Scorer()
+		ranking.recordPairTripleQuat(3)
+		ranking.recordPairTripleQuat(2)
+		self.assertEquals(2, ranking.result())
+		pass
+
+	def testRecordLockCandidates(self):
+		ranking = Scorer()
+		ranking.recordLockedCandidates()
+		self.assertEquals(1, ranking.result())
+		pass
+
+	def testRecordXWingJellyFishSwordFish(self):
+		ranking = Scorer()
+		ranking.recordXWingJellyFishSwordFish(2)
+		self.assertEquals(2, ranking.result())
+		pass
+
+
+	def testNakedFinderScore(self):
+		ranking = MockObject()
+		ranking.recordPairTripleQuat = MagicMock()
+		finder = NakedFinder(1, GridRow(1, 1), KnownResultTypeOne())
+		finder.score(ranking)
+		ranking.recordPairTripleQuat.assert_called_once_with(1)
+		pass
+
+	def testHiddenFinderScore(self):
+		ranking = MockObject()
+		ranking.recordPairTripleQuat = MagicMock()
+		finder = HiddenFinder(1, GridRow(1, 1), KnownResultTypeOne())
+		finder.score(ranking)
+		ranking.recordPairTripleQuat.assert_called_once_with(1)
+		pass
+
+	def testLockCandidatesScore(self):
+		ranking = MockObject()
+		ranking.recordLockedCandidates = MagicMock()
+		finder = LockedCellFinder(GridRow(1, 1), GridBlock(1, 1, 1, 1), KnownResultTypeOne())
+		finder.score(ranking)
+		ranking.recordLockedCandidates.assert_called_once_with()
+		pass
+
+	def testXWingJellyFishSwordFishScore(self):
+		ranking = MockObject()
+		ranking.recordXWingJellyFishSwordFish = MagicMock()
+		finder = XWingFinder(2, GridRow(1, 1), GridColumn(1, 1), KnownResultTypeOne())
+		finder.score(ranking)
+		ranking.recordXWingJellyFishSwordFish.assert_called_once_with(2)
+		pass
+	pass
 
 		
