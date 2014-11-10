@@ -60,7 +60,6 @@ class TestNakedPairFinder(unittest.TestCase):
 		knownResult.add(Finding({(0, 0)}, {2}))
 		knownResult.add(Finding({(0, 1)}, {3}))
 		self.finder = NakedFinder(2, grid, knownResult)	
-
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(0, 2), (0, 3)}, {4, 5}), result)			
 		pass
@@ -96,7 +95,7 @@ class TestHiddenSingleFinder(unittest.TestCase):
 	def testFindNoHiddenSingle(self):
 		grid = GridRow(1, 2)
 		pMatrix = PossibilityMatrix([[{1, 2}, {2, 1}]])
-		self.finder = HiddenFinder(1, grid, [])
+		self.finder = HiddenFinder(1, grid, KnownResult())
 		result = self.finder.find(pMatrix)
 		self.assertEquals(None, result)		
 		pass
@@ -104,7 +103,7 @@ class TestHiddenSingleFinder(unittest.TestCase):
 	def testFind2ndHiddenSingleWhen1stSingleHasBeenUpdated(self):
 		grid = GridRow(1, 3)
 		pMatrix = PossibilityMatrix([[{1, 2}, {2, 3}, {2, 3, 4}]])
-		self.finder = HiddenFinder(1, grid, [])
+		self.finder = HiddenFinder(1, grid, KnownResult())
 		self.finder.update(Finding({(0, 0)}, {1}), pMatrix)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(0, 2)}, {4}), result)
@@ -113,7 +112,7 @@ class TestHiddenSingleFinder(unittest.TestCase):
 	def testFindHiddenSingleIn2ndRow(self):
 		grid = GridRow(2, 2)
 		pMatrix = PossibilityMatrix([[{1, 2}, {1, 2}], [{3, 4, 1}, {4, 1}]])
-		self.finder = HiddenFinder(1, grid, [])
+		self.finder = HiddenFinder(1, grid, KnownResult())
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0)}, {3}), result)		
 		pass
@@ -123,14 +122,14 @@ class TestHiddenPairFinder(unittest.TestCase):
 	def test_findNoHiddenPair(self):
 		grid = GridRow(1, 3)
 		pMatrix = PossibilityMatrix([[{1, 2}, {1, 2}, {1, 2}]])
-		self.finder = HiddenFinder(2, grid, [])
+		self.finder = HiddenFinder(2, grid, KnownResult())
 		self.assertEquals(None, self.finder.find(pMatrix))
 		pass
 
 	def test_findHiddenPairInARowOnlyOnce(self):
 		grid = GridRow(1, 4)
 		pMatrix = PossibilityMatrix([[{1, 2, 5}, {3, 4, 6}, {1, 2, 6}, {3, 4, 5}]])
-		self.finder = HiddenFinder(2, grid, [])
+		self.finder = HiddenFinder(2, grid, KnownResult())
 		self.finder.update(Finding({(0, 0), (0, 2)}, {1, 2}), pMatrix)
 		self.assertEquals(Finding({(0, 1), (0, 3)}, {3, 4}), self.finder.find(pMatrix))		
 		pass
@@ -138,7 +137,7 @@ class TestHiddenPairFinder(unittest.TestCase):
 	def test_findHiddenPairIn2ndRow(self):
 		grid = GridRow(2, 3)
 		pMatrix = PossibilityMatrix([[{1, 2, 4}, {1, 2, 4}, {1, 2, 7}], [{3, 4, 5}, {3, 4}, {5, 6}]])
-		self.finder = HiddenFinder(2, grid, [])
+		self.finder = HiddenFinder(2, grid, KnownResult())
 		self.assertEquals(Finding({(1, 0), (1, 1)}, {3, 4}), self.finder.find(pMatrix))		
 		pass
 
@@ -147,14 +146,14 @@ class TestHiddenTripple(unittest.TestCase):
 	def testFindNoHiddenTripple(self):
 		grid = GridRow(1, 4)
 		pMatrix = PossibilityMatrix([[{1, 2, 3}, {1, 2, 3}, {1, 2, 3}, {1, 2, 3}]])
-		self.finder = HiddenFinder(3, grid, [])
+		self.finder = HiddenFinder(3, grid, KnownResult())
 		self.assertEquals(None, self.finder.find(pMatrix))		
 		pass
 
 	def testFind2ndHiddenTrippleAfter1stHasBeenUpdated(self):
 		grid = GridRow(1, 7)
 		pMatrix = PossibilityMatrix([[{1, 2, 3}, {1, 2, 3}, {4, 5, 7, 8}, {5, 6, 7, 8}, {1, 2, 3}, {4, 6, 7, 8}, {7, 8}]])
-		self.finder = HiddenFinder(3, grid, [])
+		self.finder = HiddenFinder(3, grid, KnownResult())
 		self.finder.update(Finding({(0, 0), (0, 1), (0, 4)}, {1, 2, 3}), pMatrix)
 		self.assertEquals(Finding({(0, 2), (0, 3), (0, 5)}, {4, 5, 6}), self.finder.find(pMatrix))		
 		pass
@@ -163,7 +162,7 @@ class TestHiddenTripple(unittest.TestCase):
 		grid = GridRow(2, 4)
 		pMatrix = PossibilityMatrix([[{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}], 
 			                         [{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}, {4, 5}]])
-		self.finder = HiddenFinder(3, grid, [])
+		self.finder = HiddenFinder(3, grid, KnownResult())
 		self.assertEquals(Finding({(1, 0), (1, 1), (1, 2)}, {1, 2, 3}), self.finder.find(pMatrix))		
 		pass		
 
@@ -230,14 +229,14 @@ class TestHiddenFinderUpdateItsResult(unittest.TestCase):
 	def testHiddenFinderUpdateInRow(self):
 		pMatrix = MockObject()
 		pMatrix.setPossibility = MagicMock()
-		knownResult = []
+		knownResult = KnownResult()
 
 		finding = Finding({(0, 0), (0, 1)}, {1, 2})
 		finder = HiddenFinder(1, GridRow(1, 3), knownResult)
 		finder.update(finding, pMatrix)
 
 		pMatrix.setPossibility.assert_called_once_with({1, 2}, {(0, 0), (0, 1)})
-		self.assertEquals(finding, knownResult[0])	
+		self.assertFalse(knownResult.isNewResult(finding))	
 		pass
 	pass
 
