@@ -22,7 +22,6 @@ class PuzzleGenerator:
 
 		return puzzle, newlyAddedPos
 
-
 	def solve(self, puzzle):
 		return self.puzzleSolver.solve(puzzle)
 

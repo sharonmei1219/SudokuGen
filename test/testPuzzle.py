@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import call
+from unittest.mock import ANY
 from src.puzzle import *
 import random
 
@@ -24,7 +25,7 @@ class TestPuzzle(unittest.TestCase):
 
 		self.assertTrue(self.puzzle.solved())
 
-		self.validator.validate.assert_called_once_with(self.grid, self.matrix)
+		self.validator.validate.assert_called_once_with(self.grid, ANY)
 		pass
 
 	def test_puzzleIsNotSolvedIfGridIsNotFull(self):
@@ -75,9 +76,6 @@ class TestValidator(unittest.TestCase):
 		self.validator = Validator()
 		self.grid = MockObject()
 		self.matrix = MockObject()
-		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 4]])
-		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 4]])
-		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 4]])
 
 	def test_duplicationDetection(self):
 		self.assertTrue(self.validator.detectDuplication([1, 1, 2]))
@@ -85,21 +83,28 @@ class TestValidator(unittest.TestCase):
 		self.assertFalse(self.validator.detectDuplication([]))
 
 	def test_gridNotValideIfDuplicationExistInARow(self):
-		self.grid.allRows = MagicMock(return_value=[[1, 2],[3, 3]])
-		self.assertFalse(self.validator.validate(self.grid, self.matrix))
-		self.grid.allRows.assert_called_once_with(self.matrix)
-
+		self.matrix = [[1, 1], [2, 3]]
+		self.grid = Grid(2, 2, 1, 1)
+		self.puzzleMatrix = PuzzleMatrix(self.matrix)
+		self.assertFalse(self.validator.validate(self.grid, self.puzzleMatrix))
 
 	def test_gridNotValidIfDuplicationExistInColumn(self):
-		self.grid.allColumns = MagicMock(return_value=[[1, 2],[3, 3]])
-		self.assertFalse(self.validator.validate(self.grid, self.matrix))
+		self.matrix = [[1, 2], [1, 3]]
+		self.grid = Grid(2, 2, 1, 1)
+		self.puzzleMatrix = PuzzleMatrix(self.matrix)
+		self.assertFalse(self.validator.validate(self.grid, self.puzzleMatrix))
 
 	def test_gridNotValidIfDuplicationExistInBlock(self):
-		self.grid.allBlocks = MagicMock(return_value=[[1, 2],[3, 3]])
-		self.assertFalse(self.validator.validate(self.grid, self.matrix))
+		self.matrix = [[1, 2, 3, 4], [2, 1, 4, 3], [3, 4, 1, 2], [4, 3, 2, 1]]
+		self.grid = Grid(4, 4, 2, 2)
+		self.puzzleMatrix = PuzzleMatrix(self.matrix)
+		self.assertFalse(self.validator.validate(self.grid, self.puzzleMatrix))
 
 	def test_gridValidIfThereIsNoDuplicationExistInAnyZone(self):
-		self.assertTrue(self.validator.validate(self.grid, self.matrix))
+		self.matrix = [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]]
+		self.grid = Grid(4, 4, 2, 2)
+		self.puzzleMatrix = PuzzleMatrix(self.matrix)
+		self.assertTrue(self.validator.validate(self.grid, self.puzzleMatrix))
 
 
 class TestCandidates(unittest.TestCase):
@@ -155,11 +160,8 @@ class TestGrid(unittest.TestCase):
 		self.grid = Grid(2, 2, 1, 1)
 		self.gridRow = GridRow(2, 2)
 
-	def test_GridGetAllRows(self):
-		self.assertEquals([[1], [3, 4]], self.grid.allRows([[1, _], [3, 4]]))
-
-	def test_GridGetAllColumns(self):
-		self.assertEquals([[1, 3], [4]], self.grid.allColumns([[1, _], [3, 4]]))
+	# def test_GridGetAllColumns(self):
+	# 	self.assertEquals([[1, 3], [4]], self.grid.allColumns([[1, _], [3, 4]]))
 
 	def test_GridGetAllRowsInPos(self):
 		self.assertEquals([[(0, 0), (0, 1)], [(1, 0), (1, 1)]], self.gridRow.zones())
@@ -183,9 +185,6 @@ class TestBlockInGrid(unittest.TestCase):
 			           [3, 3, 4, 4]];
 
 		self.grid = Grid(6, 4, 3, 2)
-
-	def test_GridGetAllBlocks(self):
-		self.assertEquals([[1, 1, 1, 1],[2, 2, 2, 2],[3, 3, 3, 3],[4, 4, 4, 4]], self.grid.allBlocks(self.matrix))
 
 	def test_emptyCellSuroundingAt21(self):
 		_ = Grid.EmptySign

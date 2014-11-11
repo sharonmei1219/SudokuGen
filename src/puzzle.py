@@ -12,13 +12,14 @@ class Puzzle():
 		self.validator = validator
 		self.candidatesGen = candidates
 
+		self.puzzleMatrix = PuzzleMatrix(matrix)
 		self.matrix = matrix
 		self.mHeight = len(matrix)
 		self.mWidth = len(matrix[0])
 		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
 
 	def solved(self):
-		return self.full() and self.validator.validate(self.grid, self.matrix)
+		return self.full() and self.validator.validate(self.grid, self.puzzleMatrix)
 
 	def candidatesAt(self, pos):
 		return self.candidatesGen.getCandidatesAt(self.grid, pos, self.matrix)		
@@ -30,7 +31,7 @@ class Puzzle():
 		return json.dumps(self.matrix)
 
 	def getNumbersInPos(self, pos):
-		return [self.matrix[p[0]][p[1]] for p in pos]
+		return self.puzzleMatrix.getNumbersInPos(pos)
 
 	def differences(self, theOtherOne):
 		m1, m2 = self.matrix, theOtherOne.matrix
@@ -39,23 +40,20 @@ class Puzzle():
 		return diff[index]
 
 	def full(self):
-		return len(self.emptyList) is 0
+		return self.puzzleMatrix.full()
 
 	def firstEmptyCell(self):
-		result = self.emptyList[0]
-		del self.emptyList[0]
-		return result
+		return self.puzzleMatrix.firstEmptyCell()
 
 	def suroundings(self, pos):
 		i, j = pos[0], pos[1]
 		return set(self.matrix[i] + self.column(j) + self.block(i, j)) - set(self.EmptySign)
 
 	def clear(self, pos):
-		self.matrix[pos[0]][pos[1]] = _
-		self.emptyList = [pos] + self.emptyList
+		self.puzzleMatrix.clear(pos)
 
 	def change(self, pos, value):
-		self.matrix[pos[0]][pos[1]] = value
+		self.puzzleMatrix.change(pos, value)
 
 	def compare(self, theOtherGrid):
 		for i in range(self.mHeight):
@@ -73,10 +71,45 @@ class Puzzle():
 		else:
 			return -1
 
+class PuzzleMatrix:
+	def __init__(self, matrix):
+		self.matrix = matrix
+		self.mHeight = len(matrix)
+		self.mWidth = len(matrix[0])
+		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
+		pass
+
+	def change(self, pos, value):
+		(i, j) = pos
+		self.matrix[i][j] = value
+		pass
+
+	def clear(self, pos):
+		(i, j) = pos
+		self.matrix[i][j] = _
+		self.emptyList = [pos] + self.emptyList	
+		pass
+
+	def firstEmptyCell(self):
+		result = self.emptyList[0]
+		del self.emptyList[0]
+		return result
+	
+	def full(self):
+		return len(self.emptyList) is 0
+
+	def getNumbersInPos(self, pos):
+		return [self.matrix[i][j] for (i, j) in pos]
+
+	pass
 class Validator:
-	def validate(self, grid, matrix):
-		zones = reduce(operator.add, [grid.allRows(matrix), grid.allColumns(matrix), grid.allBlocks(matrix)])
-		return all(not self.detectDuplication(zone) for zone in zones)
+	def validate(self, grid, puzzleMatrix):
+		directions = grid.allDirection()
+		return all([self.validInDirection(direction, puzzleMatrix) for direction in directions])
+
+	def validInDirection(self, direction, puzzleMatrix):
+		zones = direction.zones()
+		return all(not self.detectDuplication(puzzleMatrix.getNumbersInPos(zone)) for zone in zones)
 
 	def detectDuplication(self, numberList):
 		counter = Counter(numberList)
@@ -118,20 +151,6 @@ class Grid:
 
 		self.views = [self.gridRow, self.gridColumn, self.gridBlock]
 
-	def allRows(self, matrix):
-		return self.allInADirection(matrix, self.gridRow)
-
-	def allColumns(self, matrix):
-		return self.allInADirection(matrix, self.gridColumn)
-
-	def allBlocks(self, matrix):
-		return self.allInADirection(matrix, self.gridBlock)
-
-	def allInADirection(self, matrix, gridDirection):
-		zones = gridDirection.zones()
-		values = [[matrix[x][y] for (x, y) in zone] for zone in zones]
-		return [self.nonEmptyNumberIn(value) for value in values]		
-
 	def flatten(self, twoDArray):
 		return reduce(operator.add, twoDArray, [])
 
@@ -141,6 +160,9 @@ class Grid:
 
 	def allPos(self):
 		return self.flatten(self.gridRow.zones())
+
+	def allDirection(self):
+		return [self.gridRow, self.gridColumn, self.gridBlock]
 
 class GridDirection:
 	def posesInSameZone(self, poses):
