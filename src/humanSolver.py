@@ -24,12 +24,24 @@ class HumanSolver:
 						LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
 						LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
 						LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(2, self.gridRow, self.knownResultInRow),
-						NakedFinder(2, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(2, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(2, self.gridRow, self.knownResultInRow),
-						HiddenFinder(2, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(2, self.gridBlock, self.knownResultInBlock)]
+						NakedFinder(3, self.gridRow, self.knownResultInRow),
+						NakedFinder(3, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(3, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(3, self.gridRow, self.knownResultInRow),
+						HiddenFinder(3, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(3, self.gridBlock, self.knownResultInBlock),
+						XWingFinder(2, self.gridRow, self.gridColumn, self.knownResultInColumn),
+						XWingFinder(2, self.gridColumn, self.gridRow, self.knownResultInRow),
+						NakedFinder(4, self.gridRow, self.knownResultInRow),
+						NakedFinder(4, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(4, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(4, self.gridRow, self.knownResultInRow),
+						HiddenFinder(4, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(4, self.gridBlock, self.knownResultInBlock),
+						XWingFinder(3, self.gridRow, self.gridColumn, self.knownResultInColumn),
+						XWingFinder(3, self.gridColumn, self.gridRow, self.knownResultInRow),
+						XWingFinder(4, self.gridRow, self.gridColumn, self.knownResultInColumn),
+						XWingFinder(4, self.gridColumn, self.gridRow, self.knownResultInRow)]
 
 
 		pass
