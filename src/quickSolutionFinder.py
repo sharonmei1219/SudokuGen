@@ -1,4 +1,3 @@
-
 class QuickSolutionFinder:
 	def solve(self, puzzle, solutions):
 		if solutions.impossibleTohaveSolution(puzzle):

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from unittest.mock import call
 from unittest.mock import ANY
 from src.puzzle import *
+from src.puzzle import _
 import random
 
 class MockObject:
@@ -45,7 +46,6 @@ class TestPuzzle(unittest.TestCase):
 		pass
 
 	def test_compare(self):
-		_ = Puzzle.EmptySign
 		puzzle_1 = Puzzle(PuzzleMatrix([[1, 1], [1, 1]]), self.grid, self.validator, self.candidates)
 		puzzle_2 = Puzzle(PuzzleMatrix([[1, 1], [1, 2]]), self.grid, self.validator, self.candidates)
 		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
@@ -63,7 +63,6 @@ class TestPuzzle(unittest.TestCase):
 		self.assertEquals(0, puzzle_1.compare(puzzle_2))	
 
 	def test_GridIsNotFullWhenThereIsEmptyCell(self):
-		_ = Puzzle.EmptySign		
 		puzzle_1 = Puzzle(PuzzleMatrix([[1, 1], [_, 1]],), self.grid, self.validator, self.candidates)		
 		self.assertFalse(puzzle_1.full())
 
@@ -155,15 +154,10 @@ class TestCandidatesInRandomSeq(unittest.TestCase):
 		random.randint = MagicMock(side_effect=[1, 1, 0])
 		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.puzzleMatrix))
 
-
-_ = Grid.EmptySign
 class TestGrid(unittest.TestCase):
 	def setUp(self):
 		self.grid = Grid(2, 2, 1, 1)
 		self.gridRow = GridRow(2, 2)
-
-	# def test_GridGetAllColumns(self):
-	# 	self.assertEquals([[1, 3], [4]], self.grid.allColumns([[1, _], [3, 4]]))
 
 	def test_GridGetAllRowsInPos(self):
 		self.assertEquals([[(0, 0), (0, 1)], [(1, 0), (1, 1)]], self.gridRow.zones())
@@ -178,7 +172,6 @@ class TestGrid(unittest.TestCase):
 
 class TestBlockInGrid(unittest.TestCase):
 	def setUp(self):
-		_ = Grid.EmptySign
 		self.matrix = [[1, 1, 2, 2],
 			 	       [1, 1, _, _],
 			      	   [_, _, 2, 2],
@@ -189,7 +182,6 @@ class TestBlockInGrid(unittest.TestCase):
 		self.grid = Grid(6, 4, 3, 2)
 
 	def test_emptyCellSuroundingAt21(self):
-		_ = Grid.EmptySign
 		matrix = [[1, 2, _, _],
  	              [3, 4, _, _],
       	          [5, _, _, 6],
@@ -203,7 +195,6 @@ class TestBlockInGrid(unittest.TestCase):
 
 class TestBlockIndexExchange(unittest.TestCase):
 	def setUp(self):
-		_ = Grid.EmptySign
 		self.referenceMatrix = [[ 0,  1, 10, 11],
 						   		[ 2,  3, 12, 13],
 						   		[ 4,  5, 14, 15],
@@ -245,7 +236,6 @@ class TestBlockIndexExchange(unittest.TestCase):
 
 class TestPuzzleIntegrate(unittest.TestCase):
 	def test_integratePuzzle(self):
-		_ = Grid.EmptySign
 		matrix = [[1, 8, 8, 8],
 	 	          [2, 8, 8, 8],
 	              [8, _, 3, 4],
@@ -303,14 +293,12 @@ class TestPuzzleCompare(unittest.TestCase):
 		self.assertEquals((1, 0), puzzle_1.differences(puzzle_2))
 
 	def test_puzzleFirstEmptyCell(self):
-		_ = Grid.EmptySign
 		puzzle = self.factory.creatPuzzleByMatrix([[1, _], [_, 4]])
 		
 		self.assertEquals((0, 1), puzzle.firstEmptyCell())
 		self.assertEquals((1, 0), puzzle.firstEmptyCell())
 
 	def test_puzzleChange(self):
-		_ = Grid.EmptySign
 		puzzle = self.factory.creatPuzzleByMatrix([[1, _], [_, 4]])
 		puzzle.change((0, 1), 2)
 
@@ -325,7 +313,6 @@ class TestPuzzleCompare(unittest.TestCase):
 	# 1 is least, 2 is greater, empty sign is the greatest
 	# matrix[0][0] is highest pos, and matrix[m][n] is the lowest pos
 	def test_compare(self):
-		_ = Grid.EmptySign
 		puzzle_1 = self.newPuzzle([[1, 1], [1, 1]])
 		puzzle_2 = self.newPuzzle([[1, 1], [1, 2]])
 		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
@@ -375,4 +362,26 @@ class TestViewDirectionSplitPosesInDifferentZone(unittest.TestCase):
 		poses = [(0, 0), (1, 0), (1, 1)]
 		self.assertEquals([{(0, 0)}, {(1, 0), (1, 1)}], view.split(poses))
 		pass
+
+class TestPuzzleKnownAndUnKnownPart(unittest.TestCase):
+	def testKnownPartOfPuzzle(self):
+		puzzle = Puzzle(PuzzleMatrix([[1, _],
+									  [_, _]]), 
+						Grid(2, 2, 1, 1),
+						Validator(),
+						CandidatesGen([1, 2]))
+		myMap = {(0, 0):1}
+		self.assertEquals(myMap, puzzle.knownPart())
+		pass
+
+	def testUnknownPartOfPuzzle(self):
+		puzzle = Puzzle(PuzzleMatrix([[1, 2],
+									  [_, _]]), 
+						Grid(2, 2, 1, 1),
+						Validator(),
+						CandidatesGen([1, 2, 3]))
+		myMap = {(1, 0): {2, 3}, (1, 1):{1, 3}}
+		self.assertEquals(myMap, puzzle.unknownPart())		
+		pass
+	pass
 		

@@ -5,14 +5,15 @@ import random
 import json
 import copy
 
+_ = "/"
+
 class Puzzle():
-	EmptySign = "/"
 	def __init__(self, puzzleMatrix, grid, validator, candidates):
 		self.grid = grid
+		self.puzzleMatrix = puzzleMatrix
+
 		self.validator = validator
 		self.candidatesGen = candidates
-
-		self.puzzleMatrix = puzzleMatrix
 
 	def solved(self):
 		return self.full() and self.validator.validate(self.grid, self.puzzleMatrix)
@@ -46,6 +47,13 @@ class Puzzle():
 
 	def compare(self, theOtherGrid):
 		return self.puzzleMatrix.compare(theOtherGrid.puzzleMatrix)
+
+	def knownPart(self):
+		return self.puzzleMatrix.knownPart()
+
+	def unknownPart(self):
+		emptyPos = self.puzzleMatrix.emptyList
+		return {pos:set(self.candidatesAt(pos)) for pos in emptyPos}
 
 class PuzzleMatrix:
 	def __init__(self, matrix):
@@ -105,7 +113,11 @@ class PuzzleMatrix:
 	def clone(self):
 		return PuzzleMatrix(copy.deepcopy(self.matrix))
 
+	def knownPart(self):
+		return {(i, j):self.matrix[i][j] for i in range(self.mHeight) for j in range(self.mWidth) if self.matrix[i][j] != _}
+
 	pass
+
 class Validator:
 	def validate(self, grid, puzzleMatrix):
 		directions = grid.allDirection()
@@ -145,7 +157,7 @@ class RandomSeqCandidatesDecorator:
 		pass
 
 class Grid:
-	EmptySign = "/"
+	# EmptySign = "/"
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
@@ -160,7 +172,7 @@ class Grid:
 
 	def suroundings(self, pos, puzzleMatrix):
 		poses = self.flatten([view.zoneWithPosIn(pos) for view in self.views])
-		return set(puzzleMatrix.getNumbersInPos(poses)) - set(self.EmptySign)
+		return set(puzzleMatrix.getNumbersInPos(poses)) - set(_)
 
 	def allPos(self):
 		return self.flatten(self.gridRow.zones())
@@ -222,8 +234,6 @@ class GridBlock(GridDirection):
 		(bi, bj) = self.blockIndexMap[pos[0]][pos[1]]
 		return self.blockIndex[bi]
 
-_ = Grid.EmptySign
-
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):
 		self.tableSize = tableSize
@@ -258,19 +268,19 @@ class PuzzleFactory:
 	def createPuzzleFromTable(self, table, pos):
 		posNumMap = dict(zip(pos, table.getNumbersInPos(pos)))
 		matrix = self.emptyMatrix()
-		for pos in posNumMap:
-			matrix[pos[0]][pos[1]] = posNumMap[pos]
+		for (i, j) in posNumMap:
+			matrix[i][j] = posNumMap[(i, j)]
 		return self.creatPuzzleByMatrix(matrix)
 
 	def emptyMatrix(self):
 		return  [[_]*self.tableSize for j in range(self.tableSize)]
 
 	def tableBase(self):
-		grid = Grid(self.tableBaseMatrix(), self.tableSize, self.tableSize, self.bw, self.bh)
+		grid = Grid(self.tableSize, self.tableSize, self.bw, self.bh)
 		return Puzzle(self.tableBaseMatrix(), grid, self.validator, self.candidatesGen)
 
 	def tableBaseMatrix(self):
-		return [[1, 2, 3, 4, 5, 6, 7, 8, 9]] + [[_]*self.tableSize for j in range(self.tableSize - 1)]
+		return PuzzleMatrix([[1, 2, 3, 4, 5, 6, 7, 8, 9]] + [[_]*self.tableSize for j in range(self.tableSize - 1)])
 
 
 class RandomPuzzleFactory(PuzzleFactory):
