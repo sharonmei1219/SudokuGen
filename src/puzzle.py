@@ -55,12 +55,20 @@ class Puzzle():
 		emptyPos = self.puzzleMatrix.emptyList
 		return {pos:set(self.candidatesAt(pos)) for pos in emptyPos}
 
+	def dim(self):
+		return self.puzzleMatrix.dim()
+		pass
+
 class PuzzleMatrix:
 	def __init__(self, matrix):
 		self.matrix = matrix
 		self.mHeight = len(matrix)
 		self.mWidth = len(matrix[0])
 		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
+		pass
+
+	def dim(self):
+		return self.mHeight, self.mWidth
 		pass
 
 	def change(self, pos, value):
@@ -157,7 +165,6 @@ class RandomSeqCandidatesDecorator:
 		pass
 
 class Grid:
-	# EmptySign = "/"
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):

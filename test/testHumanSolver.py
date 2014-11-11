@@ -4,6 +4,7 @@ from unittest.mock import ANY
 from unittest.mock import call
 from humanSolver import *
 from puzzle import *
+from puzzle import _
 
 class MockObject:
 	pass
@@ -456,4 +457,43 @@ class TestScorer(unittest.TestCase):
 		pass
 	pass
 
+class TestHumanSolver(unittest.TestCase):
+	def testBuildPossibilityMatrix(self):
+		puzzle = Puzzle(PuzzleMatrix([[1, 2],
+									  [_, _]]), 
+						Grid(2, 2, 1, 1),
+						Validator(),
+						CandidatesGen([1, 2, 3]))		
+		hs = HumanSolver()
+		pMatrix = hs.buildPossibilityMatrix(puzzle)
+		self.assertEquals({1}, pMatrix.possibilitieAt((0, 0)))
+		self.assertEquals({2}, pMatrix.possibilitieAt((0, 1)))
+		self.assertEquals({2, 3}, pMatrix.possibilitieAt((1, 0)))
+		self.assertEquals({1, 3}, pMatrix.possibilitieAt((1, 1)))
+		pass
+
+	def testBuildKnownResults(self):
+		puzzle = Puzzle(PuzzleMatrix([[1, 2],
+									  [_, _]]), 
+						Grid(2, 2, 1, 1),
+						Validator(),
+						CandidatesGen([1, 2]))		
+		hs = HumanSolver()
+		knownResult = hs.buildKnownResults(puzzle)
+		self.assertFalse(knownResult.isNewResult(Finding({(0, 0)}, {1})))
+		self.assertFalse(knownResult.isNewResult(Finding({(0, 1)}, {2})))
+		self.assertTrue(knownResult.isNewResult(Finding({(1, 0)}, {2})))
+		self.assertTrue(knownResult.isNewResult(Finding({(1, 1)}, {1})))
+		pass
+
+	def testSolve(self):
+		puzzle = Puzzle(PuzzleMatrix([[1, _],
+									  [_, _]]), 
+						Grid(2, 2, 1, 1),
+						Validator(),
+						CandidatesGen([1, 2]))		
+		hs = HumanSolver()		
+		hs.solve(puzzle)
+		# self.assertFalse(True)
+		pass
 		

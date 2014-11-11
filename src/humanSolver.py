@@ -1,3 +1,92 @@
+class HumanSolver:
+	def __init__(self):
+		self.knownResultInRow = None
+		self.knownResultInColumn = None
+		self.knownResultInBlock = None
+
+		self.gridRow = None
+		self.gridColumn = None
+		self.gridBlock = None
+
+		self.finders = [NakedFinder(1, self.gridRow, self.knownResultInRow),
+						NakedFinder(1, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(1, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(1, self.gridRow, self.knownResultInRow),
+						HiddenFinder(1, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(1, self.gridBlock, self.knownResultInBlock),
+						NakedFinder(2, self.gridRow, self.knownResultInRow),
+						NakedFinder(2, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(2, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(2, self.gridRow, self.knownResultInRow),
+						HiddenFinder(2, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(2, self.gridBlock, self.knownResultInBlock),
+						LockedCellFinder(self.gridRow, self.gridBlock, self.knownResultInBlock),
+						LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
+						LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
+						LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(2, self.gridRow, self.knownResultInRow),
+						NakedFinder(2, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(2, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(2, self.gridRow, self.knownResultInRow),
+						HiddenFinder(2, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(2, self.gridBlock, self.knownResultInBlock)]
+
+
+		pass
+
+	def buildPossibilityMatrix(self, puzzle):
+		pHeight, pWidth = puzzle.dim()
+		matrix = [[set()] * pWidth for i in range(pHeight)]
+		knownPart = puzzle.knownPart()
+		for (i, j) in knownPart:
+			matrix[i][j] = {knownPart[(i, j)]}
+
+		unknownPart = puzzle.unknownPart()
+		for (i, j) in unknownPart:
+			matrix[i][j] = unknownPart[(i, j)]
+
+		return PossibilityMatrix(matrix)
+
+	def buildKnownResults(self, puzzle):
+		result = KnownResultTypeOne()
+		knownPart = puzzle.knownPart()
+		for pos in knownPart:
+			result.add(Finding({pos}, {knownPart[pos]}))
+		return result
+
+	def solve(self, puzzle):
+		pMatrix = self.buildPossibilityMatrix(puzzle)
+
+		self.knownResultInRow = self.buildKnownResults(puzzle)
+		self.knownResultInColumn = self.buildKnownResults(puzzle)
+		self.knownResultInBlock = self.buildKnownResults(puzzle)
+
+		self.gridRow = puzzle.grid.gridRow
+		self.gridColumn = puzzle.grid.gridColumn
+		self.gridBlock = puzzle.grid.gridBlock
+
+		finders = [NakedFinder(1, puzzle.grid.gridRow, self.knownResultInRow),
+				   NakedFinder(1, puzzle.grid.gridColumn, self.knownResultInColumn)]
+
+		scorer = Scorer()
+		observer = PossibilityMatrixUpdateObserver()
+
+		pMatrix.register(observer)
+
+		observer.set()
+
+		while observer.isMatrixChanged():
+			observer.clear()
+			for finder in finders:
+				finder.findAndUpdate(pMatrix)
+				if observer.isMatrixChanged():
+					finder.score(scorer)
+					break
+		pass
+
+		print(pMatrix.matrix)
+	pass
+
 class PossibilityMatrix:
 	def __init__(self, matrix):
 		self.matrix = matrix
@@ -82,7 +171,7 @@ class Finder:
 		foundSomething = False
 		finding = self.find(pMatrix)
 
-		while finding != None:
+		while finding is not None:
 			self.update(finding, pMatrix)
 			foundSomething = True;
 			finding = self.find(pMatrix)
@@ -291,6 +380,10 @@ class PossibilityMatrixUpdateObserver:
 
 	def clear(self):
 		self.changed = False
+		pass
+
+	def set(self):
+		self.changed = True
 		pass
 
 class Scorer:
