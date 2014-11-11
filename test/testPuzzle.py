@@ -16,7 +16,7 @@ class TestPuzzle(unittest.TestCase):
 		self.candidates = MockObject()
 		self.grid.full = MagicMock(return_value=True)
 		self.validator.validate = MagicMock(return_value=True)
-		self.puzzle = Puzzle(self.matrix, self.grid, self.validator, self.candidates)
+		self.puzzle = Puzzle(PuzzleMatrix(self.matrix), self.grid, self.validator, self.candidates)
 		pass
 	
 	def test_puzzleIsSolvedIfMatrixIsFullAndValidationPassed(self):
@@ -41,34 +41,34 @@ class TestPuzzle(unittest.TestCase):
 	def test_puzzleCandidatesAt(self):
 		self.candidates.getCandidatesAt = MagicMock(return_value=[1, 2])
 		self.assertEquals([1, 2], self.puzzle.candidatesAt((0,0)))
-		self.candidates.getCandidatesAt.assert_called_once_with(self.grid, (0,0), self.matrix)
+		self.candidates.getCandidatesAt.assert_called_once_with(self.grid, (0,0), ANY)
 		pass
 
 	def test_compare(self):
 		_ = Puzzle.EmptySign
-		puzzle_1 = Puzzle([[1, 1], [1, 1]], self.grid, self.validator, self.candidates)
-		puzzle_2 = Puzzle([[1, 1], [1, 2]], self.grid, self.validator, self.candidates)
+		puzzle_1 = Puzzle(PuzzleMatrix([[1, 1], [1, 1]]), self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle(PuzzleMatrix([[1, 1], [1, 2]]), self.grid, self.validator, self.candidates)
 		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
 
-		puzzle_1 = Puzzle([[1, 1], [_, 1]], self.grid, self.validator, self.candidates)
-		puzzle_2 = Puzzle([[1, 1], [1, 2]], self.grid, self.validator, self.candidates)
+		puzzle_1 = Puzzle(PuzzleMatrix([[1, 1], [_, 1]]), self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle(PuzzleMatrix([[1, 1], [1, 2]]), self.grid, self.validator, self.candidates)
 		self.assertEquals(1, puzzle_1.compare(puzzle_2))
 
-		puzzle_1 = Puzzle([[1, 1], [_, 1]], self.grid, self.validator, self.candidates)
-		puzzle_2 = Puzzle([[1, 2], [1, 2]], self.grid, self.validator, self.candidates)
+		puzzle_1 = Puzzle(PuzzleMatrix([[1, 1], [_, 1]]), self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle(PuzzleMatrix([[1, 2], [1, 2]]), self.grid, self.validator, self.candidates)
 		self.assertEquals(-1, puzzle_1.compare(puzzle_2))
 
-		puzzle_1 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
-		puzzle_2 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
+		puzzle_1 = Puzzle(PuzzleMatrix([[1, 2], [2, 1]]), self.grid, self.validator, self.candidates)
+		puzzle_2 = Puzzle(PuzzleMatrix([[1, 2], [2, 1]]), self.grid, self.validator, self.candidates)
 		self.assertEquals(0, puzzle_1.compare(puzzle_2))	
 
 	def test_GridIsNotFullWhenThereIsEmptyCell(self):
 		_ = Puzzle.EmptySign		
-		puzzle_1 = Puzzle([[1, 1], [_, 1]], self.grid, self.validator, self.candidates)		
+		puzzle_1 = Puzzle(PuzzleMatrix([[1, 1], [_, 1]],), self.grid, self.validator, self.candidates)		
 		self.assertFalse(puzzle_1.full())
 
 	def test_GridIsFull(self):
-		puzzle_1 = Puzzle([[1, 2], [2, 1]], self.grid, self.validator, self.candidates)
+		puzzle_1 = Puzzle(PuzzleMatrix([[1, 2], [2, 1]]), self.grid, self.validator, self.candidates)
 		self.assertTrue(puzzle_1.full())
 
 class TestValidator(unittest.TestCase):
@@ -112,21 +112,22 @@ class TestCandidates(unittest.TestCase):
 		self.candidatesGen = CandidatesGen([1, 2, 3, 4])
 		self.grid = MockObject()
 		self.matrix = MockObject()
+		self.puzzleMatrix = MockObject()
 
 	def test_candidatesAt00Is4WhenSuroundingsAre123(self):
 		self.grid.suroundings = MagicMock(return_value=[1, 2, 3])
-		self.assertEquals([4], self.candidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
-		self.grid.suroundings.assert_called_once_with((0, 0), self.matrix)
+		self.assertEquals([4], self.candidatesGen.getCandidatesAt(self.grid, (0, 0), self.puzzleMatrix))
+		self.grid.suroundings.assert_called_once_with((0, 0), self.puzzleMatrix)
 
 	def test_candidatesAt00IsEmptyListWhenSuroundingsAre1234(self):
 		self.grid.suroundings = MagicMock(return_value=[1, 2, 3, 4])
-		self.assertEquals([], self.candidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
-		self.grid.suroundings.assert_called_once_with((0, 0), self.matrix)
+		self.assertEquals([], self.candidatesGen.getCandidatesAt(self.grid, (0, 0), self.puzzleMatrix))
+		self.grid.suroundings.assert_called_once_with((0, 0), self.puzzleMatrix)
 
 	def test_candidatesAt00Is1234WhenSuroundingsAreEmpty(self):
 		self.grid.suroundings = MagicMock(return_value=[])
-		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidatesAt(self.grid, (0, 1), self.matrix))
-		self.grid.suroundings.assert_called_once_with((0, 1), self.matrix)
+		self.assertEquals([1, 2, 3, 4], self.candidatesGen.getCandidatesAt(self.grid, (0, 1), self.puzzleMatrix))
+		self.grid.suroundings.assert_called_once_with((0, 1), self.puzzleMatrix)
 
 class TestCandidatesInRandomSeq(unittest.TestCase):
 	def setUp(self):
@@ -136,22 +137,23 @@ class TestCandidatesInRandomSeq(unittest.TestCase):
 		self.randint = random.randint
 		self.grid = MockObject()
 		self.matrix = MockObject()
+		self.puzzleMatrix = MockObject()
 
 	def tearDown(self):
 		random.randint = self.randint
 
 	def test_RandomSeqCandidatesGen(self):
 		random.randint = MagicMock(side_effect=[0, 0, 0])
-		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
+		self.assertEquals([1, 2, 3], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.puzzleMatrix))
 		self.assertEquals([call(0, 2), call(0, 1), call(0, 0)], random.randint.mock_calls)
 
 	def test_RandomSeqCandidatesGenReversedSeq(self):
 		random.randint = MagicMock(side_effect=[2, 1, 0])
-		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
+		self.assertEquals([3, 2, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.puzzleMatrix))
 
 	def test_RandomSeqCandidatesGenReversedSeq(self):
 		random.randint = MagicMock(side_effect=[1, 1, 0])
-		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.matrix))
+		self.assertEquals([2, 3, 1], self.randomSeqCandidatesGen.getCandidatesAt(self.grid, (0, 0), self.puzzleMatrix))
 
 
 _ = Grid.EmptySign
@@ -194,9 +196,10 @@ class TestBlockInGrid(unittest.TestCase):
            		  [_, 7, _, _],
                   [_, _, _, _],
                   [_, _, _, _]];
+		puzzleMatrix = PuzzleMatrix(matrix)
 
 		grid =  Grid(6, 4, 3, 2)
-		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1), matrix))
+		self.assertEquals(set([1, 2, 3, 4, 5, 6, 7]), grid.suroundings((2, 1), puzzleMatrix))
 
 class TestBlockIndexExchange(unittest.TestCase):
 	def setUp(self):
@@ -252,7 +255,7 @@ class TestPuzzleIntegrate(unittest.TestCase):
 		grid = Grid(6, 4, 3, 2)
 		candidatesGen = CandidatesGen([1, 2, 3, 4, 5, 6, 7])
 		validator = Validator()
-		puzzle = Puzzle(matrix, grid, validator, candidatesGen)
+		puzzle = Puzzle(PuzzleMatrix(matrix), grid, validator, candidatesGen)
 		self.assertFalse(puzzle.solved())
 		self.assertEquals((2,1), puzzle.firstEmptyCell())
 		self.assertEquals([7], puzzle.candidatesAt((2, 1)))

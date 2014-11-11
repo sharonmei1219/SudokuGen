@@ -7,47 +7,36 @@ import copy
 
 class Puzzle():
 	EmptySign = "/"
-	def __init__(self, matrix, grid, validator, candidates):
+	def __init__(self, puzzleMatrix, grid, validator, candidates):
 		self.grid = grid
 		self.validator = validator
 		self.candidatesGen = candidates
 
-		self.puzzleMatrix = PuzzleMatrix(matrix)
-		self.matrix = matrix
-		self.mHeight = len(matrix)
-		self.mWidth = len(matrix[0])
-		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
+		self.puzzleMatrix = puzzleMatrix
 
 	def solved(self):
 		return self.full() and self.validator.validate(self.grid, self.puzzleMatrix)
 
 	def candidatesAt(self, pos):
-		return self.candidatesGen.getCandidatesAt(self.grid, pos, self.matrix)		
+		return self.candidatesGen.getCandidatesAt(self.grid, pos, self.puzzleMatrix)		
 
 	def clone(self):
-		return Puzzle(copy.deepcopy(self.matrix), self.grid, self.validator, self.candidatesGen)
+		return Puzzle(self.puzzleMatrix.clone(), self.grid, self.validator, self.candidatesGen)
 
 	def toString(self):
-		return json.dumps(self.matrix)
+		return self.puzzleMatrix.toString()
 
 	def getNumbersInPos(self, pos):
 		return self.puzzleMatrix.getNumbersInPos(pos)
 
 	def differences(self, theOtherOne):
-		m1, m2 = self.matrix, theOtherOne.matrix
-		diff =  [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
-		index = random.randint(0, len(diff) - 1)
-		return diff[index]
+		return self.puzzleMatrix.differences(theOtherOne.puzzleMatrix)
 
 	def full(self):
 		return self.puzzleMatrix.full()
 
 	def firstEmptyCell(self):
 		return self.puzzleMatrix.firstEmptyCell()
-
-	def suroundings(self, pos):
-		i, j = pos[0], pos[1]
-		return set(self.matrix[i] + self.column(j) + self.block(i, j)) - set(self.EmptySign)
 
 	def clear(self, pos):
 		self.puzzleMatrix.clear(pos)
@@ -56,20 +45,7 @@ class Puzzle():
 		self.puzzleMatrix.change(pos, value)
 
 	def compare(self, theOtherGrid):
-		for i in range(self.mHeight):
-			for j in range(self.mWidth):
-				if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
-					return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
-		return 0
-
-	def compareElement(self, x, y):
-		if x is y:
-			return 0
-
-		if (x is self.EmptySign) or (x > y) : 
-			return 1
-		else:
-			return -1
+		return self.puzzleMatrix.compare(theOtherGrid.puzzleMatrix)
 
 class PuzzleMatrix:
 	def __init__(self, matrix):
@@ -101,6 +77,34 @@ class PuzzleMatrix:
 	def getNumbersInPos(self, pos):
 		return [self.matrix[i][j] for (i, j) in pos]
 
+	def differences(self, theOtherOne):
+		m1, m2 = self.matrix, theOtherOne.matrix
+		diff =  [(i, j) for i in range(len(self.matrix)) for j in range(len(self.matrix[0])) if m1[i][j] is not m2[i][j]]
+		index = random.randint(0, len(diff) - 1)
+		return diff[index]
+
+	def compare(self, theOtherGrid):
+		for i in range(self.mHeight):
+			for j in range(self.mWidth):
+				if self.matrix[i][j] != theOtherGrid.matrix[i][j]:
+					return self.compareElement(self.matrix[i][j], theOtherGrid.matrix[i][j])
+		return 0
+
+	def compareElement(self, x, y):
+		if x is y:
+			return 0
+
+		if (x is _) or (x > y) : 
+			return 1
+		else:
+			return -1
+
+	def toString(self):
+		return json.dumps(self.matrix)
+
+	def clone(self):
+		return PuzzleMatrix(copy.deepcopy(self.matrix))
+
 	pass
 class Validator:
 	def validate(self, grid, puzzleMatrix):
@@ -119,8 +123,8 @@ class CandidatesGen:
 	def __init__(self, candidatesList):
 		self.candidatesList = candidatesList
 
-	def getCandidatesAt(self, grid, pos, matrix):
-		return self.subList(self.candidatesList, grid.suroundings(pos, matrix))
+	def getCandidatesAt(self, grid, pos, puzzleMatrix):
+		return self.subList(self.candidatesList, grid.suroundings(pos, puzzleMatrix))
 
 	def subList(self, list1, list2):
 		return [number for number in list1 if number not in list2]
@@ -129,8 +133,8 @@ class RandomSeqCandidatesDecorator:
 	def __init__(self, candidatesGen):
 		self.candidatesGen = candidatesGen
 
-	def getCandidatesAt(self, grid, pos, matrix):
-		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos, matrix))
+	def getCandidatesAt(self, grid, pos, puzzleMatrix):
+		candidates = list(self.candidatesGen.getCandidatesAt(grid, pos, puzzleMatrix))
 		candidatesCount = len(candidates)
 		result = []
 		for i in range(0, candidatesCount):
@@ -154,9 +158,9 @@ class Grid:
 	def flatten(self, twoDArray):
 		return reduce(operator.add, twoDArray, [])
 
-	def suroundings(self, pos, matrix):
+	def suroundings(self, pos, puzzleMatrix):
 		poses = self.flatten([view.zoneWithPosIn(pos) for view in self.views])
-		return set([matrix[i][j] for (i, j) in poses]) - set(self.EmptySign)
+		return set(puzzleMatrix.getNumbersInPos(poses)) - set(self.EmptySign)
 
 	def allPos(self):
 		return self.flatten(self.gridRow.zones())
@@ -230,11 +234,11 @@ class PuzzleFactory:
 
 	def creatPuzzleByMatrix(self, matrix):
 		grid = Grid(self.tableSize, self.tableSize, self.bw, self.bh)
-		return Puzzle(matrix, grid, self.validator, self.candidatesGen)
+		return Puzzle(PuzzleMatrix(matrix), grid, self.validator, self.candidatesGen)
 
 	def emptyPuzzle(self):
 		grid = Grid(self.tableSize, self.tableSize, self.bw, self.bh)
-		return Puzzle(self.emptyMatrix(), grid, self.validator, self.candidatesGen)
+		return Puzzle(PuzzleMatrix(self.emptyMatrix()), grid, self.validator, self.candidatesGen)
 
 	def getRandomPos(self, count):
 		d = self.tableSize
