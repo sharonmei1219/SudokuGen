@@ -80,6 +80,42 @@ class HumanSolver:
 		finders = [NakedFinder(1, puzzle.grid.gridRow, self.knownResultInRow),
 				   NakedFinder(1, puzzle.grid.gridColumn, self.knownResultInColumn)]
 
+		self.finders = [NakedFinder(1, self.gridRow, self.knownResultInRow),
+						NakedFinder(1, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(1, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(1, self.gridRow, self.knownResultInRow),
+						HiddenFinder(1, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(1, self.gridBlock, self.knownResultInBlock),
+						NakedFinder(2, self.gridRow, self.knownResultInRow),
+						NakedFinder(2, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(2, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(2, self.gridRow, self.knownResultInRow),
+						HiddenFinder(2, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(2, self.gridBlock, self.knownResultInBlock),
+						LockedCellFinder(self.gridRow, self.gridBlock, self.knownResultInBlock),
+						LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
+						LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
+						LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(3, self.gridRow, self.knownResultInRow),
+						NakedFinder(3, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(3, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(3, self.gridRow, self.knownResultInRow),
+						HiddenFinder(3, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(3, self.gridBlock, self.knownResultInBlock),
+						XWingFinder(2, self.gridRow, self.gridColumn, self.knownResultInColumn),
+						XWingFinder(2, self.gridColumn, self.gridRow, self.knownResultInRow),
+						NakedFinder(4, self.gridRow, self.knownResultInRow),
+						NakedFinder(4, self.gridColumn, self.knownResultInColumn),
+						NakedFinder(4, self.gridBlock, self.knownResultInBlock),
+						HiddenFinder(4, self.gridRow, self.knownResultInRow),
+						HiddenFinder(4, self.gridColumn, self.knownResultInColumn),
+						HiddenFinder(4, self.gridBlock, self.knownResultInBlock),
+						XWingFinder(3, self.gridRow, self.gridColumn, self.knownResultInColumn),
+						XWingFinder(3, self.gridColumn, self.gridRow, self.knownResultInRow),
+						XWingFinder(4, self.gridRow, self.gridColumn, self.knownResultInColumn),
+						XWingFinder(4, self.gridColumn, self.gridRow, self.knownResultInRow)]
+
+
 		scorer = Scorer()
 		observer = PossibilityMatrixUpdateObserver()
 
@@ -89,14 +125,16 @@ class HumanSolver:
 
 		while observer.isMatrixChanged():
 			observer.clear()
-			for finder in finders:
+			for finder in self.finders:
 				finder.findAndUpdate(pMatrix)
 				if observer.isMatrixChanged():
+					# print('pMatrix update')
 					finder.score(scorer)
 					break
 		pass
 
 		print(pMatrix.matrix)
+		print(scorer.result())
 	pass
 
 class PossibilityMatrix:
@@ -407,14 +445,22 @@ class Scorer:
 		return self.rank
 
 	def recordPairTripleQuat(self, criteria):
+		if criteria == 1: print("single found")
+		if criteria == 2: print("pair found")
+		if criteria == 3: print("triple found")
+		if criteria == 4: print("quat found")
 		self.record(criteria - 1)
 		pass
 
 	def recordLockedCandidates(self):
+		print("locked candidates found")
 		self.record(1)
 		pass
 
 	def recordXWingJellyFishSwordFish(self, criteria):
+		if criteria == 2: print("XWing found")
+		if criteria == 3: print("Jelly fish found")
+		if criteria == 4: print("Sword fish found")
 		self.record(criteria)
 		pass
 
