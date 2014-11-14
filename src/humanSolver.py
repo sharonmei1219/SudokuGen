@@ -1,12 +1,13 @@
+#has huge side effect, need to be one humanSolver PerPuzzle
 class HumanSolver:
-	def __init__(self):
-		self.knownResultInRow = None
-		self.knownResultInColumn = None
-		self.knownResultInBlock = None
+	def __init__(self, grid):
+		self.observer = PossibilityMatrixUpdateObserver()
+		self.scorer = Scorer()
+		self.results = [KnownResultTypeOne(), KnownResultTypeOne(), KnownResultTypeOne()]
+		(self.knownResultInRow, self.knownResultInColumn, self.knownResultInBlock) = (self.results)
 
-		self.gridRow = None
-		self.gridColumn = None
-		self.gridBlock = None
+		self.directioins = grid.allDirection()
+		(self.gridRow, self.gridColumn, self.gridBlock) = (self.directioins)
 
 		self.finders = [NakedFinder(1, self.gridRow, self.knownResultInRow),
 						NakedFinder(1, self.gridColumn, self.knownResultInColumn),
@@ -42,8 +43,6 @@ class HumanSolver:
 						XWingFinder(3, self.gridColumn, self.gridRow, self.knownResultInRow),
 						XWingFinder(4, self.gridRow, self.gridColumn, self.knownResultInColumn),
 						XWingFinder(4, self.gridColumn, self.gridRow, self.knownResultInRow)]
-
-
 		pass
 
 	def buildPossibilityMatrix(self, puzzle):
@@ -60,82 +59,34 @@ class HumanSolver:
 		return PossibilityMatrix(matrix)
 
 	def buildKnownResults(self, puzzle):
-		result = KnownResultTypeOne()
 		knownPart = puzzle.knownPart()
-		for pos in knownPart:
-			result.add(Finding({pos}, {knownPart[pos]}))
-		return result
-
-	def solve(self, puzzle):
-		pMatrix = self.buildPossibilityMatrix(puzzle)
-
-		self.knownResultInRow = self.buildKnownResults(puzzle)
-		self.knownResultInColumn = self.buildKnownResults(puzzle)
-		self.knownResultInBlock = self.buildKnownResults(puzzle)
-
-		self.gridRow = puzzle.grid.gridRow
-		self.gridColumn = puzzle.grid.gridColumn
-		self.gridBlock = puzzle.grid.gridBlock
-
-		finders = [NakedFinder(1, puzzle.grid.gridRow, self.knownResultInRow),
-				   NakedFinder(1, puzzle.grid.gridColumn, self.knownResultInColumn)]
-
-		self.finders = [NakedFinder(1, self.gridRow, self.knownResultInRow),
-						NakedFinder(1, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(1, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(1, self.gridRow, self.knownResultInRow),
-						HiddenFinder(1, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(1, self.gridBlock, self.knownResultInBlock),
-						NakedFinder(2, self.gridRow, self.knownResultInRow),
-						NakedFinder(2, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(2, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(2, self.gridRow, self.knownResultInRow),
-						HiddenFinder(2, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(2, self.gridBlock, self.knownResultInBlock),
-						LockedCellFinder(self.gridRow, self.gridBlock, self.knownResultInBlock),
-						LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
-						LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
-						LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(3, self.gridRow, self.knownResultInRow),
-						NakedFinder(3, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(3, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(3, self.gridRow, self.knownResultInRow),
-						HiddenFinder(3, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(3, self.gridBlock, self.knownResultInBlock),
-						XWingFinder(2, self.gridRow, self.gridColumn, self.knownResultInColumn),
-						XWingFinder(2, self.gridColumn, self.gridRow, self.knownResultInRow),
-						NakedFinder(4, self.gridRow, self.knownResultInRow),
-						NakedFinder(4, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(4, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(4, self.gridRow, self.knownResultInRow),
-						HiddenFinder(4, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(4, self.gridBlock, self.knownResultInBlock),
-						XWingFinder(3, self.gridRow, self.gridColumn, self.knownResultInColumn),
-						XWingFinder(3, self.gridColumn, self.gridRow, self.knownResultInRow),
-						XWingFinder(4, self.gridRow, self.gridColumn, self.knownResultInColumn),
-						XWingFinder(4, self.gridColumn, self.gridRow, self.knownResultInRow)]
-
-
-		scorer = Scorer()
-		observer = PossibilityMatrixUpdateObserver()
-
-		pMatrix.register(observer)
-
-		observer.set()
-
-		while observer.isMatrixChanged():
-			observer.clear()
-			for finder in self.finders:
-				finder.findAndUpdate(pMatrix)
-				if observer.isMatrixChanged():
-					# print('pMatrix update')
-					finder.score(scorer)
-					break
+		for result in self.results:
+			for pos in knownPart:
+				result.add(Finding({pos}, {knownPart[pos]}))
 		pass
 
-		print(pMatrix.matrix)
-		print(scorer.result())
-	pass
+	def createContextForPuzzleToSolve(self, puzzle):
+		pMatrix = self.buildPossibilityMatrix(puzzle)
+		pMatrix.register(self.observer)
+		self.buildKnownResults(puzzle)
+		return pMatrix
+
+	def solve(self, puzzle):
+		pMatrix = self.createContextForPuzzleToSolve(puzzle)
+		self.solvePossibilityMatrix(pMatrix)
+		return(pMatrix)
+
+	def solvePossibilityMatrix(self, pMatrix):
+		self.observer.set()
+
+		while self.observer.isMatrixChanged():
+			self.observer.clear()
+			for finder in self.finders:
+				finder.findAndUpdate(pMatrix)
+				if self.observer.isMatrixChanged():
+					finder.score(self.scorer)
+					break
+		pass
 
 class PossibilityMatrix:
 	def __init__(self, matrix):

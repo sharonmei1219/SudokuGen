@@ -458,13 +458,17 @@ class TestScorer(unittest.TestCase):
 	pass
 
 class TestHumanSolver(unittest.TestCase):
+	def setUp(self):
+		self.grid = Grid(2, 2, 1, 1)
+		pass
+
 	def testBuildPossibilityMatrix(self):
 		puzzle = Puzzle(PuzzleMatrix([[1, 2],
 									  [_, _]]), 
-						Grid(2, 2, 1, 1),
+						self.grid,
 						Validator(),
 						CandidatesGen([1, 2, 3]))		
-		hs = HumanSolver()
+		hs = HumanSolver(self.grid)
 		pMatrix = hs.buildPossibilityMatrix(puzzle)
 		self.assertEquals({1}, pMatrix.possibilitieAt((0, 0)))
 		self.assertEquals({2}, pMatrix.possibilitieAt((0, 1)))
@@ -475,15 +479,15 @@ class TestHumanSolver(unittest.TestCase):
 	def testBuildKnownResults(self):
 		puzzle = Puzzle(PuzzleMatrix([[1, 2],
 									  [_, _]]), 
-						Grid(2, 2, 1, 1),
+						self.grid,
 						Validator(),
 						CandidatesGen([1, 2]))		
-		hs = HumanSolver()
-		knownResult = hs.buildKnownResults(puzzle)
-		self.assertFalse(knownResult.isNewResult(Finding({(0, 0)}, {1})))
-		self.assertFalse(knownResult.isNewResult(Finding({(0, 1)}, {2})))
-		self.assertTrue(knownResult.isNewResult(Finding({(1, 0)}, {2})))
-		self.assertTrue(knownResult.isNewResult(Finding({(1, 1)}, {1})))
+		hs = HumanSolver(self.grid)
+		hs.buildKnownResults(puzzle)
+		self.assertFalse(hs.knownResultInRow.isNewResult(Finding({(0, 0)}, {1})))
+		self.assertFalse(hs.knownResultInColumn.isNewResult(Finding({(0, 1)}, {2})))
+		self.assertTrue(hs.knownResultInBlock.isNewResult(Finding({(1, 0)}, {2})))
+		self.assertTrue(hs.knownResultInRow.isNewResult(Finding({(1, 1)}, {1})))
 		pass
 
 	def testSolve(self):
@@ -492,7 +496,7 @@ class TestHumanSolver(unittest.TestCase):
 						Grid(2, 2, 1, 1),
 						Validator(),
 						CandidatesGen([1, 2]))		
-		hs = HumanSolver()		
+		hs = HumanSolver(self.grid)		
 		hs.solve(puzzle)
 		# self.assertFalse(True)
 		pass

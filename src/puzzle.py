@@ -57,7 +57,6 @@ class Puzzle():
 
 	def dim(self):
 		return self.puzzleMatrix.dim()
-		pass
 
 class PuzzleMatrix:
 	def __init__(self, matrix):
@@ -65,10 +64,6 @@ class PuzzleMatrix:
 		self.mHeight = len(matrix)
 		self.mWidth = len(matrix[0])
 		self.emptyList = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if matrix[i][j] is _]
-		pass
-
-	def dim(self):
-		return self.mHeight, self.mWidth
 		pass
 
 	def change(self, pos, value):
@@ -124,6 +119,10 @@ class PuzzleMatrix:
 	def knownPart(self):
 		return {(i, j):self.matrix[i][j] for i in range(self.mHeight) for j in range(self.mWidth) if self.matrix[i][j] != _}
 
+	def dim(self):
+		return len(self.matrix), len(self.matrix[0])
+		pass
+
 	pass
 
 class Validator:
@@ -162,7 +161,6 @@ class RandomSeqCandidatesDecorator:
 			result.append(candidates[r])
 			del candidates[r]
 		return result		
-		pass
 
 class Grid:
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
@@ -173,6 +171,8 @@ class Grid:
 		self.gridBlock = GridBlock(matrixHeight, matrixWidth, blockHeight, blockWidth)
 
 		self.views = [self.gridRow, self.gridColumn, self.gridBlock]
+
+		self.dim = (matrixHeight, matrixWidth)
 
 	def flatten(self, twoDArray):
 		return reduce(operator.add, twoDArray, [])
