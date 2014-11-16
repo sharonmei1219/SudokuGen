@@ -384,4 +384,41 @@ class TestPuzzleKnownAndUnKnownPart(unittest.TestCase):
 		self.assertEquals(myMap, puzzle.unknownPart())		
 		pass
 	pass
+
+class testPuzzlePermutation(unittest.TestCase):
+
+	def testOneListInABlock(self):
+		permutator = PuzzlePermutator(1, 2, 1, 1)
+		row = permutator.permRow([1, 0], [[0],[0]])
+		self.assertEquals([1, 0], row)
+		pass
+
+	def testTwoListNoTwistInABlock(self):
+		permutator = PuzzlePermutator(1, 2, 1, 1)
+		row = permutator.permRow([1, 0], [[0, 1],[0, 1]])
+		self.assertEquals([2, 3, 0, 1], row)
+		pass
+
+	def testTwoListTwistInABlock(self):
+		permutator = PuzzlePermutator(1, 2, 1, 1)
+		row = permutator.permRow([1, 0], [[1, 0],[0, 1]])
+		self.assertEquals([3, 2, 0, 1], row)
+		pass
+
+	def testRandomPerOfListSizeOf1(self):
+		permutator = PuzzlePermutator(1, 2, 1, 1)
+		perm = permutator.genPerm(1, 0)
+		self.assertEquals([0], perm)
+		pass
+
+	def testRandomPerOfListSizeOf3(self):
+		permutator = PuzzlePermutator(1, 3, 1, 1)
+		self.assertEquals([0, 1, 2], permutator.genPerm(3, 0))
+		self.assertEquals([0, 2, 1], permutator.genPerm(3, 1))
+		self.assertEquals([1, 0, 2], permutator.genPerm(3, 2))				
+		self.assertEquals([1, 2, 0], permutator.genPerm(3, 3))
+		self.assertEquals([2, 0, 1], permutator.genPerm(3, 4))
+		self.assertEquals([2, 1, 0], permutator.genPerm(3, 5))
+		pass
+	pass
 		

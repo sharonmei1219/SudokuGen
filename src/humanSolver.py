@@ -1,4 +1,4 @@
-#has huge side effect, need to be one humanSolver PerPuzzle
+#has huge side effect, need to be one humanSolver Per Puzzle
 class HumanSolver:
 	def __init__(self, grid):
 		self.observer = PossibilityMatrixUpdateObserver()
@@ -396,10 +396,6 @@ class Scorer:
 		return self.rank
 
 	def recordPairTripleQuat(self, criteria):
-		if criteria == 1: print("single found")
-		if criteria == 2: print("pair found")
-		if criteria == 3: print("triple found")
-		if criteria == 4: print("quat found")
 		self.record(criteria - 1)
 		pass
 
@@ -409,9 +405,6 @@ class Scorer:
 		pass
 
 	def recordXWingJellyFishSwordFish(self, criteria):
-		if criteria == 2: print("XWing found")
-		if criteria == 3: print("Jelly fish found")
-		if criteria == 4: print("Sword fish found")
 		self.record(criteria)
 		pass
 

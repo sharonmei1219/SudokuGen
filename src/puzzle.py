@@ -295,3 +295,26 @@ class RandomPuzzleFactory(PuzzleFactory):
 		super(RandomPuzzleFactory, self).__init__(tableSize, blockWidth, blockHeight)
 		self.candidatesGen = RandomSeqCandidatesDecorator(self.candidatesGen)
 		pass
+
+class PuzzlePermutator:
+	def __init__(self, tableHeight, tableWidth, blockHeight, blockWidth):
+		self.fact = [1]
+		length = max(tableHeight, tableWidth)
+		for i in range(1, length):
+			self.fact += [self.fact[i - 1] * i]
+		pass
+
+	def permRow(self, blockPer, singlePer):
+		perms = list(zip(blockPer, singlePer))
+		result = [[p + b * len(singlePer[0]) for p in perm] for (b, perm) in perms]
+		return reduce(operator.add, result)
+
+	def genPerm(self, length, perNum):
+		origin = list(range(length))
+		result = []
+		for ss in reversed(range(length)):
+			i = perNum // self.fact[ss]
+			result += [origin[i]]
+			del origin[i]
+			perNum = perNum % self.fact[ss]
+		return result
