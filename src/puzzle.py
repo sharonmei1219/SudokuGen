@@ -298,23 +298,40 @@ class RandomPuzzleFactory(PuzzleFactory):
 
 class PuzzlePermutator:
 	def __init__(self, tableHeight, tableWidth, blockHeight, blockWidth):
+		self.tableHeight = tableHeight
+		self.tableWidth = tableWidth
+		self.blockHeight = blockHeight
+		self.blockWidth = blockWidth
 		self.fact = [1]
-		length = max(tableHeight, tableWidth)
-		for i in range(1, length):
+		self.length = max(tableHeight, tableWidth)
+		for i in range(1, self.length):
 			self.fact += [self.fact[i - 1] * i]
 		pass
 
-	def permRow(self, blockPer, singlePer):
-		perms = list(zip(blockPer, singlePer))
-		result = [[p + b * len(singlePer[0]) for p in perm] for (b, perm) in perms]
+	def permGroupsAndPermItemWithinGroup(self, groupPerm, itemPerms):
+		perms = zip(groupPerm, itemPerms)
+		result = [[p + b * len(itemPerms[0]) for p in perm] for (b, perm) in perms]
 		return reduce(operator.add, result)
 
 	def genPerm(self, length, perNum):
 		origin = list(range(length))
 		result = []
-		for ss in reversed(range(length)):
-			i = perNum // self.fact[ss]
+		for index in reversed(range(length)):
+			i = perNum // self.fact[index]
 			result += [origin[i]]
 			del origin[i]
-			perNum = perNum % self.fact[ss]
+			perNum = perNum % self.fact[index]
 		return result
+
+	def randomRowPerm(self):
+		return self.randPerm(self.tableHeight, self.blockHeight)
+
+	def randomColumnPerm(self):
+		return self.randPerm(self.tableWidth, self.blockWidth)
+
+	def randPerm(self, totalLen, blockLen):
+		numOfBlock = totalLen // blockLen
+		blockPerm = self.genPerm(numOfBlock, random.randint(numOfBlock - 1))
+		singlePerm = [self.genPerm(blockLen, random.randint(blockLen - 1)) for i in range(numOfBlock)]
+		return self.permGroupsAndPermItemWithinGroup(blockPerm, singlePerm)
+

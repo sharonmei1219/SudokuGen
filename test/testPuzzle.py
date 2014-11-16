@@ -389,19 +389,19 @@ class testPuzzlePermutation(unittest.TestCase):
 
 	def testOneListInABlock(self):
 		permutator = PuzzlePermutator(1, 2, 1, 1)
-		row = permutator.permRow([1, 0], [[0],[0]])
+		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[0],[0]])
 		self.assertEquals([1, 0], row)
 		pass
 
 	def testTwoListNoTwistInABlock(self):
 		permutator = PuzzlePermutator(1, 2, 1, 1)
-		row = permutator.permRow([1, 0], [[0, 1],[0, 1]])
+		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[0, 1],[0, 1]])
 		self.assertEquals([2, 3, 0, 1], row)
 		pass
 
 	def testTwoListTwistInABlock(self):
 		permutator = PuzzlePermutator(1, 2, 1, 1)
-		row = permutator.permRow([1, 0], [[1, 0],[0, 1]])
+		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[1, 0],[0, 1]])
 		self.assertEquals([3, 2, 0, 1], row)
 		pass
 
@@ -419,6 +419,24 @@ class testPuzzlePermutation(unittest.TestCase):
 		self.assertEquals([1, 2, 0], permutator.genPerm(3, 3))
 		self.assertEquals([2, 0, 1], permutator.genPerm(3, 4))
 		self.assertEquals([2, 1, 0], permutator.genPerm(3, 5))
+		pass
+
+	def testRandomlyPermRow(self):
+		permutator = PuzzlePermutator(6, 1, 2, 1)
+		self.randint = random.randint
+		random.randint = MagicMock(side_effect=[5, 1, 0, 0])
+		rowPerm = permutator.randomRowPerm()
+		self.assertEquals([5, 4, 2, 3, 0, 1], rowPerm)
+		random.randint = self.randint
+		pass
+
+	def testRandomlyPerColumn(self):
+		permutator = PuzzlePermutator(1, 6, 1, 3)
+		self.randint = random.randint
+		random.randint = MagicMock(side_effect=[1, 5, 0])
+		rowPerm = permutator.randomColumnPerm()
+		self.assertEquals([5, 4, 3, 0, 1, 2], rowPerm)
+		random.randint = self.randint
 		pass
 	pass
 		
