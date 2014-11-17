@@ -426,7 +426,12 @@ class testPuzzlePermutation(unittest.TestCase):
 		self.randint = random.randint
 		random.randint = MagicMock(side_effect=[5, 1, 0, 0])
 		rowPerm = permutator.randomRowPerm()
-		self.assertEquals([5, 4, 2, 3, 0, 1], rowPerm)
+		self.assertEquals(5, rowPerm(0))
+		self.assertEquals(4, rowPerm(1))
+		self.assertEquals(2, rowPerm(2))
+		self.assertEquals(3, rowPerm(3))
+		self.assertEquals(0, rowPerm(4))
+		self.assertEquals(1, rowPerm(5))
 		random.randint = self.randint
 		pass
 
@@ -434,9 +439,53 @@ class testPuzzlePermutation(unittest.TestCase):
 		permutator = PuzzlePermutator(1, 6, 1, 3)
 		self.randint = random.randint
 		random.randint = MagicMock(side_effect=[1, 5, 0])
-		rowPerm = permutator.randomColumnPerm()
-		self.assertEquals([5, 4, 3, 0, 1, 2], rowPerm)
+		columnPerm = permutator.randomColumnPerm()
+		self.assertEquals(5, columnPerm(0))
+		self.assertEquals(4, columnPerm(1))
+		self.assertEquals(3, columnPerm(2))
+		self.assertEquals(0, columnPerm(3))
+		self.assertEquals(1, columnPerm(4))
+		self.assertEquals(2, columnPerm(5))
 		random.randint = self.randint
+		pass
+
+	def testRandomlyPerColumn(self):
+		permutator = PuzzlePermutator(1, 3, 1, 1)
+		self.randint = random.randint
+		random.randint = MagicMock(return_value = 5)
+		numPerm = permutator.randomNumberPerm()
+		self.assertEquals(3, numPerm(1))
+		self.assertEquals(2, numPerm(2))
+		self.assertEquals(1, numPerm(3))
+		random.randint = self.randint
+		pass
+
+	def testRandomlyPerAPuzzlesKnownPart(self):
+		permutator = PuzzlePermutator(1, 3, 1, 1)
+		def rowSideEffect(*args, **kwargs):
+			perm = [2, 1, 0]
+			return perm[args[0]]
+
+		def columnSideEffect(*args, **kwargs):
+			perm = [0, 1, 2]
+			return perm[args[0]]
+
+		def numSideEffect(*args, **kwargs):
+			perm = [1, 3, 2]
+			return perm[args[0] - 1]
+		
+		row = MagicMock(side_effect = rowSideEffect)
+		col = MagicMock(side_effect = columnSideEffect)
+		num = MagicMock(side_effect = numSideEffect)
+
+		permutator.randomRowPerm = MagicMock(return_value = row)
+		permutator.randomColumnPerm = MagicMock(return_value = col)
+		permutator.randomNumberPerm = MagicMock(return_value = num)
+
+		input = {(0, 0):1, (1, 1):2, (2, 2):3}
+		output = permutator.permPuzzleKnownPart(input)
+		self.assertEquals({(2, 0):1, (1,1):3, (0, 2): 2}, output)
+
 		pass
 	pass
 		

@@ -324,14 +324,32 @@ class PuzzlePermutator:
 		return result
 
 	def randomRowPerm(self):
-		return self.randPerm(self.tableHeight, self.blockHeight)
+		perm = self.randPerm(self.tableHeight, self.blockHeight)
+		def rowPerm(index):
+			return perm[index]
+		return rowPerm
 
 	def randomColumnPerm(self):
-		return self.randPerm(self.tableWidth, self.blockWidth)
+		perm = self.randPerm(self.tableWidth, self.blockWidth)
+		def columnPerm(index):
+			return perm[index]
+		return columnPerm
+
+	def randomNumberPerm(self):
+		perm = self.genPerm(self.length, random.randint(self.length - 1))
+		def numPerm(num):
+			return perm[num-1] + 1
+		return numPerm
 
 	def randPerm(self, totalLen, blockLen):
 		numOfBlock = totalLen // blockLen
 		blockPerm = self.genPerm(numOfBlock, random.randint(numOfBlock - 1))
 		singlePerm = [self.genPerm(blockLen, random.randint(blockLen - 1)) for i in range(numOfBlock)]
 		return self.permGroupsAndPermItemWithinGroup(blockPerm, singlePerm)
+
+	def permPuzzleKnownPart(self, puzzleKnownPart):
+		row = self.randomRowPerm()
+		col = self.randomColumnPerm()
+		num = self.randomNumberPerm()
+		return {(row(i), col(j)):num(puzzleKnownPart[(i,j)]) for (i,j) in puzzleKnownPart}
 
