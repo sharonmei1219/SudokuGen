@@ -1,5 +1,5 @@
 from collections import Counter
-from functools import reduce
+from functools import *
 import operator
 import random
 import json
@@ -117,7 +117,9 @@ class PuzzleMatrix:
 		return PuzzleMatrix(copy.deepcopy(self.matrix))
 
 	def knownPart(self):
-		return {(i, j):self.matrix[i][j] for i in range(self.mHeight) for j in range(self.mWidth) if self.matrix[i][j] != _}
+		pos = [(i, j) for i in range(self.mHeight) for j in range(self.mWidth) if self.matrix[i][j] != _]
+		value = [self.matrix[i][j] for (i, j) in pos]
+		return dict(zip(pos, value))
 
 	def dim(self):
 		return len(self.matrix), len(self.matrix[0])
@@ -132,8 +134,8 @@ class Validator:
 		return all(not self.detectDuplication(puzzleMatrix.getNumbersInPos(zone)) for zone in zones)
 
 	def detectDuplication(self, numberList):
-		counter = Counter(numberList)
-		return not all(counter[number] == 1 for number in counter)
+		result = Counter(numberList)
+		return not all(result[number] == 1 for number in result)
 
 class CandidatesGen:
 	def __init__(self, candidatesList):
@@ -157,7 +159,7 @@ class RandomSeqCandidatesDecorator:
 			r = random.randint(0, candidatesCount - i - 1)
 			result.append(candidates[r])
 			del candidates[r]
-		return result		
+		return result
 
 class Grid:
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
@@ -189,7 +191,7 @@ class GridDirection:
 		return any([all([pos in zone for pos in poses]) for zone in self.zones()])
 
 	def split(self, poses):
-		areas = [{pos for pos in poses if pos in zone} for zone in self.zones()]
+		areas = [set([pos for pos in poses if pos in zone]) for zone in self.zones()]
 		return [area for area in areas if len(area) > 0]
 
 class GridRow(GridDirection):
@@ -317,8 +319,32 @@ class PuzzleMatrixPermutator:
 		for i in range(1, self.length):
 			self.fact += [self.fact[i - 1] * i]
 		pass
+	
+	def permPuzzleKnownPart(self, puzzleKnownPart):
+		row = self.randomRowPerm()
+		col = self.randomColumnPerm()
+		num = self.randomNumberPerm()
+		return {(row(i), col(j)): num(puzzleKnownPart[(i,j)]) for (i, j) in puzzleKnownPart}
 
-	def permGroupsAndPermItemWithinGroup(self, groupPerm, itemPerms):
+	def randomRowPerm(self):
+		perm = self.randPermOfSubgroupsAndItemsWithinGroup(self.tableHeight, self.blockHeight)
+		def rowPerm(index):
+			return perm[index]
+		return rowPerm
+
+	def randomColumnPerm(self):
+		perm = self.randPermOfSubgroupsAndItemsWithinGroup(self.tableWidth, self.blockWidth)
+		def columnPerm(index):
+			return perm[index]
+		return columnPerm
+
+	def randomNumberPerm(self):
+		perm = self.genPerm(self.length, random.randint(0, self.length - 1))
+		def numPerm(num):
+			return perm[num-1] + 1
+		return numPerm		
+
+	def joinSubGroupPermAndItemPermWithinSubGroup(self, groupPerm, itemPerms):
 		perms = zip(groupPerm, itemPerms)
 		result = [[p + b * len(itemPerms[0]) for p in perm] for (b, perm) in perms]
 		return reduce(operator.add, result)
@@ -333,32 +359,8 @@ class PuzzleMatrixPermutator:
 			perNum = perNum % self.fact[index]
 		return result
 
-	def randomRowPerm(self):
-		perm = self.randPerm(self.tableHeight, self.blockHeight)
-		def rowPerm(index):
-			return perm[index]
-		return rowPerm
-
-	def randomColumnPerm(self):
-		perm = self.randPerm(self.tableWidth, self.blockWidth)
-		def columnPerm(index):
-			return perm[index]
-		return columnPerm
-
-	def randomNumberPerm(self):
-		perm = self.genPerm(self.length, random.randint(self.length - 1))
-		def numPerm(num):
-			return perm[num-1] + 1
-		return numPerm
-
-	def randPerm(self, totalLen, blockLen):
+	def randPermOfSubgroupsAndItemsWithinGroup(self, totalLen, blockLen):
 		numOfBlock = totalLen // blockLen
-		blockPerm = self.genPerm(numOfBlock, random.randint(numOfBlock - 1))
-		singlePerm = [self.genPerm(blockLen, random.randint(blockLen - 1)) for i in range(numOfBlock)]
-		return self.permGroupsAndPermItemWithinGroup(blockPerm, singlePerm)
-
-	def permPuzzleKnownPart(self, puzzleKnownPart):
-		row = self.randomRowPerm()
-		col = self.randomColumnPerm()
-		num = self.randomNumberPerm()
-		return {(row(i), col(j)):num(puzzleKnownPart[(i,j)]) for (i,j) in puzzleKnownPart}
+		subGroupPermutation = self.genPerm(numOfBlock, random.randint(0, numOfBlock - 1))
+		itemPermutationWithinSubGroup = [self.genPerm(blockLen, random.randint(0, blockLen - 1)) for i in range(numOfBlock)]
+		return self.joinSubGroupPermAndItemPermWithinSubGroup(subGroupPermutation, itemPermutationWithinSubGroup)

@@ -402,19 +402,19 @@ class testPuzzlePermutation(unittest.TestCase):
 
 	def testOneListInABlock(self):
 		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
-		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[0],[0]])
+		row = permutator.joinSubGroupPermAndItemPermWithinSubGroup([1, 0], [[0],[0]])
 		self.assertEquals([1, 0], row)
 		pass
 
 	def testTwoListNoTwistInABlock(self):
 		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
-		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[0, 1],[0, 1]])
+		row = permutator.joinSubGroupPermAndItemPermWithinSubGroup([1, 0], [[0, 1],[0, 1]])
 		self.assertEquals([2, 3, 0, 1], row)
 		pass
 
 	def testTwoListTwistInABlock(self):
 		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
-		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[1, 0],[0, 1]])
+		row = permutator.joinSubGroupPermAndItemPermWithinSubGroup([1, 0], [[1, 0],[0, 1]])
 		self.assertEquals([3, 2, 0, 1], row)
 		pass
 
@@ -500,5 +500,5 @@ class testPuzzlePermutation(unittest.TestCase):
 		self.assertEquals({(2, 0):1, (1,1):3, (0, 2): 2}, output)
 
 		pass
-	pass
+		
 		

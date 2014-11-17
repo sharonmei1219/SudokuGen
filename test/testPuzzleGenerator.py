@@ -172,3 +172,18 @@ class TestHoleDigger(unittest.TestCase):
 		# hc = HumanSolver()
 		# hc.solve(puzzle)
 		# self.assertEquals("sharon", puzzle.toString())
+
+	def test_readFromTemplateAndPermPuzzle(self):
+		factory = PuzzleFactory(9, 3, 3)
+		# f = open("e:/r2.txt", "r")
+		# for line in f:
+		# 	matrix = json.loads(line)
+		# 	pMatrix = factory.permPuzzleMatrix(PuzzleMatrix(matrix))
+		# 	puzzle = factory.creatPuzzleByMatrix(pMatrix.matrix)
+		# 	hs = HumanSolver(Grid(9, 9, 3, 3))
+		# 	hs.solve(puzzle)
+		# 	if (hs.rank() != 2):
+		# 		print("-------------------")
+		# 		print(hs.rank())
+		# 		print(matrix)
+		pass

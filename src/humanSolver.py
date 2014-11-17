@@ -88,6 +88,10 @@ class HumanSolver:
 					break
 		pass
 
+	def rank(self):
+		return self.scorer.result()
+		pass
+
 class PossibilityMatrix:
 	def __init__(self, matrix):
 		self.matrix = matrix
@@ -400,7 +404,6 @@ class Scorer:
 		pass
 
 	def recordLockedCandidates(self):
-		print("locked candidates found")
 		self.record(1)
 		pass
 
