@@ -282,6 +282,19 @@ class TestPuzzleFactory(unittest.TestCase):
 		nums = table.getNumbersInPos([(0, 0), (1, 1)])
 		self.assertEquals([1, 4], nums)
 
+	def test_createPuzzleMatrixByKnownPart(self):
+		knownPart = {(0,0):1, (1,1):2}
+		puzzleMatrix = self.factory.createPuzzleMatrixByKnownPart(knownPart)
+		self.assertEquals([[1, '/'], ['/', 2]], puzzleMatrix.matrix)
+
+	def test_permPuzzleMatrix(self):
+		inputPMatrix = MockObject()
+		inputPMatrix.knownPart = MagicMock(return_value = {(0,0):1, (1,1):2})
+		self.perm = self.factory.permPuzzleKnownPart
+		self.factory.permPuzzleKnownPart = MagicMock(return_value = {(1,0):2, (0,1):1})
+		outputMatrix = self.factory.permPuzzleMatrix(inputPMatrix)
+		self.assertEquals([['/', 1], [2, '/']], outputMatrix.matrix)
+		pass
 
 class TestPuzzleCompare(unittest.TestCase):
 	def setUp(self):
@@ -320,7 +333,7 @@ class TestPuzzleCompare(unittest.TestCase):
 
 	def newPuzzle(self, matrix):
 		return self.factory.creatPuzzleByMatrix(matrix)
-		pass
+
 
 class TestViewDirection(unittest.TestCase):
 	def testGetRowWithPosIn(self):
@@ -388,31 +401,31 @@ class TestPuzzleKnownAndUnKnownPart(unittest.TestCase):
 class testPuzzlePermutation(unittest.TestCase):
 
 	def testOneListInABlock(self):
-		permutator = PuzzlePermutator(1, 2, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
 		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[0],[0]])
 		self.assertEquals([1, 0], row)
 		pass
 
 	def testTwoListNoTwistInABlock(self):
-		permutator = PuzzlePermutator(1, 2, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
 		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[0, 1],[0, 1]])
 		self.assertEquals([2, 3, 0, 1], row)
 		pass
 
 	def testTwoListTwistInABlock(self):
-		permutator = PuzzlePermutator(1, 2, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
 		row = permutator.permGroupsAndPermItemWithinGroup([1, 0], [[1, 0],[0, 1]])
 		self.assertEquals([3, 2, 0, 1], row)
 		pass
 
 	def testRandomPerOfListSizeOf1(self):
-		permutator = PuzzlePermutator(1, 2, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 2, 1, 1)
 		perm = permutator.genPerm(1, 0)
 		self.assertEquals([0], perm)
 		pass
 
 	def testRandomPerOfListSizeOf3(self):
-		permutator = PuzzlePermutator(1, 3, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 3, 1, 1)
 		self.assertEquals([0, 1, 2], permutator.genPerm(3, 0))
 		self.assertEquals([0, 2, 1], permutator.genPerm(3, 1))
 		self.assertEquals([1, 0, 2], permutator.genPerm(3, 2))				
@@ -422,7 +435,7 @@ class testPuzzlePermutation(unittest.TestCase):
 		pass
 
 	def testRandomlyPermRow(self):
-		permutator = PuzzlePermutator(6, 1, 2, 1)
+		permutator = PuzzleMatrixPermutator(6, 1, 2, 1)
 		self.randint = random.randint
 		random.randint = MagicMock(side_effect=[5, 1, 0, 0])
 		rowPerm = permutator.randomRowPerm()
@@ -436,7 +449,7 @@ class testPuzzlePermutation(unittest.TestCase):
 		pass
 
 	def testRandomlyPerColumn(self):
-		permutator = PuzzlePermutator(1, 6, 1, 3)
+		permutator = PuzzleMatrixPermutator(1, 6, 1, 3)
 		self.randint = random.randint
 		random.randint = MagicMock(side_effect=[1, 5, 0])
 		columnPerm = permutator.randomColumnPerm()
@@ -450,7 +463,7 @@ class testPuzzlePermutation(unittest.TestCase):
 		pass
 
 	def testRandomlyPerColumn(self):
-		permutator = PuzzlePermutator(1, 3, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 3, 1, 1)
 		self.randint = random.randint
 		random.randint = MagicMock(return_value = 5)
 		numPerm = permutator.randomNumberPerm()
@@ -461,7 +474,7 @@ class testPuzzlePermutation(unittest.TestCase):
 		pass
 
 	def testRandomlyPerAPuzzlesKnownPart(self):
-		permutator = PuzzlePermutator(1, 3, 1, 1)
+		permutator = PuzzleMatrixPermutator(1, 3, 1, 1)
 		def rowSideEffect(*args, **kwargs):
 			perm = [2, 1, 0]
 			return perm[args[0]]

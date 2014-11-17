@@ -121,9 +121,6 @@ class PuzzleMatrix:
 
 	def dim(self):
 		return len(self.matrix), len(self.matrix[0])
-		pass
-
-	pass
 
 class Validator:
 	def validate(self, grid, puzzleMatrix):
@@ -248,6 +245,7 @@ class PuzzleFactory:
 		self.bh = blockHeight
 		self.validator = Validator()
 		self.candidatesGen = CandidatesGen(range(1, tableSize+1))
+		self.permutator = PuzzleMatrixPermutator(tableSize, tableSize, blockHeight, blockWidth)
 
 	def creatPuzzleByMatrix(self, matrix):
 		grid = Grid(self.tableSize, self.tableSize, self.bw, self.bh)
@@ -289,6 +287,18 @@ class PuzzleFactory:
 	def tableBaseMatrix(self):
 		return PuzzleMatrix([[1, 2, 3, 4, 5, 6, 7, 8, 9]] + [[_]*self.tableSize for j in range(self.tableSize - 1)])
 
+	def createPuzzleMatrixByKnownPart(self, knownPart):
+		matrix = self.emptyMatrix()
+		for (i, j) in knownPart:
+			matrix[i][j] = knownPart[(i, j)]
+		return PuzzleMatrix(matrix)
+
+	def permPuzzleKnownPart(self, knownPart):
+		return self.permutator.permPuzzleKnownPart(knownPart)
+
+	def permPuzzleMatrix(self, puzzleMatrix):
+		return self.createPuzzleMatrixByKnownPart(self.permPuzzleKnownPart(puzzleMatrix.knownPart()))
+
 
 class RandomPuzzleFactory(PuzzleFactory):
 	def __init__(self, tableSize, blockWidth, blockHeight):
@@ -296,7 +306,7 @@ class RandomPuzzleFactory(PuzzleFactory):
 		self.candidatesGen = RandomSeqCandidatesDecorator(self.candidatesGen)
 		pass
 
-class PuzzlePermutator:
+class PuzzleMatrixPermutator:
 	def __init__(self, tableHeight, tableWidth, blockHeight, blockWidth):
 		self.tableHeight = tableHeight
 		self.tableWidth = tableWidth
@@ -352,4 +362,3 @@ class PuzzlePermutator:
 		col = self.randomColumnPerm()
 		num = self.randomNumberPerm()
 		return {(row(i), col(j)):num(puzzleKnownPart[(i,j)]) for (i,j) in puzzleKnownPart}
-
