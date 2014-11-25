@@ -9,40 +9,57 @@ class HumanSolver:
 		self.directioins = grid.allDirection()
 		(self.gridRow, self.gridColumn, self.gridBlock) = (self.directioins)
 
-		self.finders = [NakedFinder(1, self.gridRow, self.knownResultInRow),
-						NakedFinder(1, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(1, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(1, self.gridRow, self.knownResultInRow),
-						HiddenFinder(1, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(1, self.gridBlock, self.knownResultInBlock),
-						NakedFinder(2, self.gridRow, self.knownResultInRow),
-						NakedFinder(2, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(2, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(2, self.gridRow, self.knownResultInRow),
-						HiddenFinder(2, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(2, self.gridBlock, self.knownResultInBlock),
-						LockedCellFinder(self.gridRow, self.gridBlock, self.knownResultInBlock),
-						LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
-						LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
-						LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(3, self.gridRow, self.knownResultInRow),
-						NakedFinder(3, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(3, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(3, self.gridRow, self.knownResultInRow),
-						HiddenFinder(3, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(3, self.gridBlock, self.knownResultInBlock),
-						XWingFinder(2, self.gridRow, self.gridColumn, self.knownResultInColumn),
-						XWingFinder(2, self.gridColumn, self.gridRow, self.knownResultInRow),
-						NakedFinder(4, self.gridRow, self.knownResultInRow),
-						NakedFinder(4, self.gridColumn, self.knownResultInColumn),
-						NakedFinder(4, self.gridBlock, self.knownResultInBlock),
-						HiddenFinder(4, self.gridRow, self.knownResultInRow),
-						HiddenFinder(4, self.gridColumn, self.knownResultInColumn),
-						HiddenFinder(4, self.gridBlock, self.knownResultInBlock),
-						XWingFinder(3, self.gridRow, self.gridColumn, self.knownResultInColumn),
-						XWingFinder(3, self.gridColumn, self.gridRow, self.knownResultInRow),
-						XWingFinder(4, self.gridRow, self.gridColumn, self.knownResultInColumn),
-						XWingFinder(4, self.gridColumn, self.gridRow, self.knownResultInRow)]
+		self.finders =  self.nakedSingle() \
+						+ self.hiddenSingle() \
+						+ self.nakedPair() \
+						+ self.hiddenPair() \
+						+ self.lockedCandidates() \
+						+ self.nakedTriple() \
+						+ self.hiddenTriple() \
+						+ self.XWing() \
+						+ self.nakedQuat() \
+						+ self.hiddenQuat() \
+						+ self.jellyFish() \
+						+ self.swordFish()
+		pass
+
+	def nakedSingle(self): return  self.nakedRule(1);
+	def nakedPair(self): return self.nakedRule(2);
+	def nakedTriple(self): return self.nakedRule(3);
+	def nakedQuat(self): return self.nakedRule(4);
+
+	def nakedRule(self, length):
+		return  [NakedFinder(length, self.gridRow, self.knownResultInRow),
+				 NakedFinder(length, self.gridColumn, self.knownResultInColumn),
+				 NakedFinder(length, self.gridBlock, self.knownResultInBlock)]
+		pass
+
+	def hiddenSingle(self):	return self.hiddenRule(1);
+	def hiddenPair(self): return self.hiddenRule(2);
+	def hiddenTriple(self):	return self.hiddenRule(3);
+	def hiddenQuat(self): return self.hiddenRule(4);
+
+
+	def hiddenRule(self, length):
+		return [HiddenFinder(length, self.gridRow, self.knownResultInRow),
+				HiddenFinder(length, self.gridColumn, self.knownResultInColumn),
+				HiddenFinder(length, self.gridBlock, self.knownResultInBlock)]
+		pass
+
+	def lockedCandidates(self):
+		return [LockedCellFinder(self.gridRow, self.gridBlock, self.knownResultInBlock),
+				LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
+				LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
+				LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn)]
+		pass
+
+	def XWing(self): return self.crossRule(2)
+	def jellyFish(self): return self.crossRule(3)
+	def swordFish(self): return self.crossRule(4)
+
+	def crossRule(self, length):
+		return [XWingFinder(length, self.gridRow, self.gridColumn, self.knownResultInColumn),
+				XWingFinder(length, self.gridColumn, self.gridRow, self.knownResultInRow)]
 		pass
 
 	def buildPossibilityMatrix(self, puzzle):
@@ -90,7 +107,6 @@ class HumanSolver:
 
 	def rank(self):
 		return self.scorer.result()
-		pass
 
 class PossibilityMatrix:
 	def __init__(self, matrix):
@@ -183,7 +199,6 @@ class Finder:
 		
 		return foundSomething
 		
-
 class NakedFinder(Finder):
 	def __init__(self, criteria, viewGrid, knownResult):
 		self.criteria = criteria
@@ -415,5 +430,3 @@ class Scorer:
 		if rank > self.rank:
 			self.rank = rank
 		pass
-
-		

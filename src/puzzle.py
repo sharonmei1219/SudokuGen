@@ -174,7 +174,7 @@ class Grid:
 		self.dim = (matrixHeight, matrixWidth)
 
 	def flatten(self, twoDArray):
-		return reduce(operator.add, twoDArray, [])
+		return reduce(operator.add, twoDArray, ())
 
 	def suroundings(self, pos, puzzleMatrix):
 		poses = self.flatten([view.zoneWithPosIn(pos) for view in self.views])
@@ -204,7 +204,7 @@ class GridRow(GridDirection):
 		return [self.zoneWithPosIn((i, 0)) for i in range(self.matrixHeight)]
 
 	def zoneWithPosIn(self, pos):
-		return [(pos[0], x) for x in range(self.matrixWidth)]
+		return tuple((pos[0], x) for x in range(self.matrixWidth))
 
 class GridColumn(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
@@ -215,7 +215,7 @@ class GridColumn(GridDirection):
 		return [self.zoneWithPosIn((0, j)) for j in range(self.matrixWidth)]
 
 	def zoneWithPosIn(self, pos):
-		return [(x, pos[1]) for x in range(self.matrixHeight)]
+		return tuple((x, pos[1]) for x in range(self.matrixHeight))
 
 class GridBlock(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
@@ -225,8 +225,8 @@ class GridBlock(GridDirection):
 		self.nbPerRow = matrixWidth // blockWidth
 		bsize = blockWidth * blockHeight
 		bnum = matrixHeight * matrixWidth // bsize
-		self.blockIndex = [[self.blockIndexToMatrixIndex(i, j) for j in range(bsize)] for i in range(bnum)]
-		self.blockIndexMap = [[(i // self.blockHeight * self.nbPerRow + j // self.blockWidth, i % self.blockHeight * self.blockWidth + j % self.blockWidth) for j in range(matrixWidth)] for i in range(matrixHeight)]
+		self.blockToMatrix = [tuple(self.blockIndexToMatrixIndex(i, j) for j in range(bsize)) for i in range(bnum)]
+		self.matrixToBlock = [[(i // self.blockHeight * self.nbPerRow + j // self.blockWidth, i % self.blockHeight * self.blockWidth + j % self.blockWidth) for j in range(matrixWidth)] for i in range(matrixHeight)]
 
 	def blockIndexToMatrixIndex(self, bi, bj):
 		i = int(bi // self.nbPerRow * self.blockHeight + bj // self.blockWidth)
@@ -234,11 +234,11 @@ class GridBlock(GridDirection):
 		return (i, j)
 
 	def zones(self):
-		return self.blockIndex
+		return self.blockToMatrix
 
 	def zoneWithPosIn(self, pos):
-		(bi, bj) = self.blockIndexMap[pos[0]][pos[1]]
-		return self.blockIndex[bi]
+		(bi, bj) = self.matrixToBlock[pos[0]][pos[1]]
+		return self.blockToMatrix[bi]
 
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):

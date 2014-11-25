@@ -160,13 +160,13 @@ class TestGrid(unittest.TestCase):
 		self.gridRow = GridRow(2, 2)
 
 	def test_GridGetAllRowsInPos(self):
-		self.assertEquals([[(0, 0), (0, 1)], [(1, 0), (1, 1)]], self.gridRow.zones())
+		self.assertEquals([((0, 0), (0, 1)), ((1, 0), (1, 1))], self.gridRow.zones())
 
 	def test_GridGetAllColumnsInPos(self):
-		self.assertEquals([[(0, 0), (1, 0)], [(0, 1), (1, 1)]], self.grid.gridColumn.zones())
+		self.assertEquals([((0, 0), (1, 0)), ((0, 1), (1, 1))], self.grid.gridColumn.zones())
 
 	def test_allPos(self):
-		self.assertEquals([(0, 0), (0, 1), (1, 0), (1, 1)], self.grid.allPos())
+		self.assertEquals(((0, 0), (0, 1), (1, 0), (1, 1)), self.grid.allPos())
 		pass
 
 
@@ -211,27 +211,27 @@ class TestBlockIndexExchange(unittest.TestCase):
 		pass
 
 	def test_matrixIndexToBlockIndex(self):
-		self.assertEquals((3, 0), self.grid.blockIndexMap[3][2])
-		self.assertEquals((3, 5), self.grid.blockIndexMap[5][3])
-		self.assertEquals((2, 1), self.grid.blockIndexMap[3][1])		
+		self.assertEquals((3, 0), self.grid.matrixToBlock[3][2])
+		self.assertEquals((3, 5), self.grid.matrixToBlock[5][3])
+		self.assertEquals((2, 1), self.grid.matrixToBlock[3][1])		
 		pass
 
 	def test_coordsOfRow(self):
 		grid = GridRow(6, 4)
-		self.assertEquals([(0, 0), (0, 1), (0, 2), (0, 3)], grid.zoneWithPosIn((0, 1)))
+		self.assertEquals(((0, 0), (0, 1), (0, 2), (0, 3)), grid.zoneWithPosIn((0, 1)))
 
 	def test_coordsOfColumn(self):
 		grid = GridColumn(6, 4)
-		self.assertEquals([(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)], grid.zoneWithPosIn((0, 1)))
+		self.assertEquals(((0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1)), grid.zoneWithPosIn((0, 1)))
 
 	def test_coordsOfBlock(self):
-		self.assertEquals([(3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)], self.grid.zoneWithPosIn((4, 2)))
+		self.assertEquals(((3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)), self.grid.zoneWithPosIn((4, 2)))
 
 	def test_GridGetAllBlocksInPos(self):
-		self.assertEquals([[(0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)],
-			               [(0, 2), (0, 3), (1, 2), (1, 3), (2, 2), (2, 3)],
-			               [(3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)],
-			               [(3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)]], self.grid.zones())		
+		self.assertEquals([((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1)),
+			               ((0, 2), (0, 3), (1, 2), (1, 3), (2, 2), (2, 3)),
+			               ((3, 0), (3, 1), (4, 0), (4, 1), (5, 0), (5, 1)),
+			               ((3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3))], self.grid.zones())		
 		pass
 
 class TestPuzzleIntegrate(unittest.TestCase):
@@ -339,19 +339,19 @@ class TestViewDirection(unittest.TestCase):
 	def testGetRowWithPosIn(self):
 		view = GridRow(2, 2)
 		zone = view.zoneWithPosIn((0, 0))
-		self.assertEquals([(0, 0), (0, 1)], zone)
+		self.assertEquals(((0, 0), (0, 1)), zone)
 		pass
 
 	def testGetColumnWithPosIn(self):
 		view = GridColumn(2, 2)
 		zone = view.zoneWithPosIn((0, 0))
-		self.assertEquals([(0, 0), (1, 0)], zone)
+		self.assertEquals(((0, 0), (1, 0)), zone)
 		pass
 
 	def testGetBlockWithPosIn(self):
 		view = GridBlock(4, 4, 2, 2)
 		zone = view.zoneWithPosIn((0, 0))
-		self.assertEquals([(0, 0), (0, 1), (1, 0), (1, 1)], zone)
+		self.assertEquals(((0, 0), (0, 1), (1, 0), (1, 1)), zone)
 		pass
 
 
@@ -496,9 +496,7 @@ class testPuzzlePermutation(unittest.TestCase):
 		permutator.randomNumberPerm = MagicMock(return_value = num)
 
 		input = {(0, 0):1, (1, 1):2, (2, 2):3}
-		output = permutator.permPuzzleKnownPart(input)
+		output = permutator.permPuzzleKnownPart(input) 
 		self.assertEquals({(2, 0):1, (1,1):3, (0, 2): 2}, output)
 
 		pass
-		
-		

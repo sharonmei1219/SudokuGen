@@ -54,12 +54,12 @@ except:
     db = zxJDBC.connect(url, username, password, driver)
     c = db.cursor()
 
-    inputf = open("e:/puzzle.txt", "r")
+    inputf = open("e:/easyPuzzle.txt", "r")
     puzzleId = 0
     # print(inputf.readline())
     for line in inputf:
         print(line)
-        c.execute("insert into evilpuzzle values (?,?)", [puzzleId, line])
+        c.execute("insert into easypuzzle values (?,?)", [puzzleId, line])
         puzzleId += 1
         # c.execute("insert into evilpuzzle values (?,?)", [1002, 'jason'])
     db.commit()
