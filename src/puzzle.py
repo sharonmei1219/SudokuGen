@@ -196,49 +196,47 @@ class GridDirection:
 
 class GridRow(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
-		self.matrixHeight = matrixHeight
-		self.matrixWidth = matrixWidth
-		pass
+		self.zoneOfPoses = [tuple((i, j) for j in range(matrixWidth)) for i in range(matrixHeight)]
 
 	def zones(self):
-		return [self.zoneWithPosIn((i, 0)) for i in range(self.matrixHeight)]
+		return self.zoneOfPoses;
 
 	def zoneWithPosIn(self, pos):
-		return tuple((pos[0], x) for x in range(self.matrixWidth))
+		return self.zoneOfPoses[pos[0]]
 
 class GridColumn(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
-		self.matrixHeight = matrixHeight
-		self.matrixWidth = matrixWidth
+		self.zoneOfPoses = [tuple((i, j) for i in range(matrixHeight)) for j in range(matrixWidth)]
 
 	def zones(self):
-		return [self.zoneWithPosIn((0, j)) for j in range(self.matrixWidth)]
+		return self.zoneOfPoses;
 
 	def zoneWithPosIn(self, pos):
-		return tuple((x, pos[1]) for x in range(self.matrixHeight))
+		return self.zoneOfPoses[pos[1]]
 
 class GridBlock(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
-		self.blockHeight = blockHeight
-		self.blockWidth = blockWidth
-
-		self.nbPerRow = matrixWidth // blockWidth
+		nbPerRow = matrixWidth // blockWidth
 		bsize = blockWidth * blockHeight
 		bnum = matrixHeight * matrixWidth // bsize
-		self.blockToMatrix = [tuple(self.blockIndexToMatrixIndex(i, j) for j in range(bsize)) for i in range(bnum)]
-		self.matrixToBlock = [[(i // self.blockHeight * self.nbPerRow + j // self.blockWidth, i % self.blockHeight * self.blockWidth + j % self.blockWidth) for j in range(matrixWidth)] for i in range(matrixHeight)]
 
-	def blockIndexToMatrixIndex(self, bi, bj):
-		i = int(bi // self.nbPerRow * self.blockHeight + bj // self.blockWidth)
-		j = int(bi % self.nbPerRow * self.blockWidth + bj % self.blockWidth)
-		return (i, j)
+		def b2mIndex(bi, bj):
+			i = int(bi // nbPerRow * blockHeight + bj // blockWidth)
+			j = int(bi % nbPerRow * blockWidth + bj % blockWidth)
+			return (i, j)
+
+		def m2bIndex(i, j):
+			return (i // blockHeight * nbPerRow + j // blockWidth)
+
+		self.zoneOfPoses = [tuple(b2mIndex(i, j) for j in range(bsize)) for i in range(bnum)]
+		self.matrixToBlock = [[m2bIndex(i, j) for j in range(matrixWidth)] for i in range(matrixHeight)]
 
 	def zones(self):
-		return self.blockToMatrix
+		return self.zoneOfPoses
 
 	def zoneWithPosIn(self, pos):
-		(bi, bj) = self.matrixToBlock[pos[0]][pos[1]]
-		return self.blockToMatrix[bi]
+		(bi) = self.matrixToBlock[pos[0]][pos[1]]
+		return self.zoneOfPoses[bi]
 
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):

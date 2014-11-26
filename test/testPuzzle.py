@@ -204,16 +204,16 @@ class TestBlockIndexExchange(unittest.TestCase):
 		self.grid =  GridBlock(6, 4, 3, 2)
 		pass
 		
-	def test_blockIndexToMatrixIndex(self):
-		self.assertEquals((4, 2), self.grid.blockIndexToMatrixIndex(3, 2))
-		self.assertEquals((2, 1), self.grid.blockIndexToMatrixIndex(0, 5))
-		self.assertEquals((1, 3), self.grid.blockIndexToMatrixIndex(1, 3))
-		pass
+	# def test_blockIndexToMatrixIndex(self):
+	# 	self.assertEquals((4, 2), self.grid.blockIndexToMatrixIndex(3, 2))
+	# 	self.assertEquals((2, 1), self.grid.blockIndexToMatrixIndex(0, 5))
+	# 	self.assertEquals((1, 3), self.grid.blockIndexToMatrixIndex(1, 3))
+	# 	pass
 
 	def test_matrixIndexToBlockIndex(self):
-		self.assertEquals((3, 0), self.grid.matrixToBlock[3][2])
-		self.assertEquals((3, 5), self.grid.matrixToBlock[5][3])
-		self.assertEquals((2, 1), self.grid.matrixToBlock[3][1])		
+		self.assertEquals(3, self.grid.matrixToBlock[3][2])
+		self.assertEquals(3, self.grid.matrixToBlock[5][3])
+		self.assertEquals(2, self.grid.matrixToBlock[3][1])		
 		pass
 
 	def test_coordsOfRow(self):
