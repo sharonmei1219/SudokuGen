@@ -200,11 +200,21 @@ class Grid:
 
 class GridDirection:
 	def posesInSameZone(self, poses):
-		return any([all([pos in zone for pos in poses]) for zone in self.zones()])
+		return len(set([self.zoneIndex(pos) for pos in poses])) == 1
 
 	def split(self, poses):
-		areas = [set([pos for pos in poses if pos in zone]) for zone in self.zones()]
-		return [area for area in areas if len(area) > 0]
+		indexes = set([self.zoneIndex(pos) for pos in poses])
+		return [set([pos for pos in poses if self.zoneIndex(pos) == index]) for index in indexes]
+
+	def zoneObjs(self): 
+		return self._zones;
+
+	def zoneWithPosIn(self, pos):
+		index = self.zoneIndex(pos)
+		return self.zoneOfPoses[index]
+
+	def zones(self):
+		return self.zoneOfPoses;
 
 class GridRow(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
@@ -212,18 +222,8 @@ class GridRow(GridDirection):
 		self._ids = ['GridRow_' + str(i) for i in range(matrixHeight)]
 		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
-	def zones(self):
-		return self.zoneOfPoses;
-
-	def zoneObjs(self): 
-		return self._zones;
-
 	def zoneIndex(self, pos):
 		return pos[0]
-
-	def zoneWithPosIn(self, pos):
-		index = self.zoneIndex(pos)
-		return self.zoneOfPoses[index]
 
 class GridColumn(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
@@ -231,18 +231,8 @@ class GridColumn(GridDirection):
 		self.zoneOfPoses = [tuple((i, j) for i in range(matrixHeight)) for j in range(matrixWidth)]
 		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
-	def zones(self):
-		return self.zoneOfPoses;
-
-	def zoneObjs(self):
-		return self._zones;
-
 	def zoneIndex(self, pos):
 		return pos[1]
-
-	def zoneWithPosIn(self, pos):
-		index = self.zoneIndex(pos)
-		return self.zoneOfPoses[index]
 
 class GridBlock(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
@@ -263,18 +253,8 @@ class GridBlock(GridDirection):
 		self._ids = ['GridBlock_' + str(bi) for bi in range(bnum)]
 		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
-	def zones(self):
-		return self.zoneOfPoses
-
-	def zoneObjs(self):
-		return self._zones
-
 	def zoneIndex(self, pos):
 		return self._zoneIndex[pos[0]][pos[1]]
-
-	def zoneWithPosIn(self, pos):
-		index = self.zoneIndex(pos)
-		return self.zoneOfPoses[index]
 
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):
