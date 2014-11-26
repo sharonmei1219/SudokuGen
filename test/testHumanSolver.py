@@ -500,4 +500,59 @@ class TestHumanSolver(unittest.TestCase):
 		hs.solve(puzzle)
 		# self.assertFalse(True)
 		pass
-		
+
+class TestSelfUpdateFinding(unittest.TestCase):
+	def testFindingUpdateItselfToPossibilityMatrix(self):
+		pMatrix = MockObject()
+		pMatrix.erasePossibility = MagicMock()
+		pMatrix.addKnownFinding = MagicMock()
+		finding = SelfUpdateFinding({(0, 0)}, {1}, Zone('GridRow_0', ((0, 0), (0, 1))))
+		finding.update(pMatrix)
+		pMatrix.erasePossibility.assert_called_once_with({1}, {(0, 1)})
+		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
+
+class TestKnownFindingMapVersion(unittest.TestCase):
+
+	def testMoreAccurateFindingFoundInTheSameZone(self):
+		finding = MockObject()
+		newFinding = MockObject()
+		finding.moreAccurateThan = MagicMock(return_value = True)
+		knownFinding = KnownFindingZoneMapVersion()
+		knownFinding.add('GridRow_0', finding)
+		self.assertTrue(knownFinding.moreAccurateFound('GridRow_0', newFinding))
+		pass
+
+	def testOneFindingExistMoreAccurateFindingFoundInTheSameZone(self):
+		finding_0 = MockObject()
+		finding_1 = MockObject()
+		finding_0.__str__ = MagicMock(return_value = "finding0")
+		finding_1.__str__ = MagicMock(return_value = "finding1")
+		newFinding = MockObject()
+		finding_0.moreAccurateThan = MagicMock(return_value = True)
+		finding_1.moreAccurateThan = MagicMock(return_value = False)
+		knownFinding = KnownFindingZoneMapVersion()
+		knownFinding.add('GridRow_0', finding_0)
+		knownFinding.add('GridRow_0', finding_1)
+		self.assertTrue(knownFinding.moreAccurateFound('GridRow_0', newFinding))
+		pass
+
+	def testNoFindingExistMoreAccurateFindingFoundInTheSameZone(self):
+		finding_0 = MockObject()
+		finding_1 = MockObject()
+		newFinding = MockObject()
+		finding_0.moreAccurateThan = MagicMock(return_value = False)
+		finding_1.moreAccurateThan = MagicMock(return_value = False)
+		knownFinding = KnownFindingZoneMapVersion()
+		knownFinding.add('GridRow_0', finding_0)
+		knownFinding.add('GridRow_0', finding_1)
+		self.assertFalse(knownFinding.moreAccurateFound('GridRow_0', newFinding))
+		pass
+
+	def testNewFindingInASeperateZone(self):
+		finding_0 = MockObject()
+		newFinding = MockObject()
+		finding_0.moreAccurateThan = MagicMock(return_value = True)
+		knownFinding = KnownFindingZoneMapVersion()
+		knownFinding.add('GridRow_0', finding_0)
+		self.assertFalse(knownFinding.moreAccurateFound('GridRow_1', newFinding))
+		pass

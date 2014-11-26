@@ -254,7 +254,8 @@ class GridBlock(GridDirection):
 		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
 	def zoneIndex(self, pos):
-		return self._zoneIndex[pos[0]][pos[1]]
+		(i, j) = pos
+		return self._zoneIndex[i][j]
 
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):

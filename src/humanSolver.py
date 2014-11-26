@@ -181,11 +181,22 @@ class Finding:
 		return next(iter(self.pos))
 
 	def moreAccurateThan(self, otherFinding):
-		if len(self.pos) < len(otherFinding.pos): return True
+		if self.pos < otherFinding.pos: return True
 		if len(self.pos) == len(otherFinding.pos):
 			if len(self.possibilities) > len(otherFinding.possibilities):
 				return True
 		return False
+
+class SelfUpdateFinding(Finding):
+	def __init__(self, poses, possibilities, zone):
+		super(SelfUpdateFinding, self).__init__(poses, possibilities)
+		self._zone = zone
+		pass
+
+	def update(self, pMatrix):
+		pMatrix.erasePossibility(self.possibilities, set(self._zone.poses()) - self.pos)
+		pMatrix.addKnownFinding(self._zone.id(), self)
+		pass
 
 class Finder:
 	def findAndUpdate(self, pMatrix):
@@ -430,3 +441,22 @@ class Scorer:
 		if rank > self.rank:
 			self.rank = rank
 		pass
+
+class KnownFindingZoneMapVersion:
+	def __init__(self):
+		self.zoneFindingMap = dict()
+		pass
+
+	def add(self, zoneID, finding):
+		if zoneID in self.zoneFindingMap:
+			self.zoneFindingMap[zoneID] += [finding]
+		else:
+			self.zoneFindingMap[zoneID] = [finding]
+		pass
+
+	def moreAccurateFound(self, zoneID, finding):
+		if zoneID not in self.zoneFindingMap: return False
+		existFindings = self.zoneFindingMap[zoneID]
+		for existFinding in existFindings:
+			if existFinding.moreAccurateThan(finding): return True
+		return False
