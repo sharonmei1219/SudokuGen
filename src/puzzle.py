@@ -161,6 +161,20 @@ class RandomSeqCandidatesDecorator:
 			del candidates[r]
 		return result
 
+class Zone:
+	def __init__(self, inputId, poses):
+		self._id = inputId
+		self._poses = poses
+	
+	def __eq__(self, zone):
+		return self._id == zone._id
+
+	def id(self):
+		return self._id
+
+	def poses(self):
+		return self._poses
+
 class Grid:
 	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
 
@@ -197,19 +211,29 @@ class GridDirection:
 class GridRow(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
 		self.zoneOfPoses = [tuple((i, j) for j in range(matrixWidth)) for i in range(matrixHeight)]
+		self._ids = ['GridRow_' + str(i) for i in range(matrixHeight)]
+		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
 	def zones(self):
 		return self.zoneOfPoses;
+
+	def zoneObjs(self): 
+		return self._zones;
 
 	def zoneWithPosIn(self, pos):
 		return self.zoneOfPoses[pos[0]]
 
 class GridColumn(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
+		self._ids = ['GridColumn_' + str(j) for j in range(matrixWidth)]
 		self.zoneOfPoses = [tuple((i, j) for i in range(matrixHeight)) for j in range(matrixWidth)]
+		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
 	def zones(self):
 		return self.zoneOfPoses;
+
+	def zoneObjs(self):
+		return self._zones;
 
 	def zoneWithPosIn(self, pos):
 		return self.zoneOfPoses[pos[1]]
@@ -230,9 +254,15 @@ class GridBlock(GridDirection):
 
 		self.zoneOfPoses = [tuple(b2mIndex(i, j) for j in range(bsize)) for i in range(bnum)]
 		self.matrixToBlock = [[m2bIndex(i, j) for j in range(matrixWidth)] for i in range(matrixHeight)]
+		self._ids = ['GridBlock_' + str(bi) for bi in range(bnum)]
+		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
 	def zones(self):
 		return self.zoneOfPoses
+
+	def zoneObjs(self):
+		return self._zones
+		pass
 
 	def zoneWithPosIn(self, pos):
 		(bi) = self.matrixToBlock[pos[0]][pos[1]]

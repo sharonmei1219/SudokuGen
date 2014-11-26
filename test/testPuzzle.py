@@ -203,12 +203,6 @@ class TestBlockIndexExchange(unittest.TestCase):
 						   		[24, 25, 34, 35]]
 		self.grid =  GridBlock(6, 4, 3, 2)
 		pass
-		
-	# def test_blockIndexToMatrixIndex(self):
-	# 	self.assertEquals((4, 2), self.grid.blockIndexToMatrixIndex(3, 2))
-	# 	self.assertEquals((2, 1), self.grid.blockIndexToMatrixIndex(0, 5))
-	# 	self.assertEquals((1, 3), self.grid.blockIndexToMatrixIndex(1, 3))
-	# 	pass
 
 	def test_matrixIndexToBlockIndex(self):
 		self.assertEquals(3, self.grid.matrixToBlock[3][2])
@@ -500,3 +494,58 @@ class testPuzzlePermutation(unittest.TestCase):
 		self.assertEquals({(2, 0):1, (1,1):3, (0, 2): 2}, output)
 
 		pass
+
+class TestZone(unittest.TestCase):
+	def test2ZoneEqualsIfTheyShareTheSameID(self):
+		zone0 = Zone('r0', ((0, 0), (0, 1)))
+		zone1 = Zone('r0', ((0, 0), (0, 1)))
+		self.assertEquals(zone0, zone1)
+		pass
+
+	def test2ZoneEqualsIfTheyDonnotShareTheSameID(self):
+		zone0 = Zone('r0', ((0, 0), (0, 1)))
+		zone1 = Zone('r1', ((0, 0), (0, 1)))
+		self.assertFalse(zone0 == zone1)
+		pass
+
+	def testGetIDOfZone(self):
+		zone0 = Zone('r0', ((0, 0), (0, 1)))
+		self.assertEquals('r0', zone0.id())
+		pass
+
+	def testGetPosesOfZone(self):
+		zone = Zone('r0', ((0, 0), (0, 1)))
+		self.assertEquals(((0, 0), (0, 1)), zone.poses())
+		pass
+
+class TestGridOfZones(unittest.TestCase):
+	def testGridRowReturnsZoneObjects(self):
+		rows = GridRow(2, 2)
+		zones = rows.zoneObjs()
+		self.assertEquals('GridRow_0', zones[0].id())
+		self.assertEquals(((0, 0), (0, 1)), zones[0].poses())
+		self.assertEquals('GridRow_1', zones[1].id())
+		self.assertEquals(((1, 0), (1, 1)), zones[1].poses())
+		pass
+
+	def testGridColumnReturnsZoneObjects(self):
+		rows = GridColumn(2, 2)
+		zones = rows.zoneObjs()
+		self.assertEquals('GridColumn_0', zones[0].id())
+		self.assertEquals(((0, 0), (1, 0)), zones[0].poses())
+		self.assertEquals('GridColumn_1', zones[1].id())
+		self.assertEquals(((0, 1), (1, 1)), zones[1].poses())
+		pass
+
+	def testGridBlockReturnsZoneObjects(self):
+		rows = GridBlock(4, 4, 2, 2)
+		zones = rows.zoneObjs()
+		self.assertEquals('GridBlock_0', zones[0].id())
+		self.assertEquals(((0, 0), (0, 1), (1, 0), (1, 1)), zones[0].poses())
+		self.assertEquals('GridBlock_1', zones[1].id())
+		self.assertEquals(((0, 2), (0, 3), (1, 2), (1, 3)), zones[1].poses())
+		self.assertEquals('GridBlock_2', zones[2].id())
+		self.assertEquals(((2, 0), (2, 1), (3, 0), (3, 1)), zones[2].poses())
+		self.assertEquals('GridBlock_3', zones[3].id())
+		self.assertEquals(((2, 2), (2, 3), (3, 2), (3, 3)), zones[3].poses())		
+		pass				
