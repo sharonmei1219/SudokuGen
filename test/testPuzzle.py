@@ -204,12 +204,6 @@ class TestBlockIndexExchange(unittest.TestCase):
 		self.grid =  GridBlock(6, 4, 3, 2)
 		pass
 
-	def test_matrixIndexToBlockIndex(self):
-		self.assertEquals(3, self.grid.matrixToBlock[3][2])
-		self.assertEquals(3, self.grid.matrixToBlock[5][3])
-		self.assertEquals(2, self.grid.matrixToBlock[3][1])		
-		pass
-
 	def test_coordsOfRow(self):
 		grid = GridRow(6, 4)
 		self.assertEquals(((0, 0), (0, 1), (0, 2), (0, 3)), grid.zoneWithPosIn((0, 1)))
@@ -347,7 +341,6 @@ class TestViewDirection(unittest.TestCase):
 		zone = view.zoneWithPosIn((0, 0))
 		self.assertEquals(((0, 0), (0, 1), (1, 0), (1, 1)), zone)
 		pass
-
 
 class TestViewDirectionPosesInSameZone(unittest.TestCase):
 	def testPosesInSameBlock(self):
@@ -529,8 +522,8 @@ class TestGridOfZones(unittest.TestCase):
 		pass
 
 	def testGridColumnReturnsZoneObjects(self):
-		rows = GridColumn(2, 2)
-		zones = rows.zoneObjs()
+		columns = GridColumn(2, 2)
+		zones = columns.zoneObjs()
 		self.assertEquals('GridColumn_0', zones[0].id())
 		self.assertEquals(((0, 0), (1, 0)), zones[0].poses())
 		self.assertEquals('GridColumn_1', zones[1].id())
@@ -538,8 +531,8 @@ class TestGridOfZones(unittest.TestCase):
 		pass
 
 	def testGridBlockReturnsZoneObjects(self):
-		rows = GridBlock(4, 4, 2, 2)
-		zones = rows.zoneObjs()
+		blocks = GridBlock(4, 4, 2, 2)
+		zones = blocks.zoneObjs()
 		self.assertEquals('GridBlock_0', zones[0].id())
 		self.assertEquals(((0, 0), (0, 1), (1, 0), (1, 1)), zones[0].poses())
 		self.assertEquals('GridBlock_1', zones[1].id())
@@ -548,4 +541,19 @@ class TestGridOfZones(unittest.TestCase):
 		self.assertEquals(((2, 0), (2, 1), (3, 0), (3, 1)), zones[2].poses())
 		self.assertEquals('GridBlock_3', zones[3].id())
 		self.assertEquals(((2, 2), (2, 3), (3, 2), (3, 3)), zones[3].poses())		
-		pass				
+		pass
+
+	def testGridRowPosZoneIndex(self):
+		rows = GridRow(2, 2)
+		self.assertEquals(0, rows.zoneIndex((0, 1)))
+
+	def testGridColumnPosZoneIndex(self):
+		columns = GridColumn(2, 2)
+		self.assertEquals(1, columns.zoneIndex((0, 1)))		
+
+	def testGridColumnPosZoneIndex(self):
+		blocks = GridBlock(4, 4, 2, 2)
+		self.assertEquals(3, blocks.zoneIndex((3, 3)))	
+		self.assertEquals(0, blocks.zoneIndex((1, 1)))	
+		self.assertEquals(1, blocks.zoneIndex((1, 2)))	
+		self.assertEquals(2, blocks.zoneIndex((3, 0)))	

@@ -176,8 +176,6 @@ class Zone:
 		return self._poses
 
 class Grid:
-	nonEmptyNumberIn = lambda self, zone: list(filter(("/").__ne__, zone))
-
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
 		self.gridRow = GridRow(matrixHeight, matrixWidth)
 		self.gridColumn = GridColumn(matrixHeight, matrixWidth)
@@ -220,8 +218,12 @@ class GridRow(GridDirection):
 	def zoneObjs(self): 
 		return self._zones;
 
+	def zoneIndex(self, pos):
+		return pos[0]
+
 	def zoneWithPosIn(self, pos):
-		return self.zoneOfPoses[pos[0]]
+		index = self.zoneIndex(pos)
+		return self.zoneOfPoses[index]
 
 class GridColumn(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):
@@ -235,8 +237,12 @@ class GridColumn(GridDirection):
 	def zoneObjs(self):
 		return self._zones;
 
+	def zoneIndex(self, pos):
+		return pos[1]
+
 	def zoneWithPosIn(self, pos):
-		return self.zoneOfPoses[pos[1]]
+		index = self.zoneIndex(pos)
+		return self.zoneOfPoses[index]
 
 class GridBlock(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
@@ -253,7 +259,7 @@ class GridBlock(GridDirection):
 			return (i // blockHeight * nbPerRow + j // blockWidth)
 
 		self.zoneOfPoses = [tuple(b2mIndex(i, j) for j in range(bsize)) for i in range(bnum)]
-		self.matrixToBlock = [[m2bIndex(i, j) for j in range(matrixWidth)] for i in range(matrixHeight)]
+		self._zoneIndex = [[m2bIndex(i, j) for j in range(matrixWidth)] for i in range(matrixHeight)]
 		self._ids = ['GridBlock_' + str(bi) for bi in range(bnum)]
 		self._zones = [Zone(zoneId, zonePoses) for (zoneId, zonePoses) in zip(self._ids, self.zoneOfPoses)]
 
@@ -262,11 +268,13 @@ class GridBlock(GridDirection):
 
 	def zoneObjs(self):
 		return self._zones
-		pass
+
+	def zoneIndex(self, pos):
+		return self._zoneIndex[pos[0]][pos[1]]
 
 	def zoneWithPosIn(self, pos):
-		(bi) = self.matrixToBlock[pos[0]][pos[1]]
-		return self.zoneOfPoses[bi]
+		index = self.zoneIndex(pos)
+		return self.zoneOfPoses[index]
 
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):
