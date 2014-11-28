@@ -209,6 +209,10 @@ class GridDirection:
 	def zoneObjs(self): 
 		return self._zones;
 
+	def _zoneObj(self, index):
+		return self._zones[index]
+		pass
+
 	def zoneWithPosIn(self, pos):
 		index = self.zoneIndex(pos)
 		return self.zoneOfPoses[index]

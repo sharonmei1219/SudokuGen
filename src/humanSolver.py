@@ -188,15 +188,20 @@ class Finding:
 		return False
 
 class SelfUpdateFinding(Finding):
-	def __init__(self, poses, possibilities, zone):
-		super(SelfUpdateFinding, self).__init__(poses, possibilities)
+	def __init__(self, finding, zone):
+		self._finding = finding
 		self._zone = zone
 		pass
 
 	def update(self, pMatrix):
-		pMatrix.erasePossibility(self.possibilities, set(self._zone.poses()) - self.pos)
+		pMatrix.erasePossibility(self._finding.possibilities, set(self._zone.poses()) - self._finding.pos)
 		pMatrix.addKnownFinding(self._zone.id(), self)
 		pass
+
+	def __add__(self, otherFinding):
+		return SelfUpdateFinding(self.pos | otherFinding.pos, \
+								 self.possibilities | otherFinding.possibilities, \
+								 self._zone)
 
 class Finder:
 	def findAndUpdate(self, pMatrix):
@@ -229,8 +234,7 @@ class NakedFinder(Finder):
 
 		for i in range(len(restPos)):
 			pos = restPos[i]
-			possibilities = pMatrix.possibilitieAt(pos)
-			f2 = Finding({pos}, possibilities)
+			f2 = Finding({pos}, pMatrix.possibilitieAt(pos))
 			if len((f1 + f2).possibilities) > self.criteria : continue
 
 			finding = self.iterativelyFind(f1 + f2,
@@ -275,8 +279,7 @@ class HiddenFinder(Finder):
 
 		for i in range(len(restKeys)):
 			key = restKeys[i]
-			posesOfkey = valuePosMap[key]
-			f2 = Finding(posesOfkey, {key})
+			f2 = Finding(valuePosMap[key], {key})
 			if len((f1 + f2).pos) > self.criteria: continue
 			
 			finding = self.iterativelyFind(f1 + f2, 
@@ -355,14 +358,13 @@ class XWingFinder(Finder):
 	def iterativelyFind(self, areas, startingPoint, mergedArea, value, cnt):
 		if cnt == self.criteria:
 			splits = self.impactDirection.split(mergedArea)
-			return [Finding(splits[0], {value}), Finding(splits[1], {value})]
+			return [Finding(split, {value}) for split in splits]
 
 		for j in range(startingPoint, len(areas)):
 			splits = self.impactDirection.split(mergedArea | areas[j])
 			if len(splits) > self.criteria: continue
 			result = self.iterativelyFind(areas, j + 1, mergedArea | areas[j], value, cnt + 1)
 			if self.isNewResultFound(result): return result
-
 		pass
 
 	def update(self, findings, pMatrix):
