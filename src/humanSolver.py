@@ -265,6 +265,9 @@ class NakedFinder(Finder):
 		scorer.recordPairTripleQuat(self.criteria)
 		pass
 
+	def constructUpdator(self, finding):
+		return ExclusiveUpdater(finding, self.viewGrid.zoneObjWithPosIn(finding.anyPos()))
+
 class HiddenFinder(Finder):
 	def __init__(self, criteria, viewDirection, knownResult):
 		self.viewDir = viewDirection
@@ -307,6 +310,10 @@ class HiddenFinder(Finder):
 
 	def score(self, scorer):
 		scorer.recordPairTripleQuat(self.criteria)
+		pass
+
+	def constructUpdator(self, finding):
+		return OccupationUpdator(finding, self.viewDir.zoneObjWithPosIn(finding.anyPos()))
 		pass
 
 class LockedCellFinder(Finder):

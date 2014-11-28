@@ -233,6 +233,22 @@ class TestNakedFinderUpdateItsResult(unittest.TestCase):
 		pMatrix.erasePossibility.assert_called_once_with({1, 2}, {(0, 2)})
 		self.assertFalse(knownResult.isNewResult(finding))
 		pass
+
+	def testNakedFinderConstructUpdator(self):
+		knownResult = KnownResultTypeOne()
+		finding = Finding({(0, 0), (0, 1)}, {1, 2})
+		finder = NakedFinder(1, GridRow(1, 3), knownResult)
+		updator = finder.constructUpdator(finding)
+
+		pMatrix = MockObject()
+		pMatrix.erasePossibility = MagicMock()
+		pMatrix.addKnownFinding = MagicMock()
+
+		updator.update(pMatrix)
+
+		pMatrix.erasePossibility.assert_called_once_with({1, 2}, {(0, 2)})
+		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', updator)
+		pass
 	pass
 
 class TestHiddenFinderUpdateItsResult(unittest.TestCase):
@@ -247,6 +263,22 @@ class TestHiddenFinderUpdateItsResult(unittest.TestCase):
 
 		pMatrix.setPossibility.assert_called_once_with({1, 2}, {(0, 0), (0, 1)})
 		self.assertFalse(knownResult.isNewResult(finding))	
+		pass
+
+	def testHiddenFinderConstructUpdator(self):
+		knownResult = KnownResultTypeOne()
+		finding = Finding({(0, 0), (0, 1)}, {1, 2})
+		finder = HiddenFinder(1, GridRow(1, 3), knownResult)
+		updator = finder.constructUpdator(finding)
+
+		pMatrix = MockObject()
+		pMatrix.setPossibility = MagicMock()
+		pMatrix.addKnownFinding = MagicMock()
+
+		updator.update(pMatrix)
+
+		pMatrix.setPossibility.assert_called_once_with({1, 2}, {(0, 0), (0, 1)})
+		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', updator)
 		pass
 	pass
 
@@ -265,6 +297,7 @@ class TestLockedCellFinderUpdate(unittest.TestCase):
 
 		pMatrix.erasePossibility.assert_called_once_with({1}, {(1, 0), (1, 1)})
 		self.assertFalse(knownResult.isNewResult(finding))
+
 		pass
 
 class TestXWingFinder(unittest.TestCase):
