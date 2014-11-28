@@ -187,7 +187,7 @@ class Finding:
 				return True
 		return False
 
-class SelfUpdateFinding(Finding):
+class ExclusiveUpdater:
 	def __init__(self, finding, zone):
 		self._finding = finding
 		self._zone = zone
@@ -198,10 +198,17 @@ class SelfUpdateFinding(Finding):
 		pMatrix.addKnownFinding(self._zone.id(), self)
 		pass
 
-	def __add__(self, otherFinding):
-		return SelfUpdateFinding(self.pos | otherFinding.pos, \
-								 self.possibilities | otherFinding.possibilities, \
-								 self._zone)
+class OccupationUpdator:
+	def __init__(self, finding, zone):
+		self._finding = finding
+		self._zone = zone
+		pass
+
+	def update(self, pMatrix):
+		pMatrix.setPossibility(self._finding.possibilities, self._finding.pos)
+		pMatrix.addKnownFinding(self._zone.id(), self)
+		pass
+
 
 class Finder:
 	def findAndUpdate(self, pMatrix):

@@ -502,15 +502,26 @@ class TestHumanSolver(unittest.TestCase):
 		pass
 
 class TestSelfUpdateFinding(unittest.TestCase):
-	def testFindingUpdateItselfToPossibilityMatrix(self):
+	def testExclusiveUpdatorUpdateMatrix(self):
 		pMatrix = MockObject()
 		pMatrix.erasePossibility = MagicMock()
 		pMatrix.addKnownFinding = MagicMock()
 		finding = Finding({(0, 0)}, {1})
-		finding = SelfUpdateFinding(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
+		finding = ExclusiveUpdater(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
 		finding.update(pMatrix)
 		pMatrix.erasePossibility.assert_called_once_with({1}, {(0, 1)})
 		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
+
+	def testOccupationUpdatorUpdateMatrix(self):
+		pMatrix = MockObject()
+		pMatrix.setPossibility = MagicMock()
+		pMatrix.addKnownFinding = MagicMock()
+		finding = Finding({(0, 0), (0, 1)}, {1, 2})
+		finding = OccupationUpdator(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
+		finding.update(pMatrix)
+		pMatrix.setPossibility.assert_called_once_with({1, 2}, {(0, 0), (0, 1)})
+		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
+		pass
 
 class TestKnownFindingMapVersion(unittest.TestCase):
 
