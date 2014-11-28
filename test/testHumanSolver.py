@@ -247,7 +247,7 @@ class TestNakedFinderUpdateItsResult(unittest.TestCase):
 		updator.update(pMatrix)
 
 		pMatrix.erasePossibility.assert_called_once_with({1, 2}, {(0, 2)})
-		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', updator)
+		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
 		pass
 	pass
 
@@ -278,7 +278,7 @@ class TestHiddenFinderUpdateItsResult(unittest.TestCase):
 		updator.update(pMatrix)
 
 		pMatrix.setPossibility.assert_called_once_with({1, 2}, {(0, 0), (0, 1)})
-		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', updator)
+		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
 		pass
 	pass
 
@@ -297,7 +297,25 @@ class TestLockedCellFinderUpdate(unittest.TestCase):
 
 		pMatrix.erasePossibility.assert_called_once_with({1}, {(1, 0), (1, 1)})
 		self.assertFalse(knownResult.isNewResult(finding))
+		pass
 
+	def testLockedCandidatesConstructUpdator(self):
+		pMatrix = MockObject()
+		pMatrix.erasePossibility = MagicMock()
+		pMatrix.addKnownFinding = MagicMock()
+
+		knownResult = KnownResultTypeOne()
+		finding = Finding({(0, 0), (0, 1)}, {1})
+		gridRow = GridRow(4, 4)
+		gridBlock = GridBlock(4, 4, 2, 2)
+		finder = LockedCellFinder(gridRow, gridBlock, knownResult)
+		
+		updator = finder.constructUpdator(finding)
+
+		updator.update(pMatrix)
+
+		pMatrix.erasePossibility.assert_called_once_with({1}, {(1,0), (1,1)})
+		pMatrix.addKnownFinding.assert_called_once_with('GridBlock_0', finding)
 		pass
 
 class TestXWingFinder(unittest.TestCase):
@@ -540,8 +558,8 @@ class TestSelfUpdateFinding(unittest.TestCase):
 		pMatrix.erasePossibility = MagicMock()
 		pMatrix.addKnownFinding = MagicMock()
 		finding = Finding({(0, 0)}, {1})
-		finding = ExclusiveUpdater(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
-		finding.update(pMatrix)
+		updator = ExclusiveUpdater(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
+		updator.update(pMatrix)
 		pMatrix.erasePossibility.assert_called_once_with({1}, {(0, 1)})
 		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
 
@@ -550,10 +568,23 @@ class TestSelfUpdateFinding(unittest.TestCase):
 		pMatrix.setPossibility = MagicMock()
 		pMatrix.addKnownFinding = MagicMock()
 		finding = Finding({(0, 0), (0, 1)}, {1, 2})
-		finding = OccupationUpdator(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
-		finding.update(pMatrix)
+		updator = OccupationUpdator(finding, Zone('GridRow_0', ((0, 0), (0, 1))))
+		updator.update(pMatrix)
 		pMatrix.setPossibility.assert_called_once_with({1, 2}, {(0, 0), (0, 1)})
 		pMatrix.addKnownFinding.assert_called_once_with('GridRow_0', finding)
+		pass
+
+	def testComposedUpdator(self):
+		pMatrix = MockObject()
+		updator_0 = MockObject()
+		updator_0.update = MagicMock()
+		updator_1 = MockObject()
+		updator_1.update = MagicMock()
+		composedUpdator = ComposedUpdator([updator_0, updator_1])
+		composedUpdator.update(pMatrix)
+		updator_1.update.assert_called_once_with(pMatrix)
+		updator_0.update.assert_called_once_with(pMatrix)
+
 		pass
 
 class TestKnownFindingMapVersion(unittest.TestCase):

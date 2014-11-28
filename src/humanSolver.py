@@ -195,7 +195,7 @@ class ExclusiveUpdater:
 
 	def update(self, pMatrix):
 		pMatrix.erasePossibility(self._finding.possibilities, set(self._zone.poses()) - self._finding.pos)
-		pMatrix.addKnownFinding(self._zone.id(), self)
+		pMatrix.addKnownFinding(self._zone.id(), self._finding)
 		pass
 
 class OccupationUpdator:
@@ -206,7 +206,17 @@ class OccupationUpdator:
 
 	def update(self, pMatrix):
 		pMatrix.setPossibility(self._finding.possibilities, self._finding.pos)
-		pMatrix.addKnownFinding(self._zone.id(), self)
+		pMatrix.addKnownFinding(self._zone.id(), self._finding)
+		pass
+
+class ComposedUpdator:
+	def __init__(self, updators):
+		self._upds = updators
+		pass
+
+	def update(self, pMatrix):
+		for updator in self._upds:
+			updator.update(pMatrix)
 		pass
 
 
@@ -345,6 +355,9 @@ class LockedCellFinder(Finder):
 		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
 		self.knownResult.add(finding)
 		pass
+
+	def constructUpdator(self, finding):
+		return ExclusiveUpdater(finding, self.affectViewDir.zoneObjWithPosIn(finding.anyPos()))
 
 	def score(self, scorer):
 		scorer.recordLockedCandidates()
