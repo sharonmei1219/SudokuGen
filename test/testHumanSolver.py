@@ -357,6 +357,23 @@ class TestXWingFinder(unittest.TestCase):
 		self.assertFalse(knownResult.isNewResult(Finding({(0, 0), (1, 0)}, {1})))
 		self.assertFalse(knownResult.isNewResult(Finding({(0, 1), (1, 1)}, {1})))
 		pass
+
+	def testXWingConstructUpdator(self):
+		pMatrix = MockObject()
+		pMatrix.erasePossibility = MagicMock()
+		pMatrix.addKnownFinding = MagicMock()
+
+		knownResult = KnownResultTypeOne()
+		searchingDirection = GridRow(3, 4)
+		impactedDirection = GridColumn(3, 4)
+		findings = [Finding({(0, 0), (1, 0)}, {1}), Finding({(0, 1), (1, 1)}, {1})]
+		finder = XWingFinder(2, searchingDirection, impactedDirection, knownResult)
+
+		updator = finder.constructUpdator(findings)
+		updator.update(pMatrix)
+		self.assertEquals([call({1}, {(2, 0)}), call({1}, {(2, 1)})], pMatrix.erasePossibility.mock_calls)
+		self.assertEquals([call('GridColumn_0', Finding({(0, 0), (1, 0)}, {1})), call('GridColumn_1', Finding({(0, 1), (1, 1)}, {1}))], pMatrix.addKnownFinding.mock_calls)
+		pass
 	pass
 
 class TestKnownResult(unittest.TestCase):

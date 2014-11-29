@@ -401,6 +401,11 @@ class XWingFinder(Finder):
 			self.knownResult.add(finding)
 		pass
 
+	def constructUpdator(self, findings):
+		updators = [ExclusiveUpdater(finding, self.impactDirection.zoneObjWithPosIn(finding.anyPos())) for finding in findings]
+		return ComposedUpdator(updators)
+		pass
+
 	def isNewResultFound(self, result):
 		return result is not None and self.knownResult.isNewResult(result[0])
 
