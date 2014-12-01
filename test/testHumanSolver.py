@@ -460,6 +460,20 @@ class TestFindAndUpdate(unittest.TestCase):
 		self.assertEquals([call(finding1, pMatrix), call(finding2, pMatrix)], finder.update.mock_calls)
 		pass
 
+	def testFinderFindUpdator(self):
+		pMatrix = MockObject()
+		finding = MockObject()
+		updator = MockObject()
+		finder = Finder()
+		finder.find = MagicMock(return_value = finding)
+		finder.constructUpdator = MagicMock(return_value = updator)
+
+		self.assertEquals(updator, finder.findUpdator(pMatrix))
+
+		finder.find.assert_called_once_with(pMatrix)
+		finder.constructUpdator.assert_called_once_with(finding)
+		pass
+
 class TestScorer(unittest.TestCase):
 	def testScoreerCreation(self):
 		ranking = Scorer()
@@ -601,7 +615,12 @@ class TestSelfUpdateFinding(unittest.TestCase):
 		composedUpdator.update(pMatrix)
 		updator_1.update.assert_called_once_with(pMatrix)
 		updator_0.update.assert_called_once_with(pMatrix)
+		pass
 
+	def testNullUpdator(self):
+		pMatrix = MockObject()
+		updator = NullUpdator()
+		updator.update(pMatrix)
 		pass
 
 class TestKnownFindingMapVersion(unittest.TestCase):

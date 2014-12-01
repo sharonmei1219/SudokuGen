@@ -209,6 +209,10 @@ class OccupationUpdator:
 		pMatrix.addKnownFinding(self._zone.id(), self._finding)
 		pass
 
+class NullUpdator:
+	def update(self, pMatrix):
+		pass
+
 class ComposedUpdator:
 	def __init__(self, updators):
 		self._upds = updators
@@ -231,6 +235,10 @@ class Finder:
 			finding = self.find(pMatrix)
 		
 		return foundSomething
+
+	def findUpdator(self, pMatrix):
+		finding = self.find(pMatrix)
+		return self.constructUpdator(finding)
 		
 class NakedFinder(Finder):
 	def __init__(self, criteria, viewGrid, knownResult):
