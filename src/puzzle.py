@@ -18,6 +18,9 @@ class Puzzle():
 	def solved(self):
 		return self.full() and self.validator.validate(self.grid, self.puzzleMatrix)
 
+	def allCandidates(self):
+		return self.candidatesGen.candidatesList
+
 	def candidatesAt(self, pos):
 		return self.candidatesGen.getCandidatesAt(self.grid, pos, self.puzzleMatrix)		
 

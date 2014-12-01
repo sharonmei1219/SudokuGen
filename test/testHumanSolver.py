@@ -554,22 +554,8 @@ class TestHumanSolver(unittest.TestCase):
 		pMatrix = hs.buildPossibilityMatrix(puzzle)
 		self.assertEquals({1}, pMatrix.possibilitieAt((0, 0)))
 		self.assertEquals({2}, pMatrix.possibilitieAt((0, 1)))
-		self.assertEquals({2, 3}, pMatrix.possibilitieAt((1, 0)))
-		self.assertEquals({1, 3}, pMatrix.possibilitieAt((1, 1)))
-		pass
-
-	def testBuildKnownResults(self):
-		puzzle = Puzzle(PuzzleMatrix([[1, 2],
-									  [_, _]]), 
-						self.grid,
-						Validator(),
-						CandidatesGen([1, 2]))		
-		hs = HumanSolver(self.grid)
-		hs.buildKnownResults(puzzle)
-		self.assertFalse(hs.knownResultInRow.isNewResult(Finding({(0, 0)}, {1})))
-		self.assertFalse(hs.knownResultInColumn.isNewResult(Finding({(0, 1)}, {2})))
-		self.assertTrue(hs.knownResultInBlock.isNewResult(Finding({(1, 0)}, {2})))
-		self.assertTrue(hs.knownResultInRow.isNewResult(Finding({(1, 1)}, {1})))
+		self.assertEquals({1, 2, 3}, pMatrix.possibilitieAt((1, 0)))
+		self.assertEquals({1, 2, 3}, pMatrix.possibilitieAt((1, 1)))
 		pass
 
 	def testSolve(self):
@@ -580,7 +566,6 @@ class TestHumanSolver(unittest.TestCase):
 						CandidatesGen([1, 2]))		
 		hs = HumanSolver(self.grid)		
 		hs.solve(puzzle)
-		# self.assertFalse(True)
 		pass
 
 class TestSelfUpdateFinding(unittest.TestCase):
@@ -667,4 +652,10 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 		knownFinding = KnownFindingZoneMapVersion()
 		knownFinding.add('GridRow_0', finding_0)
 		self.assertFalse(knownFinding.moreAccurateFound('GridRow_1', newFinding))
+		pass
+
+class TestFinderContext(unittest.TestCase):
+	def testConstructFinderContext(self):
+		matrix = MockObject()
+		context = FinderContext(matrix)
 		pass

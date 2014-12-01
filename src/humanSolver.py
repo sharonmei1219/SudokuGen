@@ -1,6 +1,7 @@
 #has huge side effect, need to be one humanSolver Per Puzzle
 class HumanSolver:
 	def __init__(self, grid):
+		self._grid = grid
 		self.observer = PossibilityMatrixUpdateObserver()
 		self.scorer = Scorer()
 		self.results = [KnownResultTypeOne(), KnownResultTypeOne(), KnownResultTypeOne()]
@@ -65,27 +66,19 @@ class HumanSolver:
 	def buildPossibilityMatrix(self, puzzle):
 		pHeight, pWidth = puzzle.dim()
 		matrix = [[set()] * pWidth for i in range(pHeight)]
+		candidates = puzzle.allCandidates()
+		for (i, j) in self._grid.allPos():
+			matrix[i][j] = set(candidates)
+
 		knownPart = puzzle.knownPart()
 		for (i, j) in knownPart:
 			matrix[i][j] = {knownPart[(i, j)]}
 
-		unknownPart = puzzle.unknownPart()
-		for (i, j) in unknownPart:
-			matrix[i][j] = unknownPart[(i, j)]
-
 		return PossibilityMatrix(matrix)
-
-	def buildKnownResults(self, puzzle):
-		knownPart = puzzle.knownPart()
-		for result in self.results:
-			for pos in knownPart:
-				result.add(Finding({pos}, {knownPart[pos]}))
-		pass
 
 	def createContextForPuzzleToSolve(self, puzzle):
 		pMatrix = self.buildPossibilityMatrix(puzzle)
 		pMatrix.register(self.observer)
-		self.buildKnownResults(puzzle)
 		return pMatrix
 
 	def solve(self, puzzle):
@@ -502,3 +495,9 @@ class KnownFindingZoneMapVersion:
 		for existFinding in existFindings:
 			if existFinding.moreAccurateThan(finding): return True
 		return False
+
+class FinderContext(PossibilityMatrix, KnownFindingZoneMapVersion):
+	def __init__(self, matrix):
+		PossibilityMatrix.__init__(self, matrix)
+		KnownFindingZoneMapVersion.__init__(self)
+		pass
