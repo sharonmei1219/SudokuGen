@@ -4,8 +4,6 @@ class HumanSolver:
 		self._grid = grid
 		self.observer = PossibilityMatrixUpdateObserver()
 		self.scorer = Scorer()
-		self.results = [KnownResultTypeOne(), KnownResultTypeOne(), KnownResultTypeOne()]
-		(self.knownResultInRow, self.knownResultInColumn, self.knownResultInBlock) = (self.results)
 
 		self.directioins = grid.allDirection()
 		(self.gridRow, self.gridColumn, self.gridBlock) = (self.directioins)
@@ -30,9 +28,9 @@ class HumanSolver:
 	def nakedQuat(self): return self.nakedRule(4);
 
 	def nakedRule(self, length):
-		return  [NakedFinder(length, self.gridRow, self.knownResultInRow),
-				 NakedFinder(length, self.gridColumn, self.knownResultInColumn),
-				 NakedFinder(length, self.gridBlock, self.knownResultInBlock)]
+		return  [NakedFinder(length, self.gridRow),
+				 NakedFinder(length, self.gridColumn),
+				 NakedFinder(length, self.gridBlock)]
 		pass
 
 	def hiddenSingle(self):	return self.hiddenRule(1);
@@ -42,16 +40,16 @@ class HumanSolver:
 
 
 	def hiddenRule(self, length):
-		return [HiddenFinder(length, self.gridRow, self.knownResultInRow),
-				HiddenFinder(length, self.gridColumn, self.knownResultInColumn),
-				HiddenFinder(length, self.gridBlock, self.knownResultInBlock)]
+		return [HiddenFinder(length, self.gridRow),
+				HiddenFinder(length, self.gridColumn),
+				HiddenFinder(length, self.gridBlock)]
 		pass
 
 	def lockedCandidates(self):
-		return [LockedCellFinder(self.gridRow, self.gridBlock, self.knownResultInBlock),
-				LockedCellFinder(self.gridColumn, self.gridBlock, self.knownResultInBlock),
-				LockedCellFinder(self.gridBlock, self.gridRow, self.knownResultInRow),
-				LockedCellFinder(self.gridBlock, self.gridColumn, self.knownResultInColumn)]
+		return [LockedCellFinder(self.gridRow, self.gridBlock),
+				LockedCellFinder(self.gridColumn, self.gridBlock),
+				LockedCellFinder(self.gridBlock, self.gridRow),
+				LockedCellFinder(self.gridBlock, self.gridColumn)]
 		pass
 
 	def XWing(self): return self.crossRule(2)
@@ -59,8 +57,8 @@ class HumanSolver:
 	def swordFish(self): return self.crossRule(4)
 
 	def crossRule(self, length):
-		return [XWingFinder(length, self.gridRow, self.gridColumn, self.knownResultInColumn),
-				XWingFinder(length, self.gridColumn, self.gridRow, self.knownResultInRow)]
+		return [XWingFinder(length, self.gridRow, self.gridColumn),
+				XWingFinder(length, self.gridColumn, self.gridRow)]
 		pass
 
 	def possibilitiesMatrixOfPuzzle(self, puzzle):
@@ -77,37 +75,12 @@ class HumanSolver:
 		return matrix
 		pass
 
-	def buildPossibilityMatrix(self, puzzle):
-		return PossibilityMatrix(self.possibilitiesMatrixOfPuzzle(puzzle))
-
 	def buildSolvingContextNewVersion(self, puzzle):
 		context = FinderContext(self.possibilitiesMatrixOfPuzzle(puzzle))
 		context.register(self.observer)
 		return context
 
-	def createContextForPuzzleToSolve(self, puzzle):
-		pMatrix = self.buildPossibilityMatrix(puzzle)
-		pMatrix.register(self.observer)
-		return pMatrix
-
 	def solve(self, puzzle):
-		pMatrix = self.createContextForPuzzleToSolve(puzzle)
-		self.solvePossibilityMatrix(pMatrix)
-		return(pMatrix)
-
-	def solvePossibilityMatrix(self, pMatrix):
-		self.observer.set()
-
-		while self.observer.isMatrixChanged():
-			self.observer.clear()
-			for finder in self.finders:
-				finder.findAndUpdate(pMatrix)
-				if self.observer.isMatrixChanged():
-					finder.score(self.scorer)
-					break
-		pass
-
-	def solveNewVersion(self, puzzle):
 		context = self.buildSolvingContextNewVersion(puzzle)
 		self.solvePuzzleWithinContext(context)
 		return context
@@ -206,7 +179,6 @@ class Finding:
 		if self.pos < otherFinding.pos: return True
 		if self.pos == otherFinding.pos:
 			if self.possibilities >= otherFinding.possibilities:
-				# print('self.possibilities > otherFinding.possibilities')
 				return True
 		return False
 
@@ -222,7 +194,7 @@ class ExclusiveUpdater:
 		pass
 
 	def __str__(self):
-		return '{_finding:{possibilities:' + str(self._finding.possibilities) + ', poses: + ' + str(self._finding.pos) + '}, zone: ' + self._zone.id() +'}'
+		return 'finding: ' + str(self._finding) + ', zone: ' + self._zone.id() 
 
 class OccupationUpdator:
 	def __init__(self, finding, zone):
@@ -264,9 +236,8 @@ class Finder:
 		return self.constructUpdator(finding)
 		
 class NakedFinder(Finder):
-	def __init__(self, criteria, viewGrid, knownResult):
+	def __init__(self, criteria, viewGrid):
 		self.criteria = criteria
-		self.knownResult = knownResult
 		self.viewGrid = viewGrid
 		pass
 
@@ -294,18 +265,12 @@ class NakedFinder(Finder):
 		pass
 
 	def isNewResultFound(self, result, pMatrix):
-		return result is not None and self.knownResult.isNewResult(result) and (self.isNewResultInContext(result, pMatrix))
+		return result is not None and (self.isNewResultInContext(result, pMatrix))
 
 	def isNewResultInContext(self, result, pMatrix):
 		updator = self.constructUpdator(result)
 		zoneID = self.viewGrid.zoneObjWithPosIn(result.anyPos()).id()
 		return not pMatrix.moreAccurateFound(zoneID, result)
-
-	def update(self, finding, pMatrix):
-		zone = self.viewGrid.zoneWithPosIn(finding.anyPos())
-		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
-		self.knownResult.add(finding)
-		pass
 
 	def score(self, scorer):
 		scorer.recordPairTripleQuat(self.criteria)
@@ -315,10 +280,9 @@ class NakedFinder(Finder):
 		return ExclusiveUpdater(finding, self.viewGrid.zoneObjWithPosIn(finding.anyPos()))
 
 class HiddenFinder(Finder):
-	def __init__(self, criteria, viewDirection, knownResult):
+	def __init__(self, criteria, viewDirection):
 		self.viewDir = viewDirection
 		self.criteria = criteria
-		self.knownResult = knownResult
 		pass
 
 	def find(self, pMatrix):
@@ -348,17 +312,12 @@ class HiddenFinder(Finder):
 		pass
 
 	def isNewResultFound(self, result, pMatrix):
-		return result is not None and self.knownResult.isNewResult(result) and (self.isNewResultInContext(result, pMatrix))
+		return result is not None and (self.isNewResultInContext(result, pMatrix))
 
 	def isNewResultInContext(self, result, pMatrix):
 		updator = self.constructUpdator(result)
 		zoneID = self.viewDir.zoneObjWithPosIn(result.anyPos()).id()
 		return not pMatrix.moreAccurateFound(zoneID, result)		
-
-	def update(self, finding, pMatrix):
-		pMatrix.setPossibility(finding.possibilities, finding.pos)
-		self.knownResult.add(finding)
-		pass
 
 	def score(self, scorer):
 		scorer.recordPairTripleQuat(self.criteria)
@@ -369,10 +328,9 @@ class HiddenFinder(Finder):
 		pass
 
 class LockedCellFinder(Finder):
-	def __init__(self, sourceViewDir, affectViewDir, knownResult):
+	def __init__(self, sourceViewDir, affectViewDir):
 		self.sourceViewDir = sourceViewDir
 		self.affectViewDir = affectViewDir
-		self.knownResult = knownResult
 		pass
 
 	def find(self, pMatrix):
@@ -390,18 +348,12 @@ class LockedCellFinder(Finder):
 		pass
 
 	def isNewResultFound(self, result, pMatrix):
-		return result is not None and self.knownResult.isNewResult(result) and (self.isNewResultInContext(result, pMatrix))
+		return result is not None and (self.isNewResultInContext(result, pMatrix))
 
 	def isNewResultInContext(self, result, pMatrix):
 		updator = self.constructUpdator(result)
 		zoneID = self.affectViewDir.zoneObjWithPosIn(result.anyPos()).id()
 		return not pMatrix.moreAccurateFound(zoneID, result)		
-
-	def update(self, finding, pMatrix):
-		zone = self.affectViewDir.zoneWithPosIn(finding.anyPos())
-		pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
-		self.knownResult.add(finding)
-		pass
 
 	def constructUpdator(self, finding):
 		return ExclusiveUpdater(finding, self.affectViewDir.zoneObjWithPosIn(finding.anyPos()))
@@ -411,11 +363,10 @@ class LockedCellFinder(Finder):
 		pass
 
 class XWingFinder(Finder):
-	def __init__(self, criteria, searchingDirection, impactDirection, knownResult):
+	def __init__(self, criteria, searchingDirection, impactDirection):
 		self.searchingDirection = searchingDirection
 		self.impactDirection = impactDirection
 		self.criteria = criteria
-		self.knownResult = knownResult
 		pass
 
 	def find(self, pMatrix):
@@ -441,20 +392,12 @@ class XWingFinder(Finder):
 			if self.isNewResultFound(result, pMatrix): return result
 		pass
 
-	def update(self, findings, pMatrix):
-		for finding in findings:
-			zone = self.impactDirection.zoneWithPosIn(finding.anyPos())
-			pMatrix.erasePossibility(finding.possibilities, set(zone) - finding.pos)
-			self.knownResult.add(finding)
-		pass
-
 	def constructUpdator(self, findings):
 		updators = [ExclusiveUpdater(finding, self.impactDirection.zoneObjWithPosIn(finding.anyPos())) for finding in findings]
 		return ComposedUpdator(updators)
-		pass
 
 	def isNewResultFound(self, result, pMatrix):
-		return result is not None and self.knownResult.isNewResult(result[0]) and (self.isNewResultInContext(result, pMatrix))
+		return result is not None and (self.isNewResultInContext(result, pMatrix))
 
 	def isNewResultInContext(self, result, pMatrix):
 		for r in result:
@@ -465,23 +408,6 @@ class XWingFinder(Finder):
 	def score(self, scorer):
 		scorer.recordXWingJellyFishSwordFish(self.criteria)
 		pass
-
-class KnownResultTypeOne:
-	def __init__(self):
-		self.knownFindings = {}
-		pass
-
-	def add(self, finding):
-		for pos in finding.pos:
-			self.knownFindings[pos] = finding
-		pass
-
-	def isNewResult(self, finding):
-		return all([self.moreAccurateFound(pos, finding) for pos in finding.pos])
-
-	def moreAccurateFound(self, pos, finding):
-		if pos not in self.knownFindings: return True
-		return not self.knownFindings[pos].moreAccurateThan(finding)
 
 class PossibilityMatrixUpdateObserver:
 	def __init__(self):
@@ -529,7 +455,7 @@ class Scorer:
 			self.rank = rank
 		pass
 
-class KnownFindingZoneMapVersion:
+class KnownFinding:
 	def __init__(self):
 		self.zoneFindingMap = dict()
 		pass
@@ -545,15 +471,11 @@ class KnownFindingZoneMapVersion:
 		if zoneID not in self.zoneFindingMap: return False
 		existFindings = self.zoneFindingMap[zoneID]
 		for existFinding in existFindings:
-			# print(existFinding)
-			# print(existFinding.moreAccurateThan(finding))
-			if existFinding.moreAccurateThan(finding): 
-
-				return True
+			if existFinding.moreAccurateThan(finding): return True
 		return False
 
-class FinderContext(PossibilityMatrix, KnownFindingZoneMapVersion):
+class FinderContext(PossibilityMatrix, KnownFinding):
 	def __init__(self, matrix):
 		PossibilityMatrix.__init__(self, matrix)
-		KnownFindingZoneMapVersion.__init__(self)
+		KnownFinding.__init__(self)
 		pass
