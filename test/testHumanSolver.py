@@ -480,8 +480,8 @@ class TestHumanSolver(unittest.TestCase):
 						CandidatesGen([1, 2]))		
 		hs = HumanSolver(self.grid)		
 		result = hs.hint(puzzle)
-		print(result[0][0])
-		self.assertFalse(True)
+		# print(result[0][0])
+		# self.assertFalse(True)
 		pass
 
 class TestSelfUpdateFinding(unittest.TestCase):
