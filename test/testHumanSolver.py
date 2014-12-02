@@ -399,60 +399,60 @@ class TestScorer(unittest.TestCase):
 
 	def testRecordScoreForPairTripleQuat(self):
 		ranking = Scorer()
-		ranking.recordPairTripleQuat(2)
+		ranking.visitNakedFinder(2)
 		self.assertEquals(1, ranking.result())
 		pass
 
 	def testRecordHighestScore(self):
 		ranking = Scorer()
-		ranking.recordPairTripleQuat(3)
-		ranking.recordPairTripleQuat(2)
+		ranking.visitHiddenFinder(3)
+		ranking.visitNakedFinder(2)
 		self.assertEquals(2, ranking.result())
 		pass
 
 	def testRecordLockCandidates(self):
 		ranking = Scorer()
-		ranking.recordLockedCandidates()
+		ranking.visitLockedCandidates()
 		self.assertEquals(1, ranking.result())
 		pass
 
 	def testRecordXWingJellyFishSwordFish(self):
 		ranking = Scorer()
-		ranking.recordXWingJellyFishSwordFish(2)
+		ranking.visitXWingJellyFishSwordFish(2)
 		self.assertEquals(2, ranking.result())
 		pass
 
 
 	def testNakedFinderScore(self):
 		ranking = MockObject()
-		ranking.recordPairTripleQuat = MagicMock()
+		ranking.visitNakedFinder = MagicMock()
 		finder = NakedFinder(1, GridRow(1, 1))
-		finder.score(ranking)
-		ranking.recordPairTripleQuat.assert_called_once_with(1)
+		finder.accept(ranking)
+		ranking.visitNakedFinder.assert_called_once_with(1)
 		pass
 
 	def testHiddenFinderScore(self):
 		ranking = MockObject()
-		ranking.recordPairTripleQuat = MagicMock()
+		ranking.visitHiddenFinder = MagicMock()
 		finder = HiddenFinder(1, GridRow(1, 1))
-		finder.score(ranking)
-		ranking.recordPairTripleQuat.assert_called_once_with(1)
+		finder.accept(ranking)
+		ranking.visitHiddenFinder.assert_called_once_with(1)
 		pass
 
 	def testLockCandidatesScore(self):
 		ranking = MockObject()
-		ranking.recordLockedCandidates = MagicMock()
+		ranking.visitLockedCandidates = MagicMock()
 		finder = LockedCellFinder(GridRow(1, 1), GridBlock(1, 1, 1, 1))
-		finder.score(ranking)
-		ranking.recordLockedCandidates.assert_called_once_with()
+		finder.accept(ranking)
+		ranking.visitLockedCandidates.assert_called_once_with()
 		pass
 
 	def testXWingJellyFishSwordFishScore(self):
 		ranking = MockObject()
-		ranking.recordXWingJellyFishSwordFish = MagicMock()
+		ranking.visitXWingJellyFishSwordFish = MagicMock()
 		finder = XWingFinder(2, GridRow(1, 1), GridColumn(1, 1))
-		finder.score(ranking)
-		ranking.recordXWingJellyFishSwordFish.assert_called_once_with(2)
+		finder.accept(ranking)
+		ranking.visitXWingJellyFishSwordFish.assert_called_once_with(2)
 		pass
 	pass
 
@@ -470,6 +470,18 @@ class TestHumanSolver(unittest.TestCase):
 		hs = HumanSolver(self.grid)		
 		context = hs.solve(puzzle)
 		self.assertEquals([[{1}, {2}], [{2}, {1}]], context.matrix)
+		pass
+
+	def testHint(self):
+		puzzle = Puzzle(PuzzleMatrix([[1, _],
+									  [_, _]]), 
+						Grid(2, 2, 1, 1),
+						Validator(),
+						CandidatesGen([1, 2]))		
+		hs = HumanSolver(self.grid)		
+		result = hs.hint(puzzle)
+		print(result[0][0])
+		self.assertFalse(True)
 		pass
 
 class TestSelfUpdateFinding(unittest.TestCase):
@@ -520,8 +532,6 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 	def testOneFindingExistMoreAccurateFindingFoundInTheSameZone(self):
 		finding_0 = MockObject()
 		finding_1 = MockObject()
-		finding_0.__str__ = MagicMock(return_value = "finding0")
-		finding_1.__str__ = MagicMock(return_value = "finding1")
 		newFinding = MockObject()
 		finding_0.moreAccurateThan = MagicMock(return_value = True)
 		finding_1.moreAccurateThan = MagicMock(return_value = False)
@@ -550,4 +560,37 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 		knownFinding = KnownFinding()
 		knownFinding.addKnownFinding('GridRow_0', finding_0)
 		self.assertFalse(knownFinding.moreAccurateFound('GridRow_1', newFinding))
+		pass
+
+class TestSingleFinder(unittest.TestCase):
+	def testReturnTrue(self):
+		teller = SingleFinderTeller()
+		self.assertTrue(teller.tellSingleFinder(NakedFinder(1, GridRow(1, 1))))
+		self.assertTrue(teller.tellSingleFinder(HiddenFinder(1, GridRow(1, 1))))
+		pass
+
+	def testReturnFalse(self):
+		teller = SingleFinderTeller()
+		self.assertFalse(teller.tellSingleFinder(NakedFinder(2, GridRow(1, 1))))
+		self.assertFalse(teller.tellSingleFinder(HiddenFinder(2, GridRow(1, 1))))
+		self.assertFalse(teller.tellSingleFinder(XWingFinder(2, GridRow(1, 1), GridColumn(1, 1))))
+		self.assertFalse(teller.tellSingleFinder(LockedCellFinder(GridBlock(1, 1, 1, 1), GridColumn(1, 1))))
+		pass
+
+class TestNamer(unittest.TestCase):
+	def testNamesOfAllFinder(self):
+		name = FinderName()
+		self.assertEquals('Naked Single', name.name(NakedFinder(1, None)))
+		self.assertEquals('Naked Pair', name.name(NakedFinder(2, None)))
+		self.assertEquals('Naked Triple', name.name(NakedFinder(3, None)))
+		self.assertEquals('Naked Quat', name.name(NakedFinder(4, None)))
+		self.assertEquals('Hidden Single', name.name(HiddenFinder(1, None)))
+		self.assertEquals('Hidden Pair', name.name(HiddenFinder(2, None)))
+		self.assertEquals('Hidden Triple', name.name(HiddenFinder(3, None)))
+		self.assertEquals('Hidden Quat', name.name(HiddenFinder(4, None)))
+		self.assertEquals('Locked Candidates', name.name(LockedCellFinder(None, None)))
+		self.assertEquals('XWing', name.name(XWingFinder(2, None, None)))
+		self.assertEquals('Jelly Fish', name.name(XWingFinder(3, None, None)))
+		self.assertEquals('Sword Fish', name.name(XWingFinder(4, None, None)))
+
 		pass

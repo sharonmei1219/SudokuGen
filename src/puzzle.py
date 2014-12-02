@@ -61,6 +61,22 @@ class Puzzle():
 	def dim(self):
 		return self.puzzleMatrix.dim()
 
+	def possibilityMatrix(self):
+		pHeight, pWidth = self.puzzleMatrix.dim()
+		matrix = [[set()] * pWidth for i in range(pHeight)]
+		candidates = self.candidatesGen.candidatesList;
+		knownPart = self.knownPart()
+		for (i, j) in knownPart:
+			matrix[i][j] = {knownPart[(i, j)]}
+
+		unknownPart = self.unknownPart()
+		for (i, j) in unknownPart:
+			matrix[i][j] = unknownPart[(i, j)]
+
+
+		return matrix
+		pass
+
 class PuzzleMatrix:
 	def __init__(self, matrix):
 		self.matrix = matrix

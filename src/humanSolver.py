@@ -1,3 +1,4 @@
+import json
 #has huge side effect, need to be one humanSolver Per Puzzle
 class HumanSolver:
 	def __init__(self, grid):
@@ -61,22 +62,8 @@ class HumanSolver:
 				XWingFinder(length, self.gridColumn, self.gridRow)]
 		pass
 
-	def possibilitiesMatrixOfPuzzle(self, puzzle):
-		pHeight, pWidth = puzzle.dim()
-		matrix = [[set()] * pWidth for i in range(pHeight)]
-		candidates = puzzle.allCandidates()
-		for (i, j) in self._grid.allPos():
-			matrix[i][j] = set(candidates)
-
-		knownPart = puzzle.knownPart()
-		for (i, j) in knownPart:
-			matrix[i][j] = {knownPart[(i, j)]}
-
-		return matrix
-		pass
-
 	def buildSolvingContextNewVersion(self, puzzle):
-		context = FinderContext(self.possibilitiesMatrixOfPuzzle(puzzle))
+		context = FinderContext(puzzle.possibilityMatrix())
 		context.register(self.observer)
 		return context
 
@@ -84,6 +71,20 @@ class HumanSolver:
 		context = self.buildSolvingContextNewVersion(puzzle)
 		self.solvePuzzleWithinContext(context)
 		return context
+
+	def hint(self, puzzle):
+		context = self.buildSolvingContextNewVersion(puzzle)
+		teller = SingleFinderTeller()
+		result = []
+		while True:
+			self.observer.clear()
+			updator, finder = self.loopSearch(context, self.finders)
+			updator.update(context)
+			if self.observer.isMatrixChanged():
+				result += [(updator, finder)]
+				if teller.tellSingleFinder(finder):break
+
+		return result
 
 	def loopSearch(self, context, finderList):
 		for finder in finderList:
@@ -94,9 +95,10 @@ class HumanSolver:
 	def solvePuzzleWithinContext(self, context):
 		updator, finder = self.loopSearch(context, self.finders)
 		while updator != None:
+			self.observer.clear()
 			updator.update(context)
 			if self.observer.isMatrixChanged():
-				finder.score(self.scorer)
+				finder.accept(self.scorer)
 			updator, finder = self.loopSearch(context, self.finders)
 		pass
 
@@ -164,7 +166,8 @@ class Finding:
 		return self.pos == finding.pos and self.possibilities == finding.possibilities
 
 	def __str__(self):
-		return str(self.pos) + " " + str(self.possibilities)
+		output = {'pos': str(self.pos), 'possibilities': str(self.possibilities)}
+		return json.dumps(output)
 	
 	def __repr__(self):
 		return self.__str__()
@@ -182,6 +185,9 @@ class Finding:
 				return True
 		return False
 
+	def JsonData(self):
+		return {pos:list(self.pos), possibilities:list(self.possibilities)}
+
 class ExclusiveUpdater:
 	def __init__(self, finding, zone):
 		self._finding = finding
@@ -194,7 +200,7 @@ class ExclusiveUpdater:
 		pass
 
 	def __str__(self):
-		return 'finding: ' + str(self._finding) + ', zone: ' + self._zone.id() 
+		return str(self._finding) + ', grid: ' + self._zone.id()
 
 class OccupationUpdator:
 	def __init__(self, finding, zone):
@@ -216,7 +222,6 @@ class ComposedUpdator:
 		for updator in self._upds:
 			updator.update(context)
 		pass
-
 
 class Finder:
 	def findAndUpdate(self, pMatrix):
@@ -272,8 +277,8 @@ class NakedFinder(Finder):
 		zoneID = self.viewGrid.zoneObjWithPosIn(result.anyPos()).id()
 		return not pMatrix.moreAccurateFound(zoneID, result)
 
-	def score(self, scorer):
-		scorer.recordPairTripleQuat(self.criteria)
+	def accept(self, scorer):
+		return scorer.visitNakedFinder(self.criteria)
 		pass
 
 	def constructUpdator(self, finding):
@@ -319,13 +324,12 @@ class HiddenFinder(Finder):
 		zoneID = self.viewDir.zoneObjWithPosIn(result.anyPos()).id()
 		return not pMatrix.moreAccurateFound(zoneID, result)		
 
-	def score(self, scorer):
-		scorer.recordPairTripleQuat(self.criteria)
+	def accept(self, scorer):
+		return scorer.visitHiddenFinder(self.criteria)
 		pass
 
 	def constructUpdator(self, finding):
 		return OccupationUpdator(finding, self.viewDir.zoneObjWithPosIn(finding.anyPos()))
-		pass
 
 class LockedCellFinder(Finder):
 	def __init__(self, sourceViewDir, affectViewDir):
@@ -358,8 +362,8 @@ class LockedCellFinder(Finder):
 	def constructUpdator(self, finding):
 		return ExclusiveUpdater(finding, self.affectViewDir.zoneObjWithPosIn(finding.anyPos()))
 
-	def score(self, scorer):
-		scorer.recordLockedCandidates()
+	def accept(self, scorer):
+		return scorer.visitLockedCandidates()
 		pass
 
 class XWingFinder(Finder):
@@ -405,8 +409,8 @@ class XWingFinder(Finder):
 			if not pMatrix.moreAccurateFound(zoneID, r): return True
 		return False
 
-	def score(self, scorer):
-		scorer.recordXWingJellyFishSwordFish(self.criteria)
+	def accept(self, scorer):
+		return scorer.visitXWingJellyFishSwordFish(self.criteria)
 		pass
 
 class PossibilityMatrixUpdateObserver:
@@ -438,15 +442,19 @@ class Scorer:
 	def result(self):
 		return self.rank
 
-	def recordPairTripleQuat(self, criteria):
+	def visitNakedFinder(self, criteria):
 		self.record(criteria - 1)
 		pass
 
-	def recordLockedCandidates(self):
+	def visitHiddenFinder(self, criteria):
+		self.record(criteria - 1)
+		pass
+
+	def visitLockedCandidates(self):
 		self.record(1)
 		pass
 
-	def recordXWingJellyFishSwordFish(self, criteria):
+	def visitXWingJellyFishSwordFish(self, criteria):
 		self.record(criteria)
 		pass
 
@@ -479,3 +487,38 @@ class FinderContext(PossibilityMatrix, KnownFinding):
 		PossibilityMatrix.__init__(self, matrix)
 		KnownFinding.__init__(self)
 		pass
+
+class SingleFinderTeller:
+	def tellSingleFinder(self, finder):
+		return finder.accept(self)
+
+	def visitNakedFinder(self, criteria):
+		return criteria == 1
+
+	def visitHiddenFinder(self, criteria):
+		return criteria == 1
+
+	def visitLockedCandidates(self):
+		return False
+
+	def visitXWingJellyFishSwordFish(self, criteria):
+		return False
+
+class FinderName:
+	def name(self, finder):
+		return finder.accept(self)
+	
+	def visitNakedFinder(self, criteria):
+		result = ['Naked Single', 'Naked Pair', 'Naked Triple', 'Naked Quat']
+		return result[criteria - 1]
+
+	def visitHiddenFinder(self, criteria):
+		result = ['Hidden Single', 'Hidden Pair', 'Hidden Triple', 'Hidden Quat']
+		return result[criteria - 1]
+
+	def visitLockedCandidates(self):
+		return 'Locked Candidates'
+
+	def visitXWingJellyFishSwordFish(self, criteria):
+		result = ['XWing', 'Jelly Fish', 'Sword Fish']
+		return result[criteria - 2]

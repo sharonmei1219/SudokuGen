@@ -556,4 +556,15 @@ class TestGridOfZones(unittest.TestCase):
 		self.assertEquals(3, blocks.zoneIndex((3, 3)))	
 		self.assertEquals(0, blocks.zoneIndex((1, 1)))	
 		self.assertEquals(1, blocks.zoneIndex((1, 2)))	
-		self.assertEquals(2, blocks.zoneIndex((3, 0)))	
+		self.assertEquals(2, blocks.zoneIndex((3, 0)))
+
+class TestBuildPossibilityMatrix(unittest.TestCase):
+	def testBuildPOssibilityMatrix(self):
+		factory = PuzzleFactory(2, 1, 1)
+		puzzle = factory.creatPuzzleByMatrix([[1, _],
+											  [_, _]])
+		pMatrix = puzzle.possibilityMatrix()
+		self.assertEquals([[{1}, {2}],
+						   [{2}, {1, 2}]], pMatrix)
+
+		pass
