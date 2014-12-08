@@ -5,6 +5,7 @@ from unittest.mock import call
 from humanSolver import *
 from puzzle import *
 from puzzle import _
+import json
 
 class MockObject:
 	pass
@@ -592,5 +593,4 @@ class TestNamer(unittest.TestCase):
 		self.assertEquals('XWing', name.name(XWingFinder(2, None, None)))
 		self.assertEquals('Jelly Fish', name.name(XWingFinder(3, None, None)))
 		self.assertEquals('Sword Fish', name.name(XWingFinder(4, None, None)))
-
 		pass
