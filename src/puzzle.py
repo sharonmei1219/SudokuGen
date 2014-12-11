@@ -194,6 +194,9 @@ class Zone:
 	def poses(self):
 		return self._poses
 
+	def accept(self, visitor):
+		return visitor.visitZone(self._id, self._poses)
+
 class Grid:
 	def __init__(self, matrixHeight, matrixWidth, blockHeight, blockWidth):
 		self.gridRow = GridRow(matrixHeight, matrixWidth)
@@ -242,6 +245,7 @@ class GridDirection:
 
 	def zones(self):
 		return self.zoneOfPoses;
+
 
 class GridRow(GridDirection):
 	def __init__(self, matrixHeight, matrixWidth):

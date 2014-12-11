@@ -185,8 +185,8 @@ class Finding:
 				return True
 		return False
 
-	def JsonData(self):
-		return {pos:list(self.pos), possibilities:list(self.possibilities)}
+	def accept(self, visitor):
+		return visitor.visitFinding(self.possibilities, self.pos)
 
 class ExclusiveUpdater:
 	def __init__(self, finding, zone):
@@ -201,6 +201,9 @@ class ExclusiveUpdater:
 
 	def __str__(self):
 		return str(self._finding) + ', grid: ' + self._zone.id()
+
+	def accept(self, visitor):
+		return visitor.visiteExclusiveUpdator(self._finding, self._zone)
 
 class OccupationUpdator:
 	def __init__(self, finding, zone):
@@ -411,7 +414,6 @@ class XWingFinder(Finder):
 
 	def accept(self, scorer):
 		return scorer.visitXWingJellyFishSwordFish(self.criteria)
-		pass
 
 class PossibilityMatrixUpdateObserver:
 	def __init__(self):
@@ -522,3 +524,16 @@ class FinderName:
 	def visitXWingJellyFishSwordFish(self, criteria):
 		result = ['XWing', 'Jelly Fish', 'Sword Fish']
 		return result[criteria - 2]
+
+class Serializor:
+	def serialize(self, obj):
+		return obj.accept(self)
+
+	def visitZone(self, id, zone):
+		return list(zone)
+
+	def visitFinding(self, possibilities, poses):
+		return {'possibilities':list(possibilities), 'poses':list(poses)}
+
+	def visiteExclusiveUpdator(self, finding, zone):
+		return {'finding':finding.accept(self), 'zone':zone.accept(self)}

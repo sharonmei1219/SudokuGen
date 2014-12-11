@@ -594,3 +594,21 @@ class TestNamer(unittest.TestCase):
 		self.assertEquals('Jelly Fish', name.name(XWingFinder(3, None, None)))
 		self.assertEquals('Sword Fish', name.name(XWingFinder(4, None, None)))
 		pass
+
+class TestSerialization(unittest.TestCase):
+	def setUp(self):
+		self.se = Serializor()
+		self.zone = Zone('Row_0', {(0, 0)})
+		self.finding = Finding({(0, 0)}, {1})
+		pass
+	def testSerializeZone(self):
+		self.assertEquals([(0, 0)], self.se.serialize(self.zone))
+
+	def testSerializeFinding(self):
+		self.assertEquals({'possibilities':[1], 'poses':[(0, 0)]}, self.se.serialize(self.finding))
+
+	def testSerializeExclusiveUpdator(self):
+		upd = ExclusiveUpdater(self.finding, self.zone)
+		jsonData = self.se.serialize(upd)
+		self.assertEquals({'finding':{'possibilities':[1], 'poses':[(0, 0)]}, 'zone':[(0, 0)]}, jsonData)
+		pass
