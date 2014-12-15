@@ -1,5 +1,4 @@
 import json
-#has huge side effect, need to be one humanSolver Per Puzzle
 class HumanSolver:
 	def __init__(self, grid):
 		self._grid = grid
@@ -67,6 +66,12 @@ class HumanSolver:
 		context.register(self.observer)
 		return context
 
+	def solveWithOnlySingleRule(self, puzzle):
+		context = self.buildSolvingContextNewVersion(puzzle)
+		finders = self.nakedSingle() + self.hiddenSingle()
+		self.solvePuzzleWithinContextWithFinder(context, finders)
+		return context
+
 	def solve(self, puzzle):
 		context = self.buildSolvingContextNewVersion(puzzle)
 		self.solvePuzzleWithinContext(context)
@@ -100,6 +105,16 @@ class HumanSolver:
 			if self.observer.isMatrixChanged():
 				finder.accept(self.scorer)
 			updator, finder = self.loopSearch(context, self.finders)
+		pass
+
+	def solvePuzzleWithinContextWithFinder(self, context, finders):
+		updator, finder = self.loopSearch(context, finders)
+		while updator != None:
+			self.observer.clear()
+			updator.update(context)
+			if self.observer.isMatrixChanged():
+				finder.accept(self.scorer)
+			updator, finder = self.loopSearch(context, finders)
 		pass
 
 	def rank(self):
@@ -216,6 +231,9 @@ class OccupationUpdator:
 		context.addKnownFinding(self._zone.id(), self._finding)
 		pass
 
+	def accept(self, visitor):
+		return visitor.visitOccupationUpdator(self._finding, self._zone)
+
 class ComposedUpdator:
 	def __init__(self, updators):
 		self._upds = updators
@@ -225,6 +243,9 @@ class ComposedUpdator:
 		for updator in self._upds:
 			updator.update(context)
 		pass
+
+	def accept(self, visitor):
+		return visitor.visitComposedUpdator(self._upds)
 
 class Finder:
 	def findAndUpdate(self, pMatrix):
@@ -537,3 +558,23 @@ class Serializor:
 
 	def visiteExclusiveUpdator(self, finding, zone):
 		return {'finding':finding.accept(self), 'zone':zone.accept(self)}
+		
+	def visitOccupationUpdator(self, finding, zone):
+		return {'finding':finding.accept(self), 'zone':zone.accept(self)}
+
+	def visitComposedUpdator(self, updators):
+		return [upd.accept(self) for upd in updators]
+
+class HintMessage:
+	def __init__(self):
+		self.se = Serializor()
+		self.fn = FinderName()
+		pass
+
+	def getMsg(self, results):
+		msg = []
+		for result in results:
+			(updator, finder) = result
+			msg.append({"finder":self.fn.name(finder), "updator":self.se.serialize(updator)})
+		return msg
+	pass

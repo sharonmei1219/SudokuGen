@@ -600,6 +600,10 @@ class TestSerialization(unittest.TestCase):
 		self.se = Serializor()
 		self.zone = Zone('Row_0', {(0, 0)})
 		self.finding = Finding({(0, 0)}, {1})
+
+		self.zone_1 = Zone('Row_1', {(1, 0)})
+		self.finding_1 = Finding({(1, 0)}, {2})
+
 		pass
 	def testSerializeZone(self):
 		self.assertEquals([(0, 0)], self.se.serialize(self.zone))
@@ -612,3 +616,63 @@ class TestSerialization(unittest.TestCase):
 		jsonData = self.se.serialize(upd)
 		self.assertEquals({'finding':{'possibilities':[1], 'poses':[(0, 0)]}, 'zone':[(0, 0)]}, jsonData)
 		pass
+
+	def testSerializeOccupationUpdator(self):
+		upd = OccupationUpdator(self.finding, self.zone)
+		jsonData = self.se.serialize(upd)
+		self.assertEquals({'finding':{'possibilities':[1], 'poses':[(0, 0)]}, 'zone':[(0, 0)]}, jsonData)
+		pass
+
+	def testSerializeComposedUpdator(self):
+		upd_0 = OccupationUpdator(self.finding, self.zone)
+		upd_1 = OccupationUpdator(self.finding_1, self.zone_1)
+		upd = ComposedUpdator([upd_0, upd_1])
+		jsonData = self.se.serialize(upd)
+		self.assertEquals([{'finding':{'possibilities':[1], 'poses':[(0, 0)]}, 'zone':[(0, 0)]},
+			               {'finding':{'possibilities':[2], 'poses':[(1, 0)]}, 'zone':[(1, 0)]}], jsonData)
+		pass
+
+class testGetHint(unittest.TestCase):
+	def setUp(self):
+		self.msg = '[["/",1,"/","/","/","/","/",6,"/"],[4,"/","/","/","/","/","/","/",8],[9,"/",8,"/","/","/",5,"/",2],["/","/","/","/",3,"/","/","/","/"],["/","/","/",7,5,"/","/","/","/"],[1,"/",6,"/","/","/","/","/",4],["/","/",4,"/","/",1,9,"/","/"],[6,"/","/",3,"/",2,"/","/","/"],[5,"/",9,"/",6,"/",1,"/","/"]]'
+		self.factory = PuzzleFactory(9, 3, 3)
+		self.matrix = json.loads(self.msg)
+		pass
+
+	def testLoadJsonData(self):
+		expectedMatrix = [['/', 1, '/', '/', '/', '/', '/', 6, '/'],
+		                  [4, '/', '/', '/', '/', '/', '/', '/', 8],
+		                  [9, '/', 8, '/', '/', '/', 5, '/', 2],
+		                  ['/', '/', '/', '/', 3, '/', '/', '/', '/'],
+					      ['/', '/', '/', 7, 5, '/', '/', '/', '/'],
+					      [1, '/', 6, '/', '/', '/', '/', '/', 4],
+					      ['/', '/', 4, '/', '/', 1, 9, '/', '/'],
+					      [6, '/', '/', 3, '/', 2, '/', '/', '/'],
+					      [5, '/', 9, '/', 6, '/', 1, '/', '/']]
+		self.assertEquals(expectedMatrix, self.matrix)   
+		pass
+
+	def testCreatePuzzle(self):
+		puzzle = self.factory.creatPuzzleByMatrix(self.matrix)
+		self.assertEquals({2, 3, 7}, puzzle.unknownPart()[(0,0)])
+		pass
+
+	def testsolveWithSingleRule(self):
+		matrix = [[1, 3, '/', 9, '/', 8, 5, '/', 7],
+ 				  [8, '/', '/', '/', 3, 5, '/', 1, 9],
+ 				  ['/', 5, 9, 2, '/', '/', 8, 3, 6],
+ 				  ['/', '/', 4, 8, '/', '/', 6, 5, 3],
+ 				  [6, 1, 5, 3, '/', 2, 7, '/', '/'],
+ 				  [3, '/', 8, '/', 5, 6, '/', '/', 1],
+ 				  ['/', 6, 7, 1, '/', 9, 3, '/', '/'],
+ 				  ['/', '/', 3, '/', '/', 4, 1, 6, '/'],
+ 				  ['/', '/', 1, '/', '/', 3, 9, 7, '/']]
+		puzzle = self.factory.creatPuzzleByMatrix(matrix)
+		humanSolver = HumanSolver(Grid(9, 9, 3, 3))
+		hint = humanSolver.hint(puzzle)
+		encoder = HintMessage()
+		msg = encoder.getMsg(hint)
+		self.assertEquals([{'finder': 'Naked Pair', 'updator': {'finding': {'possibilities': [2, 6], 'poses': [(1, 2), (0, 2)]}, 'zone': [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]}}, {'finder': 'Locked Candidates', 'updator': {'finding': {'possibilities': [2], 'poses': [(3, 0), (3, 1)]}, 'zone': [(3, 0), (3, 1), (3, 2), (4, 0), (4, 1), (4, 2), (5, 0), (5, 1), (5, 2)]}}, {'finder': 'Locked Candidates', 'updator': {'finding': {'possibilities': [2], 'poses': [(8, 8), (7, 8), (6, 8)]}, 'zone': [(6, 6), (6, 7), (6, 8), (7, 6), (7, 7), (7, 8), (8, 6), (8, 7), (8, 8)]}}, {'finder': 'XWing', 'updator': [{'finding': {'possibilities': [7], 'poses': [(5, 1), (1, 1)]}, 'zone': [(0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 1)]}, {'finding': {'possibilities': [7], 'poses': [(1, 3), (5, 3)]}, 'zone': [(0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]}]}, {'finder': 'Naked Single', 'updator': {'finding': {'possibilities': [5], 'poses': [(7, 3)]}, 'zone': [(7, 0), (7, 1), (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), (7, 7), (7, 8)]}}]
+, msg)
+		pass
+		

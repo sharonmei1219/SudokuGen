@@ -1,9 +1,23 @@
 from pysimplesoap.server import SoapDispatcher, SOAPHandler
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+from humanSolver import *
+from puzzle import *
+from puzzle import _
+import json
+
+factory = PuzzleFactory(9, 3, 3)
+
 def sudokuHelp(puzzle):
-    print(puzzle)
-    return 'hello, I am human solver'
+    humanSolver = HumanSolver(Grid(9, 9, 3, 3))
+    encoder = HintMessage()
+    
+    matrix = json.loads(puzzle)
+    puzzleObj = factory.creatPuzzleByMatrix(matrix)
+    hint = humanSolver.hint(puzzleObj)
+    msg = encoder.getMsg(hint)
+    print(msg)
+    return json.dumps(msg)
 
 dispatcher = SoapDispatcher(
     'my_dispatcher',
