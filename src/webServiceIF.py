@@ -9,6 +9,7 @@ import json
 factory = PuzzleFactory(9, 3, 3)
 
 def sudokuHelp(puzzle):
+    print(puzzle)
     humanSolver = HumanSolver(Grid(9, 9, 3, 3))
     encoder = HintMessage()
     

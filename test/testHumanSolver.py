@@ -22,7 +22,7 @@ class TestNakedSingleFinder(unittest.TestCase):
 
 	def testFindNakedSingleIn2ndRow(self):
 		grid = GridRow(2, 1)
-		pMatrix = FinderContext([[{1, 2}], [{1}]])
+		pMatrix = FinderContext([[{1, 2}], [{1}]], [])
 		self.finder = NakedFinder(1, grid)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0)}, {1}), result)
@@ -30,7 +30,7 @@ class TestNakedSingleFinder(unittest.TestCase):
 
 	def testFind2ndNakedSingleAfter1stSingleHasBeenUpdated(self):
 		grid = GridRow(1, 2)
-		pMatrix = FinderContext([[{1}, {2}]])
+		pMatrix = FinderContext([[{1}, {2}]], [])
 		self.finder = NakedFinder(1, grid)
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0)}, {1}))
 		result = self.finder.find(pMatrix)
@@ -48,7 +48,7 @@ class TestNakedPairFinder(unittest.TestCase):
 
 	def testFind2ndNakedPairInRowAfter1stPairHasBeenUpdated(self):
 		grid = GridRow(1, 4)		
-		pMatrix = FinderContext([[{2, 3}, {4, 5}, {4, 5}, {2, 3}]])
+		pMatrix = FinderContext([[{2, 3}, {4, 5}, {4, 5}, {2, 3}]], [])
 		self.finder = NakedFinder(2, grid)
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 3)).id(), Finding({(0, 3), (0, 0)}, {2, 3}))
 		result = self.finder.find(pMatrix)
@@ -57,7 +57,7 @@ class TestNakedPairFinder(unittest.TestCase):
 
 	def testFind2SingleAsOnePair(self):
 		grid = GridRow(1, 4)
-		pMatrix = FinderContext([[{2}, {3}, {4, 5}, {4, 5}]])
+		pMatrix = FinderContext([[{2}, {3}, {4, 5}, {4, 5}]], [])
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0)}, {2}))
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 1)}, {3}))
 		self.finder = NakedFinder(2, grid)	
@@ -67,7 +67,7 @@ class TestNakedPairFinder(unittest.TestCase):
 
 	def testFindNakedPairIn2ndRow(self):
 		grid = GridRow(2, 2)		
-		pMatrix = FinderContext([[{2, 3, 4}, {2, 3, 5}], [{1, 4}, {1, 4}]])
+		pMatrix = FinderContext([[{2, 3, 4}, {2, 3, 5}], [{1, 4}, {1, 4}]], [])
 		self.finder = NakedFinder(2, grid)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0), (1, 1)}, {1, 4}), result)			
@@ -76,7 +76,7 @@ class TestNakedPairFinder(unittest.TestCase):
 class TestNakedTrippleFinder(unittest.TestCase):
 	def testFind2ndNakedTrippleAfter1stHasBeenUpdated(self):
 		grid = Grid(1, 6, 1, 1)
-		pMatrix = FinderContext([[{1, 2}, {4, 5}, {5, 6}, {2, 3}, {4, 6}, {1, 3}]])
+		pMatrix = FinderContext([[{1, 2}, {4, 5}, {5, 6}, {2, 3}, {4, 6}, {1, 3}]], [])
 		self.finder = NakedFinder(3, grid.gridRow)
 		pMatrix.addKnownFinding(grid.gridRow.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0), (0, 3), (0, 5)}, {1, 2, 3}))
 		result = self.finder.find(pMatrix)
@@ -85,7 +85,7 @@ class TestNakedTrippleFinder(unittest.TestCase):
 
 	def testFindNakedTrippleIn2ndLine(self):
 		grid = Grid(2, 3, 1, 1)
-		pMatrix = FinderContext([[{1, 4}, {2, 3}, {1, 3}], [{4, 5}, {5, 6}, {4, 6}]])
+		pMatrix = FinderContext([[{1, 4}, {2, 3}, {1, 3}], [{4, 5}, {5, 6}, {4, 6}]], [])
 		self.finder = NakedFinder(3, grid.gridRow)		
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0), (1, 1), (1, 2)}, {4, 5, 6}), result)
@@ -103,7 +103,7 @@ class TestHiddenSingleFinder(unittest.TestCase):
 
 	def testFind2ndHiddenSingleWhen1stSingleHasBeenUpdated(self):
 		grid = GridRow(1, 3)
-		pMatrix = FinderContext([[{1, 2}, {2, 3}, {2, 3, 4}]])
+		pMatrix = FinderContext([[{1, 2}, {2, 3}, {2, 3, 4}]], [])
 		self.finder = HiddenFinder(1, grid)
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0)}, {1}))
 		result = self.finder.find(pMatrix)
@@ -112,7 +112,7 @@ class TestHiddenSingleFinder(unittest.TestCase):
 
 	def testFindHiddenSingleIn2ndRow(self):
 		grid = GridRow(2, 2)
-		pMatrix = FinderContext([[{1, 2}, {1, 2}], [{3, 4, 1}, {4, 1}]])
+		pMatrix = FinderContext([[{1, 2}, {1, 2}], [{3, 4, 1}, {4, 1}]], [])
 		self.finder = HiddenFinder(1, grid)
 		result = self.finder.find(pMatrix)
 		self.assertEquals(Finding({(1, 0)}, {3}), result)		
@@ -129,7 +129,7 @@ class TestHiddenPairFinder(unittest.TestCase):
 
 	def test_findHiddenPairInARowOnlyOnce(self):
 		grid = GridRow(1, 4)
-		pMatrix = FinderContext([[{1, 2, 5}, {3, 4, 6}, {1, 2, 6}, {3, 4, 5}]])
+		pMatrix = FinderContext([[{1, 2, 5}, {3, 4, 6}, {1, 2, 6}, {3, 4, 5}]], [])
 		self.finder = HiddenFinder(2, grid)
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0), (0, 2)}, {1, 2}))
 		self.assertEquals(Finding({(0, 1), (0, 3)}, {3, 4}), self.finder.find(pMatrix))		
@@ -137,7 +137,7 @@ class TestHiddenPairFinder(unittest.TestCase):
 
 	def test_findHiddenPairIn2ndRow(self):
 		grid = GridRow(2, 3)
-		pMatrix = FinderContext([[{1, 2, 4}, {1, 2, 4}, {1, 2, 7}], [{3, 4, 5}, {3, 4}, {5, 6}]])
+		pMatrix = FinderContext([[{1, 2, 4}, {1, 2, 4}, {1, 2, 7}], [{3, 4, 5}, {3, 4}, {5, 6}]], [])
 		self.finder = HiddenFinder(2, grid)
 		self.assertEquals(Finding({(1, 0), (1, 1)}, {3, 4}), self.finder.find(pMatrix))		
 		pass
@@ -153,7 +153,7 @@ class TestHiddenTripple(unittest.TestCase):
 
 	def testFind2ndHiddenTrippleAfter1stHasBeenUpdated(self):
 		grid = GridRow(1, 7)
-		pMatrix = FinderContext([[{1, 2, 3}, {1, 2, 3}, {4, 5, 7, 8}, {5, 6, 7, 8}, {1, 2, 3}, {4, 6, 7, 8}, {7, 8}]])
+		pMatrix = FinderContext([[{1, 2, 3}, {1, 2, 3}, {4, 5, 7, 8}, {5, 6, 7, 8}, {1, 2, 3}, {4, 6, 7, 8}, {7, 8}]], [])
 		self.finder = HiddenFinder(3, grid)
 		pMatrix.addKnownFinding(grid.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0), (0, 1), (0, 4)}, {1, 2, 3}))
 		self.assertEquals(Finding({(0, 2), (0, 3), (0, 5)}, {4, 5, 6}), self.finder.find(pMatrix))		
@@ -162,7 +162,7 @@ class TestHiddenTripple(unittest.TestCase):
 	def testFindHiddenTrippleIn2ndRow(self):
 		grid = GridRow(2, 4)
 		pMatrix = FinderContext([[{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}], 
-			                         [{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}, {4, 5}]])
+			                         [{1, 2, 3, 4}, {1, 2, 3, 4}, {1, 2, 3, 4}, {4, 5}]], [])
 		self.finder = HiddenFinder(3, grid)
 		self.assertEquals(Finding({(1, 0), (1, 1), (1, 2)}, {1, 2, 3}), self.finder.find(pMatrix))		
 		pass		
@@ -171,7 +171,7 @@ class TestLockedCellFinder(unittest.TestCase):
 	def testFindLockedCellFromARow(self):
 		grid = Grid(2, 4, 2, 2)
 		pMatrix = FinderContext([[{1}, {1}, {2, 3, 4}, {3, 4, 5}],
-									 [{1, 2}, {1, 3}, {4, 5, 6}, {5, 6, 7}]])
+									 [{1, 2}, {1, 3}, {4, 5, 6}, {5, 6, 7}]], [])
 		finder = LockedCellFinder(grid.gridRow, grid.gridBlock)
 		result = finder.find(pMatrix)
 
@@ -291,8 +291,8 @@ class TestXWingFinder(unittest.TestCase):
 
 		finder = XWingFinder(2, searchingDirection, impactedDirection)
 		pMatrix = FinderContext([[{1, 2, 3, 4}, {1, 2, 3, 4}, {6, 2, 3, 4}, {6, 2, 3, 4}],
-									 [{1, 2, 3, 4}, {1, 2, 3, 4}, {4, 2, 3}, {2, 3, 4}],
-									 [{7, 8, 9}, {7, 8, 9}, {6, 8}, {6, 2}]]);
+								 [{1, 2, 3, 4}, {1, 2, 3, 4}, {4, 2, 3}, {2, 3, 4}],
+								 [{7, 8, 9}, {7, 8, 9}, {6, 8}, {6, 2}]], []);
 
 		pMatrix.addKnownFinding(impactedDirection.zoneObjWithPosIn((0, 0)).id(), Finding({(0, 0), (1, 0)}, {1}))
 		pMatrix.addKnownFinding(impactedDirection.zoneObjWithPosIn((0, 1)).id(), Finding({(0, 1), (1, 1)}, {1}))
@@ -525,7 +525,8 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 		finding = MockObject()
 		newFinding = MockObject()
 		finding.moreAccurateThan = MagicMock(return_value = True)
-		knownFinding = KnownFinding()
+		knownFinding = KnownFinding([])
+		knownFinding.hasDetermined = MagicMock(return_value = False)
 		knownFinding.addKnownFinding('GridRow_0', finding)
 		self.assertTrue(knownFinding.moreAccurateFound('GridRow_0', newFinding))
 		pass
@@ -536,7 +537,8 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 		newFinding = MockObject()
 		finding_0.moreAccurateThan = MagicMock(return_value = True)
 		finding_1.moreAccurateThan = MagicMock(return_value = False)
-		knownFinding = KnownFinding()
+		knownFinding = KnownFinding([])
+		knownFinding.hasDetermined = MagicMock(return_value = False)
 		knownFinding.addKnownFinding('GridRow_0', finding_0)
 		knownFinding.addKnownFinding('GridRow_0', finding_1)
 		self.assertTrue(knownFinding.moreAccurateFound('GridRow_0', newFinding))
@@ -548,7 +550,8 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 		newFinding = MockObject()
 		finding_0.moreAccurateThan = MagicMock(return_value = False)
 		finding_1.moreAccurateThan = MagicMock(return_value = False)
-		knownFinding = KnownFinding()
+		knownFinding = KnownFinding([])
+		knownFinding.hasDetermined = MagicMock(return_value = False)
 		knownFinding.addKnownFinding('GridRow_0', finding_0)
 		knownFinding.addKnownFinding('GridRow_0', finding_1)
 		self.assertFalse(knownFinding.moreAccurateFound('GridRow_0', newFinding))
@@ -558,8 +561,9 @@ class TestKnownFindingMapVersion(unittest.TestCase):
 		finding_0 = MockObject()
 		newFinding = MockObject()
 		finding_0.moreAccurateThan = MagicMock(return_value = True)
-		knownFinding = KnownFinding()
+		knownFinding = KnownFinding([])
 		knownFinding.addKnownFinding('GridRow_0', finding_0)
+		knownFinding.hasDetermined = MagicMock(return_value = False)
 		self.assertFalse(knownFinding.moreAccurateFound('GridRow_1', newFinding))
 		pass
 
@@ -676,3 +680,38 @@ class testGetHint(unittest.TestCase):
 , msg)
 		pass
 		
+	# def testTrickyPuzzle(self):
+	# 	matrix = [[ 6 , 5 , 4 , 7 , 3 , 8 , 2 ,"/", 1],
+	# 			  [ 3 , 7 , 2 , 9 , 4 , 1 , 5 , 6 , 8],
+	# 			  [ 9 , 1 , 8 , 2 , 6 , 5 , 3 , 4 ,"/"],
+	# 			  [ 1 , 2 , 3 ,"/", 5 ,"/", 8 , 7 , 9],
+	# 			  ["/", 4 , 5 ,"/", 8 , 9 , 6 ,"/", 3],
+	# 			  [ 8 , 6 , 9 ,"/", 2 , 7 , 4 , 1 , 5],
+	# 			  ["/", 3 ,"/", 6 , 7 , 4 , 9 , 8 , 2],
+	# 			  [ 4 , 8 , 7 , 5 , 9 , 2 , 1 , 3 , 6],
+	# 			  [ 2 , 9 , 6 ,"/", 1 , 3 , 7 , 5 ,"/"]]
+	# 	puzzle = self.factory.creatPuzzleByMatrix(matrix)
+	# 	humanSolver = HumanSolver(Grid(9, 9, 3, 3))
+	# 	hint = humanSolver.hint(puzzle)
+	# 	encoder = HintMessage()
+	# 	msg = encoder.getMsg(hint)
+	# 	self.assertEquals([], msg)
+	# 	pass
+
+	def testPuzzleWithAllSingles(self):
+		matrix = [[1, '/'], ['/', 1]]
+		factory = PuzzleFactory(2, 1, 1)
+		puzzle = factory.creatPuzzleByMatrix(matrix)
+		humanSolver = HumanSolver(Grid(2, 2, 1, 1))
+		# hint = humanSolver.hint(puzzle)
+		pass
+
+	def testBuildKnownResultFromPuzzle(self):
+		matrix = [[1, '/'], ['/', 1]]
+		factory = PuzzleFactory(2, 1, 1)
+		puzzle = factory.creatPuzzleByMatrix(matrix)
+		knownPart = puzzle.knownPart()
+		knownFinding = KnownFinding(knownPart)
+		self.assertTrue(knownFinding.moreAccurateFound('GridRow_0', Finding({(0, 0)}, {1})))
+		self.assertFalse(knownFinding.moreAccurateFound('GridRow_0', Finding({(0, 1)}, {2})))
+		pass

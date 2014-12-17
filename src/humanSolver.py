@@ -62,7 +62,7 @@ class HumanSolver:
 		pass
 
 	def buildSolvingContextNewVersion(self, puzzle):
-		context = FinderContext(puzzle.possibilityMatrix())
+		context = FinderContext(puzzle.possibilityMatrix(), puzzle.knownPart())
 		context.register(self.observer)
 		return context
 
@@ -79,13 +79,16 @@ class HumanSolver:
 
 	def hint(self, puzzle):
 		context = self.buildSolvingContextNewVersion(puzzle)
+		print('possibilityMatrix')
+		print(context.matrix)
+		print(context.zoneFindingMap)
 		teller = SingleFinderTeller()
 		result = []
 		while True:
 			self.observer.clear()
 			updator, finder = self.loopSearch(context, self.finders)
 			updator.update(context)
-			if self.observer.isMatrixChanged():
+			if self.observer.isMatrixChanged() or teller.tellSingleFinder(finder):
 				result += [(updator, finder)]
 				if teller.tellSingleFinder(finder):break
 
@@ -487,8 +490,9 @@ class Scorer:
 		pass
 
 class KnownFinding:
-	def __init__(self):
+	def __init__(self, knownPartOfPuzzle):
 		self.zoneFindingMap = dict()
+		self.determinedPart = knownPartOfPuzzle
 		pass
 
 	def addKnownFinding(self, zoneID, finding):
@@ -499,16 +503,22 @@ class KnownFinding:
 		pass
 
 	def moreAccurateFound(self, zoneID, finding):
+		if (self.hasDetermined(finding)): return True
 		if zoneID not in self.zoneFindingMap: return False
 		existFindings = self.zoneFindingMap[zoneID]
 		for existFinding in existFindings:
 			if existFinding.moreAccurateThan(finding): return True
 		return False
 
+	def hasDetermined(self, finding):
+		for pos in finding.pos:
+			if pos in self.determinedPart: return True
+		return False
+
 class FinderContext(PossibilityMatrix, KnownFinding):
-	def __init__(self, matrix):
+	def __init__(self, matrix, puzzleKnownPart):
 		PossibilityMatrix.__init__(self, matrix)
-		KnownFinding.__init__(self)
+		KnownFinding.__init__(self, puzzleKnownPart)
 		pass
 
 class SingleFinderTeller:
