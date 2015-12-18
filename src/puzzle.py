@@ -291,10 +291,11 @@ class GridBlock(GridDirection):
 class PuzzleFactory:
 	def __init__(self, tableSize, blockWidth, blockHeight):
 		self.tableSize = tableSize
+		self.numberInPuzzle = range(1, tableSize+1);
 		self.bw = blockHeight
 		self.bh = blockHeight
 		self.validator = Validator()
-		self.candidatesGen = CandidatesGen(range(1, tableSize+1))
+		self.candidatesGen = CandidatesGen(self.numberInPuzzle)
 		self.permutator = PuzzleMatrixPermutator(tableSize, tableSize, blockHeight, blockWidth)
 
 	def creatPuzzleByMatrix(self, matrix):
@@ -335,7 +336,7 @@ class PuzzleFactory:
 		return Puzzle(self.tableBaseMatrix(), grid, self.validator, self.candidatesGen)
 
 	def tableBaseMatrix(self):
-		return PuzzleMatrix([[1, 2, 3, 4, 5, 6, 7, 8, 9]] + [[_]*self.tableSize for j in range(self.tableSize - 1)])
+		return PuzzleMatrix([list(self.numberInPuzzle)] + [[_]*self.tableSize for j in range(self.tableSize - 1)])
 
 	def createPuzzleMatrixByKnownPart(self, knownPart):
 		matrix = self.emptyMatrix()

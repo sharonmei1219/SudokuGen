@@ -284,6 +284,10 @@ class TestPuzzleFactory(unittest.TestCase):
 		self.assertEquals([['/', 1], [2, '/']], outputMatrix.matrix)
 		pass
 
+	def test_baseTable(self):
+		baseMatrix = self.factory.tableBaseMatrix()
+		self.assertEquals([[1, 2], ['/', '/']], baseMatrix.matrix)
+
 class TestPuzzleCompare(unittest.TestCase):
 	def setUp(self):
 		self.factory = PuzzleFactory(2, 1, 1)
