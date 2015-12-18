@@ -79,6 +79,9 @@ class HumanSolver:
 
 	def hint(self, puzzle):
 		context = self.buildSolvingContextNewVersion(puzzle)
+		print('possibilityMatrix')
+		print(context.matrix)
+		print(context.zoneFindingMap)
 		teller = SingleFinderTeller()
 		result = []
 		while True:

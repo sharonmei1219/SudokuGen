@@ -1,5 +1,5 @@
 import unittest
-from solutionCollector import * 
+from src.solutionCollector import * 
 from unittest.mock import MagicMock
 
 class MockObject:

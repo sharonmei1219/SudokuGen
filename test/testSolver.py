@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import call
-from solutionFinder import *
+from src.solutionFinder import *
 from puzzle import *
 from sudokuTableGen import *
 

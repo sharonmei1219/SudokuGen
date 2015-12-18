@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import call
-from quickSolutionFinder import *
-from puzzle import PuzzleFactory
-from puzzle import _
-from solutionCollector import SolutionCollectorWithoutMemory
-from solutionCollector import SolutionCollectorWithMemory
+from src.quickSolutionFinder import *
+from src.puzzle import PuzzleFactory
+from src.puzzle import _
+from src.solutionCollector import SolutionCollectorWithoutMemory
+from src.solutionCollector import SolutionCollectorWithMemory
 
 class MockObj:
 	pass
