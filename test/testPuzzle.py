@@ -2,8 +2,8 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import call
 from unittest.mock import ANY
-from src.puzzle import *
-from src.puzzle import _
+from puzzle import *
+from puzzle import _
 import random
 
 class MockObject:

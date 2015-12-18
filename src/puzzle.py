@@ -387,8 +387,10 @@ class PuzzleMatrixPermutator:
 		return columnPerm
 
 	def randomNumberPerm(self):
-		perm = self.genPerm(self.length, random.randint(0, self.length - 1))
+		perm = self.genPerm(self.length, random.randint(0, self.fact[-1]))
+		# perm = self.genPerm(self.length, random.randint(0, self.length - 1))
 		def numPerm(num):
+			print(perm)
 			return perm[num-1] + 1
 		return numPerm		
 
