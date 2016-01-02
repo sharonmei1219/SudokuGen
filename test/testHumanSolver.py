@@ -220,6 +220,16 @@ class TestPossibilityMatrix(unittest.TestCase):
 		observer.update.assert_called_once_with({1, 2}, {3, 4}, 0, 0)
 		pass
 
+	def testMostUncertainPosWithAllPosesDetermined(self):
+		pMatrix = PossibilityMatrix([[{1}, {2}], [{3}, {4}]])
+		self.assertEquals([], pMatrix.mostUncertainPoses())
+		pass	
+
+	def testMostUncertainPosWithOnePosHas2PossibilitiesAndRestDetermined(self):
+		pMatrix = PossibilityMatrix([[{1, 2}, {2}], [{3}, {4}]])
+		self.assertEquals([(0, 0)], pMatrix.mostUncertainPoses())
+		pass
+
 class TestNakedFinderUpdateItsResult(unittest.TestCase):
 
 	def testNakedFinderConstructUpdator(self):

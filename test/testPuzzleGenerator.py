@@ -157,21 +157,24 @@ class TestHoleDigger(unittest.TestCase):
 		self.assertEquals([(1, 1), (0, 0)], pos)
 
 	def test_integration(self):
-		tableGen = SudokuTableGenerator()
+		# tableGen = SudokuTableGenerator()
+		# tableGen = TableGenerator(5, 1)
 
-		# factory = PuzzleFactory(9, 3, 3)
+		# factory = PuzzleFactory(5, 1, 1)
 		# solutionFinder = QuickSolutionFinder()
 		# solver = QuickSolver(solutionFinder)
 		# puzzleGen = QuickPuzzleGenerator(factory, solver)
 		# digger = HoleDigger(puzzleGen)
 		# for i in range(1):
 		# 	table = tableGen.getTable()
-		# 	puzzle = digger.constructPuzzleWithOnlySolution(table, 20)
+		# 	puzzle = digger.constructPuzzleWithOnlySolution(table, 10)
 		# 	slow_solutionFinder = SolutionFinder()
 		# 	slow_solver = MultiSolutionSolver(slow_solutionFinder)
-		# hc = HumanSolver()
+		# hc = HumanSolver(Grid(5, 5, 1, 1))
 		# hc.solve(puzzle)
 		# self.assertEquals("sharon", puzzle.toString())
+		pass
+		
 
 	def test_readFromTemplateAndPermPuzzle(self):
 		factory = PuzzleFactory(9, 3, 3)

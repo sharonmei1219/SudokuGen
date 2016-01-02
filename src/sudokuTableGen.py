@@ -10,3 +10,14 @@ class SudokuTableGenerator:
 		solutionCollector = SolutionsCollector()
 		self.solver.solve(self.puzzleFactory.tableBase(), solutionCollector)
 		return solutionCollector.result()
+
+class TableGenerator:
+	def __init__(self, tableSize, blockSize):
+		self.puzzleFactory = RandomPuzzleFactory(tableSize, blockSize, blockSize)
+		self.solver = SolutionFinder()
+		pass
+		
+	def getTable(self):
+		solutionCollector = SolutionsCollector()
+		self.solver.solve(self.puzzleFactory.tableBase(), solutionCollector)
+		return solutionCollector.result()

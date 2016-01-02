@@ -1,4 +1,5 @@
 import json
+from functools import reduce
 class HumanSolver:
 	def __init__(self, grid):
 		self._grid = grid
@@ -172,6 +173,15 @@ class PossibilityMatrix:
 	def update(self, originPossibilities, updatedPossibilities, i, j):
 		for observer in self.observers:
 			observer.update(originPossibilities, updatedPossibilities, i, j)
+		pass
+
+	def mostUncertainPoses(self):
+		theMax = max([len(self.matrix[i][j]) for (i, j) in self.allPositions()])
+		if theMax is 1:
+			return []
+		else:
+			posWithMostPossibilities = [(i,j) for (i, j) in self.allPositions() if len(self.matrix[i][j]) == theMax] 
+			return posWithMostPossibilities
 		pass
 
 class Finding:
