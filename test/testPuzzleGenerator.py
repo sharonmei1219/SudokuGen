@@ -157,7 +157,7 @@ class TestHoleDigger(unittest.TestCase):
 		self.assertEquals([(1, 1), (0, 0)], pos)
 
 	def test_integration(self):
-		# tableGen = SudokuTableGenerator()
+		tableGen = SudokuTableGenerator()
 		# tableGen = TableGenerator(5, 1)
 
 		# factory = PuzzleFactory(5, 1, 1)
