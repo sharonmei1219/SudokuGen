@@ -377,24 +377,18 @@ class PuzzleMatrixPermutator:
 
 	def randomRowPerm(self):
 		perm = self.randPermOfSubgroupsAndItemsWithinGroup(self.tableHeight, self.blockHeight)
-		print('rowPerm')
-		print(perm)
 		def rowPerm(index):
 			return perm[index]
 		return rowPerm
 
 	def randomColumnPerm(self):
 		perm = self.randPermOfSubgroupsAndItemsWithinGroup(self.tableWidth, self.blockWidth)
-		print('columnPerm')
-		print(perm)
 		def columnPerm(index):
 			return perm[index]
 		return columnPerm
 
 	def randomNumberPerm(self):
 		perm = self.genPerm(self.length, random.randint(0, self.fact[self.length] - 1))
-		print('numberPerm')
-		print(perm)
 		def numPerm(num):
 			return perm[num-1] + 1
 		return numPerm		
@@ -416,6 +410,6 @@ class PuzzleMatrixPermutator:
 
 	def randPermOfSubgroupsAndItemsWithinGroup(self, totalLen, blockLen):
 		numOfBlock = totalLen // blockLen
-		subGroupPermutation = self.genPerm(numOfBlock, random.randint(0, numOfBlock - 1))
+		subGroupPermutation = self.genPerm(numOfBlock, random.randint(0, self.fact[numOfBlock] - 1))
 		itemPermutationWithinSubGroup = [self.genPerm(blockLen, random.randint(0, blockLen - 1)) for i in range(numOfBlock)]
 		return self.joinSubGroupPermAndItemPermWithinSubGroup(subGroupPermutation, itemPermutationWithinSubGroup)
