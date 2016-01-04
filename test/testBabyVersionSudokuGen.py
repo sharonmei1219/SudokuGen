@@ -14,9 +14,12 @@ class TestBabyVersionSudokuGen(unittest.TestCase):
 		pass
 
 	def testPerm5Times5Table(self):
-		factory = PuzzleFactory(5, 1, 1)
-		tableGen = TableGenerator(5, 1)
-		table = tableGen.getTable()
-		table = factory.permPuzzleMatrix(table.puzzleMatrix)
+		for i in range(5):
+			factory = PuzzleFactory(9, 1, 1)
+			tableGen = TableGenerator(9, 1)
+			table = tableGen.getTable()
+			table = factory.permPuzzleMatrix(table.puzzleMatrix)
+			print(table.toString())
 		self.assertEqual('sharon', table.toString())
+
 		pass

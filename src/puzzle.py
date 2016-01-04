@@ -365,7 +365,7 @@ class PuzzleMatrixPermutator:
 		self.blockWidth = blockWidth
 		self.fact = [1]
 		self.length = max(tableHeight, tableWidth)
-		for i in range(1, self.length):
+		for i in range(1, self.length + 1):
 			self.fact += [self.fact[i - 1] * i]
 		pass
 	
@@ -377,18 +377,24 @@ class PuzzleMatrixPermutator:
 
 	def randomRowPerm(self):
 		perm = self.randPermOfSubgroupsAndItemsWithinGroup(self.tableHeight, self.blockHeight)
+		print('rowPerm')
+		print(perm)
 		def rowPerm(index):
 			return perm[index]
 		return rowPerm
 
 	def randomColumnPerm(self):
 		perm = self.randPermOfSubgroupsAndItemsWithinGroup(self.tableWidth, self.blockWidth)
+		print('columnPerm')
+		print(perm)
 		def columnPerm(index):
 			return perm[index]
 		return columnPerm
 
 	def randomNumberPerm(self):
-		perm = self.genPerm(self.length, random.randint(0, self.length - 1))
+		perm = self.genPerm(self.length, random.randint(0, self.fact[self.length] - 1))
+		print('numberPerm')
+		print(perm)
 		def numPerm(num):
 			return perm[num-1] + 1
 		return numPerm		
